@@ -79,13 +79,14 @@ class DuckLakeService:
     def catalog(self) -> list[dict[str, object]]:
         self.bootstrap()
         with self.connection() as con:
-            rows = con.execute("""
-                SELECT table_schema, table_name, table_type
-                FROM contoso.information_schema.tables
-                WHERE table_schema IN ('bronze','silver','gold')
-                ORDER BY table_schema, table_name
-            """).fetchall()
-        return [{"schema": s, "name": n, "type": t} for s, n, t in rows]
+            rows = con.execute("SHOW ALL TABLES").fetchall()
+
+        tables = [
+            {"schema": row[1], "name": row[2], "type": "BASE TABLE"}
+            for row in rows
+            if row[0] == "contoso" and row[1] in {"bronze", "silver", "gold"}
+        ]
+        return sorted(tables, key=lambda item: (str(item["schema"]), str(item["name"])))
 
     def query(self, sql: str, limit: int):
         statement = sql.strip()
