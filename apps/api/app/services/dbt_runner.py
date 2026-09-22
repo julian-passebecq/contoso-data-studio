@@ -135,6 +135,104 @@ class DbtService:
             "edges": edges,
         }
 
+    def node_detail(self, unique_id: str) -> dict[str, Any]:
+        manifest = self._read_manifest()
+        if manifest is None:
+            raise ValueError("dbt manifest is not available. Run dbt Parse or Build first.")
+
+        nodes = manifest.get("nodes", {})
+        sources = manifest.get("sources", {})
+        node = nodes.get(unique_id) or sources.get(unique_id)
+        if not isinstance(node, dict):
+            raise ValueError(f"Unknown dbt node: {unique_id}")
+
+        resource_type = "source" if unique_id.startswith("source.") else "model"
+        layer, name = self._layer_for_dependency(unique_id, manifest)
+        config = node.get("config") or {}
+        original_file_path = str(node.get("original_file_path") or "")
+        source_code: str | None = None
+
+        if original_file_path:
+            candidate = (self.settings.dbt_path / original_file_path).resolve()
+            project_root = self.settings.dbt_path.resolve()
+            if candidate.is_relative_to(project_root) and candidate.is_file():
+                try:
+                    source_code = candidate.read_text(encoding="utf-8")
+                except OSError:
+                    source_code = None
+
+        raw_code = node.get("raw_code")
+        if source_code is None and isinstance(raw_code, str):
+            source_code = raw_code
+
+        compiled_code = node.get("compiled_code")
+        if not isinstance(compiled_code, str) or not compiled_code.strip():
+            compiled_code = None
+
+        dependencies = [
+            str(item)
+            for item in node.get("depends_on", {}).get("nodes", [])
+            if str(item) in nodes or str(item) in sources
+        ]
+        downstream: list[str] = []
+        for candidate_id, candidate_node in nodes.items():
+            candidate_dependencies = candidate_node.get("depends_on", {}).get("nodes", [])
+            if unique_id in candidate_dependencies:
+                downstream.append(str(candidate_id))
+
+        def describe(item_id: str) -> dict[str, Any]:
+            item = nodes.get(item_id) or sources.get(item_id) or {}
+            item_layer, item_name = self._layer_for_dependency(item_id, manifest)
+            return {
+                "id": item_id,
+                "name": item_name,
+                "layer": item_layer,
+                "resource_type": "source" if item_id.startswith("source.") else "model",
+            }
+
+        quality = self.quality()
+        tests = [
+            test
+            for test in quality.get("tests", [])
+            if test.get("layer") == layer and test.get("model") == name
+        ]
+
+        columns = []
+        for column_name, column in (node.get("columns") or {}).items():
+            column_data = column if isinstance(column, dict) else {}
+            columns.append({
+                "name": str(column_name),
+                "description": column_data.get("description"),
+                "data_type": column_data.get("data_type"),
+            })
+
+        schema = node.get("schema")
+        database = node.get("database")
+        relation_name = node.get("relation_name")
+        materialized = "source" if resource_type == "source" else str(config.get("materialized") or "model")
+        physical_query = None
+        if layer in {"bronze", "silver", "gold"}:
+            physical_query = f"select * from contoso.{layer}.{name} limit 100;"
+
+        return {
+            "id": unique_id,
+            "name": name,
+            "resource_type": resource_type,
+            "layer": layer,
+            "path": original_file_path,
+            "schema": schema,
+            "database": database,
+            "relation_name": relation_name,
+            "materialized": materialized,
+            "source_code": source_code,
+            "compiled_code": compiled_code,
+            "physical_query": physical_query,
+            "upstream": [describe(item_id) for item_id in dependencies],
+            "downstream": [describe(item_id) for item_id in sorted(downstream)],
+            "tests": tests,
+            "columns": columns,
+        }
+
     def quality(self) -> dict[str, Any]:
         run_results_path = self.settings.dbt_path / "target" / "run_results.json"
         manifest = self._read_manifest()
