@@ -37,20 +37,21 @@ class DuckLakeService:
         return value
 
     @staticmethod
-    def _load_ducklake(con: duckdb.DuckDBPyConnection) -> None:
-        try:
-            con.execute("LOAD ducklake")
-        except duckdb.Error:
-            con.execute("INSTALL ducklake")
-            con.execute("LOAD ducklake")
+    def _load_extensions(con: duckdb.DuckDBPyConnection) -> None:
+        for extension in ("ducklake", "sqlite"):
+            try:
+                con.execute(f"LOAD {extension}")
+            except duckdb.Error:
+                con.execute(f"INSTALL {extension}")
+                con.execute(f"LOAD {extension}")
 
     @contextmanager
     def connection(self) -> Iterator[duckdb.DuckDBPyConnection]:
         con = duckdb.connect(":memory:")
         try:
-            self._load_ducklake(con)
+            self._load_extensions(con)
             con.execute(
-                f"ATTACH 'ducklake:{self._quote(self.settings.catalog_path)}' AS contoso "
+                f"ATTACH 'ducklake:sqlite:{self._quote(self.settings.catalog_path)}' AS contoso "
                 f"(DATA_PATH '{self._quote(self.settings.data_path)}')"
             )
             yield con
