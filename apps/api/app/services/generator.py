@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -52,6 +53,14 @@ class GeneratorService:
     def _sql_path(path: Path) -> str:
         return path.as_posix().replace("'", "''")
 
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
     def _run_directory(self, run_id: str) -> Path:
         if not run_id or run_id in {".", ".."} or Path(run_id).name != run_id:
             raise ValueError("Invalid run id")
@@ -74,7 +83,11 @@ class GeneratorService:
             raise ValueError("Run manifest id does not match its directory")
         return payload
 
-    def run_files(self, run_id: str) -> dict[str, Path]:
+    def run_files(
+        self,
+        run_id: str,
+        verify_hashes: bool = False,
+    ) -> dict[str, Path]:
         directory = self._run_directory(run_id)
         payload = self._load_manifest(run_id)
         declared = payload.get("files")
@@ -85,6 +98,9 @@ class GeneratorService:
         missing = set(expected) - set(map(str, declared.keys()))
         if missing:
             raise ValueError(f"Run is missing files: {', '.join(sorted(missing))}")
+
+        hashes = payload.get("file_sha256")
+        tracked_hashes = hashes if isinstance(hashes, dict) else {}
 
         resolved: dict[str, Path] = {}
         for name in expected:
@@ -101,6 +117,11 @@ class GeneratorService:
                 raise ValueError(f"Run file does not exist: {name}")
             if candidate.suffix.lower() != ".parquet":
                 raise ValueError(f"Run file must be Parquet: {name}")
+            expected_hash = tracked_hashes.get(name)
+            if verify_hashes and isinstance(expected_hash, str) and expected_hash:
+                actual_hash = self._sha256(candidate)
+                if actual_hash != expected_hash:
+                    raise ValueError(f"Run file hash mismatch: {name}")
             resolved[name] = candidate
         return resolved
 
@@ -129,11 +150,14 @@ class GeneratorService:
         payload = self._load_manifest(run_id)
         files = self.run_files(run_id)
         directory = self._run_directory(run_id)
+        payload_hashes = payload.get("file_sha256")
+        hashes = payload_hashes if isinstance(payload_hashes, dict) else {}
         public_files = {
             name: {
                 "name": path.name,
                 "path": path.relative_to(self.settings.workspace.resolve()).as_posix(),
                 "size_bytes": path.stat().st_size,
+                "sha256": hashes.get(name) if isinstance(hashes.get(name), str) else None,
             }
             for name, path in sorted(files.items())
         }
@@ -152,6 +176,10 @@ class GeneratorService:
                 and self._active_run_id_only() == run_id
             ),
             "active_snapshot_id": self._active_snapshot_id_only(run_id),
+            "integrity_tracked": all(
+                isinstance(hashes.get(name), str) and bool(hashes.get(name))
+                for name in ("customer", "product", "store", "currency_exchange", "sales")
+            ),
             "files": public_files,
             "run_path": directory.relative_to(self.settings.workspace.resolve()).as_posix(),
         }
@@ -425,6 +453,11 @@ class GeneratorService:
         finally:
             con.close()
 
+        file_sha256 = {
+            name: self._sha256(path)
+            for name, path in files.items()
+        }
+
         manifest = {
             "run_id": run_id,
             "scenario": scenario,
@@ -434,6 +467,7 @@ class GeneratorService:
             "scale": scale,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "files": {key: str(value) for key, value in files.items()},
+            "file_sha256": file_sha256,
             "row_counts": {
                 "customer": customers,
                 "product": products,
