@@ -233,6 +233,14 @@ def dbt_status():
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/dbt/lineage")
+def dbt_lineage():
+    try:
+        return dbt.lineage()
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.get("/api/dbt/quality")
 def dbt_quality():
     try:
