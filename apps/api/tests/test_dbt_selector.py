@@ -40,3 +40,11 @@ def test_selected_model_run_rejects_unknown_selector(tmp_path: Path, monkeypatch
 
     with pytest.raises(ValueError, match="Unknown dbt model selector"):
         service.run("test", "missing_model")
+
+
+def test_parse_rejects_model_selector(tmp_path: Path, monkeypatch):
+    service = _service(tmp_path, monkeypatch)
+    monkeypatch.setattr("app.services.dbt_runner.shutil.which", lambda _: "/usr/bin/dbt")
+
+    with pytest.raises(ValueError, match="does not accept a model selector"):
+        service.run("parse", "stg_sales")
