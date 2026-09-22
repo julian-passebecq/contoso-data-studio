@@ -4,7 +4,7 @@ import { getJson, postBinary } from "../api";
 import DataTable from "../components/DataTable";
 import type { InspectResult, WorkspaceFile } from "../types";
 
-type Tab = "Data"|"Schema"|"Metadata";
+type Tab = "Data"|"Profile"|"Schema"|"Metadata";
 
 function prettyBytes(bytes:number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -101,9 +101,10 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
       {error && <div className="errorText">{error}</div>}
       {inspect && <>
         <div className="tabStrip">
-          {(["Data","Schema","Metadata"] as Tab[]).map(name=><button className={tab===name?"selected":""} key={name} onClick={()=>setTab(name)}>{name}</button>)}
+          {(["Data","Profile","Schema","Metadata"] as Tab[]).map(name=><button className={tab===name?"selected":""} key={name} onClick={()=>setTab(name)}>{name}</button>)}
         </div>
         {tab==="Data" && <DataTable columns={inspect.columns} rows={inspect.rows}/>}
+        {tab==="Profile" && <DataTable columns={inspect.profile.columns} rows={inspect.profile.rows}/>}
         {tab==="Schema" && <DataTable columns={["Column","Type","Nullable"]} rows={inspect.schema.map(c=>[c.name,c.type,c.nullable])}/>}
         {tab==="Metadata" && <div className="metadataStack">
           <DataTable columns={["Property","Value"]} rows={metadataRows}/>
