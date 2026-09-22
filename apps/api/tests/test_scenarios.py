@@ -152,6 +152,9 @@ def test_run_detail_and_files_are_reproducible(tmp_path: Path):
     assert detail["row_counts"]["sales"] == 500
     assert set(files) == {"customer", "product", "store", "currency_exchange", "sales"}
     assert all(path.exists() for path in files.values())
+    assert detail["integrity_tracked"] is True
+    assert all(file_info["sha256"] for file_info in detail["files"].values())
+    service.run_files(str(manifest["run_id"]), verify_hashes=True)
     assert all(
         str(file_info["path"]).startswith("staging/")
         for file_info in detail["files"].values()
@@ -211,3 +214,18 @@ def test_mark_bronze_loaded_tracks_active_run_and_snapshot(tmp_path: Path):
     active_rows = [run for run in ledger if run["is_active"]]
     assert len(active_rows) == 1
     assert active_rows[0]["run_id"] == second["run_id"]
+
+
+
+def test_run_hash_verification_rejects_tampered_parquet(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    manifest = service.generate("retail-baseline", 500, 42)
+    run_id = str(manifest["run_id"])
+    sales = service.run_files(run_id)["sales"]
+
+    with sales.open("ab") as handle:
+        handle.write(b"tampered")
+
+    with pytest.raises(ValueError, match="hash mismatch: sales"):
+        service.run_files(run_id, verify_hashes=True)
