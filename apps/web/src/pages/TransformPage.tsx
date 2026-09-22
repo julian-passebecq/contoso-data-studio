@@ -327,9 +327,13 @@ export default function TransformPage({
         </div>}
 
         {workbenchTab==="Compiled" && <div className="codeWorkbench">
-          {nodeDetail.compiled_code
-            ? <pre>{nodeDetail.compiled_code}</pre>
-            : <div className="qualityEmpty">Compiled SQL is unavailable. Run dbt Build, then refresh the node.</div>}
+          {nodeDetail.compiled_code ? <>
+            <div className="codeWorkbenchToolbar">
+              <Text className="muted tiny">dbt compiled SQL</Text>
+              <Button size="small" onClick={()=>onOpenQuery(nodeDetail.compiled_code!)}>Run compiled SQL</Button>
+            </div>
+            <pre>{nodeDetail.compiled_code}</pre>
+          </> : <div className="qualityEmpty">Compiled SQL is unavailable. Run dbt Build, then refresh the node.</div>}
         </div>}
 
         {workbenchTab==="Lineage" && <div className="nodeLineage">
