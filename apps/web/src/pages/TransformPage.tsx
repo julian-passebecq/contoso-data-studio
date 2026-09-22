@@ -111,7 +111,7 @@ export default function TransformPage({
       setRun(result);
       await refresh();
       if (selector && selectedNodeId) await loadNode(selectedNodeId);
-      if (result.ok) onBuilt();
+      if (result.ok && command==="build") onBuilt();
     } catch (err) {
       setError(err instanceof Error ? err.message : `dbt ${command} failed.`);
     } finally {
