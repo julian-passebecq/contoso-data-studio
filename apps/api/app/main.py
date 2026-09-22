@@ -309,6 +309,16 @@ def dbt_run(
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/charts/board")
+def charts_board(board: str = Query(default="executive-sales.yml", min_length=1, max_length=300)):
+    try:
+        return charts.board(board)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.get("/api/charts/status")
 def charts_status():
     try:
