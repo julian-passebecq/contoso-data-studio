@@ -1,3 +1,4 @@
+import subprocess
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
