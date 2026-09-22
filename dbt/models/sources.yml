@@ -1,4 +1,5 @@
 version: 2
+
 sources:
   - name: bronze
     database: contoso
@@ -7,4 +8,5 @@ sources:
       - name: customer
       - name: product
       - name: store
+      - name: currency_exchange
       - name: sales
