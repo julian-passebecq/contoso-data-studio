@@ -194,9 +194,12 @@ class DbtService:
         ]
         downstream: list[str] = []
         for candidate_id, candidate_node in nodes.items():
+            candidate_id_text = str(candidate_id)
+            if not candidate_id_text.startswith("model."):
+                continue
             candidate_dependencies = candidate_node.get("depends_on", {}).get("nodes", [])
             if unique_id in candidate_dependencies:
-                downstream.append(str(candidate_id))
+                downstream.append(candidate_id_text)
 
         def describe(item_id: str) -> dict[str, Any]:
             item = nodes.get(item_id) or sources.get(item_id) or {}
