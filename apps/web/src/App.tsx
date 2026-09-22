@@ -11,6 +11,7 @@ import {
 } from "@fluentui/react-icons";
 
 import { getJson } from "./api";
+import ChartsPage from "./pages/ChartsPage";
 import ExplorePage from "./pages/ExplorePage";
 import GeneratePage from "./pages/GeneratePage";
 import LakehousePage from "./pages/LakehousePage";
@@ -55,6 +56,7 @@ export default function App() {
     if (page==="Transform") return <TransformPage onBuilt={onDbtBuilt}/>;
     if (page==="Query") return <QueryPage initialSql={querySeed}/>;
     if (page==="Explore") return <ExplorePage onOpenQuery={openQuery}/>;
+    if (page==="Charts") return <ChartsPage/>;
     return <Card>
       <CardHeader header={<Title3>{page}</Title3>}/>
       <Text>This module is next in the build sequence. It will use the same local DuckLake workspace and run history.</Text>
