@@ -1,59 +1,127 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 
 import { getJson } from "../api";
-import type { CatalogTable } from "../types";
+import type {
+  CatalogTable,
+  DbtLineage,
+  DbtLineageNode,
+  GenerationRunDetail,
+} from "../types";
 import "../canvas.css";
+
+type CanvasNode = {
+  id:string;
+  label:string;
+  kind:string;
+  query?:string;
+  upstream?:string[];
+};
 
 type Column = {
   id:string;
   title:string;
   subtitle:string;
-  nodes:Array<{id:string;label:string;kind:string;query?:string}>;
+  nodes:CanvasNode[];
 };
 
 export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void}) {
   const [catalog,setCatalog] = useState<CatalogTable[]>([]);
-  const [note,setNote] = useState(()=>localStorage.getItem("contoso-canvas-note") ?? "Retail baseline → Gold KPIs");
+  const [lineage,setLineage] = useState<DbtLineage|null>(null);
+  const [activeRun,setActiveRun] = useState<GenerationRunDetail|null>(null);
+  const [note,setNote] = useState(()=>localStorage.getItem("contoso-canvas-note") ?? "Active scenario → Bronze → dbt → Gold KPIs");
   const [saved,setSaved] = useState(false);
 
   useEffect(()=>{
-    getJson<{tables:CatalogTable[]}>("/api/lakehouse/catalog").then(data=>setCatalog(data.tables)).catch(()=>{});
+    void (async()=>{
+      const [catalogResult,lineageResult,activeResult]=await Promise.allSettled([
+        getJson<{tables:CatalogTable[]}>("/api/lakehouse/catalog"),
+        getJson<DbtLineage>("/api/dbt/lineage"),
+        getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run"),
+      ]);
+      if (catalogResult.status==="fulfilled") setCatalog(catalogResult.value.tables);
+      if (lineageResult.status==="fulfilled") setLineage(lineageResult.value);
+      if (activeResult.status==="fulfilled") setActiveRun(activeResult.value.run);
+    })();
   },[]);
 
-  const tableNodes = (schema:string) => catalog
-    .filter(table=>table.schema===schema)
-    .map(table=>({
-      id:`${schema}.${table.name}`,
-      label:table.name,
-      kind:table.type,
-      query:`select * from contoso.${schema}.${table.name} limit 100;`,
-    }));
+  const catalogKeys = useMemo(
+    ()=>new Set(catalog.map(table=>`${table.schema}.${table.name}`)),
+    [catalog],
+  );
+  const lineageNodeById = useMemo(
+    ()=>new Map((lineage?.nodes ?? []).map(node=>[node.id,node])),
+    [lineage],
+  );
+
+  function queryFor(node:DbtLineageNode) {
+    if (!["bronze","silver","gold"].includes(node.layer)) return undefined;
+    if (!catalogKeys.has(`${node.layer}.${node.name}`)) return undefined;
+    return `select * from contoso.${node.layer}.${node.name} limit 100;`;
+  }
+
+  function upstreamFor(nodeId:string) {
+    return (lineage?.edges ?? [])
+      .filter(edge=>edge.target===nodeId)
+      .map(edge=>lineageNodeById.get(edge.source)?.name ?? edge.source);
+  }
+
+  function manifestNodes(layer:string):CanvasNode[] {
+    return (lineage?.nodes ?? [])
+      .filter(node=>node.layer===layer)
+      .map(node=>({
+        id:node.id,
+        label:node.name,
+        kind:node.resource_type==="source" ? "dbt source" : `dbt ${node.materialized}`,
+        query:queryFor(node),
+        upstream:upstreamFor(node.id),
+      }));
+  }
+
+  function catalogNodes(schema:string):CanvasNode[] {
+    return catalog
+      .filter(table=>table.schema===schema)
+      .map(table=>({
+        id:`${schema}.${table.name}`,
+        label:table.name,
+        kind:table.type,
+        query:`select * from contoso.${schema}.${table.name} limit 100;`,
+      }));
+  }
+
+  function nodesFor(layer:string) {
+    const fromManifest=manifestNodes(layer);
+    return fromManifest.length ? fromManifest : catalogNodes(layer);
+  }
 
   const columns:Column[] = [
     {
       id:"generate",
       title:"Generate",
-      subtitle:"Scenario + seed",
-      nodes:[{id:"retail-baseline",label:"retail-baseline",kind:"scenario"}],
+      subtitle:"Active persisted scenario",
+      nodes:activeRun ? [{
+        id:activeRun.run_id,
+        label:activeRun.scenario ?? activeRun.scenario_name ?? "scenario",
+        kind:`seed ${activeRun.seed ?? "—"} · ${(activeRun.scale ?? 0).toLocaleString()} sales`,
+      }] : [],
     },
     {
       id:"bronze",
       title:"Bronze",
-      subtitle:"Source-shaped DuckLake",
-      nodes:tableNodes("bronze"),
+      subtitle:"DuckLake sources",
+      nodes:nodesFor("bronze"),
     },
     {
       id:"silver",
       title:"Silver",
-      subtitle:"Clean reusable models",
-      nodes:tableNodes("silver"),
+      subtitle:"dbt staging / reusable models",
+      nodes:nodesFor("silver"),
     },
     {
       id:"gold",
       title:"Gold",
-      subtitle:"Business marts / KPIs",
-      nodes:tableNodes("gold"),
+      subtitle:"dbt business marts / KPIs",
+      nodes:nodesFor("gold"),
     },
     {
       id:"outputs",
@@ -76,8 +144,13 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
     <Card>
       <CardHeader
         header={<Title3>Lineage canvas</Title3>}
-        description="Domain-specific whiteboard generated from the local DuckLake catalog"
-        action={<Badge appearance="outline">{catalog.length} catalog nodes</Badge>}
+        description={lineage?.generated_at
+          ? `dbt manifest · ${lineage.nodes.length} nodes · ${lineage.edges.length} dependencies`
+          : "DuckLake catalog fallback — run dbt Parse/Build for manifest lineage"}
+        action={<div className="buttonRow">
+          {activeRun?.is_active && <Badge appearance="outline" color="success">Active Bronze #{activeRun.active_snapshot_id ?? "—"}</Badge>}
+          <Badge appearance="outline">{catalog.length} physical tables</Badge>
+        </div>}
       />
       <div className="canvasBoard">
         {columns.map((column,index)=><div className="canvasStageWrap" key={column.id}>
@@ -89,9 +162,11 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
                 key={node.id}
                 disabled={!node.query}
                 onClick={()=>node.query && onOpenQuery(node.query)}
-                title={node.query ? "Open this table in Query" : node.kind}
+                title={node.query ? "Open this physical table in Query" : node.kind}
               >
-                <span>{node.label}</span><small>{node.kind}</small>
+                <span>{node.label}</span>
+                <small>{node.kind}</small>
+                {node.upstream && node.upstream.length>0 && <em>← {node.upstream.join(", ")}</em>}
               </button>)}
               {!column.nodes.length && <div className="canvasEmpty">Run the previous stage</div>}
             </div>
@@ -99,6 +174,19 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
           {index<columns.length-1 && <div className="canvasConnector">→</div>}
         </div>)}
       </div>
+
+      {lineage && lineage.edges.length>0 && <div className="manifestEdges">
+        <Text className="muted tiny">MANIFEST DEPENDENCIES</Text>
+        <div>
+          {lineage.edges.map(edge=>{
+            const source=lineageNodeById.get(edge.source);
+            const target=lineageNodeById.get(edge.target);
+            return <code key={`${edge.source}->${edge.target}`}>
+              {source?.name ?? edge.source} → {target?.name ?? edge.target}
+            </code>;
+          })}
+        </div>
+      </div>}
     </Card>
 
     <Card className="canvasNoteCard">
