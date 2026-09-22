@@ -256,6 +256,25 @@ class ExplorerService:
                             ORDER BY path_in_schema"""
                     ).fetchall()
                 ]
+                metadata["row_groups"] = [
+                    {
+                        "row_group": r[0],
+                        "rows": r[1],
+                        "columns": r[2],
+                        "compressed_bytes": r[3],
+                        "uncompressed_bytes": r[4],
+                    }
+                    for r in con.execute(
+                        f"""SELECT row_group_id,
+                                   max(row_group_num_rows),
+                                   count(DISTINCT column_id),
+                                   sum(total_compressed_size),
+                                   sum(total_uncompressed_size)
+                            FROM parquet_metadata('{self._quote(path)}')
+                            GROUP BY row_group_id
+                            ORDER BY row_group_id"""
+                    ).fetchall()
+                ]
 
             raw_text = None
             raw_truncated = False
