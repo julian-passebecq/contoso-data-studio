@@ -17,6 +17,58 @@ FORBIDDEN_SQL = re.compile(
 )
 
 
+def _policy_sql(sql: str) -> str:
+    """Return SQL with literals, quoted identifiers and comments blanked for policy checks."""
+    out: list[str] = []
+    i = 0
+    n = len(sql)
+    while i < n:
+        ch = sql[i]
+        nxt = sql[i + 1] if i + 1 < n else ""
+
+        if ch == "-" and nxt == "-":
+            out.extend("  ")
+            i += 2
+            while i < n and sql[i] not in "\r\n":
+                out.append(" ")
+                i += 1
+            continue
+
+        if ch == "/" and nxt == "*":
+            out.extend("  ")
+            i += 2
+            while i < n:
+                if sql[i] == "*" and i + 1 < n and sql[i + 1] == "/":
+                    out.extend("  ")
+                    i += 2
+                    break
+                out.append("\n" if sql[i] == "\n" else " ")
+                i += 1
+            continue
+
+        if ch in {"'", '"'}:
+            quote = ch
+            out.append(" ")
+            i += 1
+            while i < n:
+                if sql[i] == quote:
+                    if i + 1 < n and sql[i + 1] == quote:
+                        out.extend("  ")
+                        i += 2
+                        continue
+                    out.append(" ")
+                    i += 1
+                    break
+                out.append("\n" if sql[i] == "\n" else " ")
+                i += 1
+            continue
+
+        out.append(ch)
+        i += 1
+
+    return "".join(out)
+
+
 class DuckLakeService:
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -176,13 +228,14 @@ class DuckLakeService:
             statement = statement[:-1].rstrip()
         if not statement:
             raise ValueError("SQL is empty")
-        if ";" in statement:
+        policy_sql = _policy_sql(statement)
+        if ";" in policy_sql:
             raise ValueError("Only one SQL statement can be executed at a time")
 
         first = statement.lstrip().split(None, 1)[0].lower()
         if first not in {"select", "with", "show", "describe", "explain"}:
             raise ValueError("Only read-only SQL is accepted")
-        if FORBIDDEN_SQL.search(statement):
+        if FORBIDDEN_SQL.search(policy_sql):
             raise ValueError("Mutating or administrative SQL is not allowed in the Query workbench")
 
         with self.connection(read_only=True) as con:
