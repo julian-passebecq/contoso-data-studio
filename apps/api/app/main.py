@@ -62,7 +62,8 @@ def reload_run(run_id: str):
     try:
         run = generator.get_run(run_id)
         before = ducklake.snapshots(1)
-        ducklake.load_parquet_to_bronze(generator.run_files(run_id))
+        run_files = generator.run_files(run_id, verify_hashes=True)
+        ducklake.load_parquet_to_bronze(run_files)
         after = ducklake.snapshots(1)
         snapshot_id = int(after[0]["snapshot_id"]) if after else None
         generator.mark_bronze_loaded(run_id, snapshot_id)
@@ -71,6 +72,7 @@ def reload_run(run_id: str):
             "bronze_loaded": True,
             "previous_snapshot_id": int(before[0]["snapshot_id"]) if before else None,
             "snapshot_id": snapshot_id,
+            "integrity_verified": bool(generator.get_run(run_id).get("integrity_tracked")),
         }
     except ValueError as exc:
         raise HTTPException(400, detail=str(exc)) from exc
