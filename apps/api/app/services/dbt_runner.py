@@ -97,7 +97,8 @@ class DbtService:
 
             node = manifest.get("nodes", {}).get(unique_id, {})
             dependencies = node.get("depends_on", {}).get("nodes", [])
-            dependency_id = next(
+            attached_node = node.get("attached_node")
+            dependency_id = attached_node or next(
                 (
                     item for item in dependencies
                     if str(item).startswith(("model.", "source."))
