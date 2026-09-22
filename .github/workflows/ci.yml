@@ -39,6 +39,25 @@ jobs:
           DuckLakeService(settings).load_parquet_to_bronze(files)
           print(manifest["run_id"])
           PY
+      - name: Inspect persisted DuckLake metadata
+        run: |
+          python - <<'PY'
+          import sqlite3
+          from app.config import Settings
+
+          settings = Settings.load()
+          assert settings.catalog_path.exists(), f"Missing metadata file: {settings.catalog_path}"
+          print("catalog", settings.catalog_path, settings.catalog_path.stat().st_size, "bytes")
+          with sqlite3.connect(settings.catalog_path) as con:
+              names = [row[0] for row in con.execute(
+                  "select name from sqlite_master where type='table' order by name"
+              )]
+              print("metadata tables", names)
+              assert "ducklake_table" in names
+              count = con.execute("select count(*) from ducklake_table").fetchone()[0]
+              print("ducklake_table rows", count)
+              assert count >= 5
+          PY
       - name: Verify Bronze persists across processes
         run: |
           python - <<'PY'
