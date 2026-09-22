@@ -53,3 +53,16 @@ def test_inspect_profiles_csv_columns(tmp_path: Path):
     profile = {row[0]: row for row in profile_result["rows"]}
     assert profile["category"][4] == 2
     assert profile["value"][11] != "0.00%"
+
+
+def test_json_inspection_exposes_raw_preview(tmp_path: Path):
+    service = ExplorerService(Settings(workspace=tmp_path))
+    payload = b'{"id":1,"name":"alpha"}\n{"id":2,"name":"beta"}\n'
+    imported = service.import_file("sample.ndjson", payload)
+
+    result = service.inspect(imported["path"], limit=10)
+
+    assert result["metadata"]["format"] == "NDJSON"
+    assert result["raw_text"] == payload.decode("utf-8")
+    assert result["raw_truncated"] is False
+    assert result["columns"] == ["id", "name"]
