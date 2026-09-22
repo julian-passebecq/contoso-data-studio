@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 import { getJson, postBinary } from "../api";
 import DataTable from "../components/DataTable";
-import type { InspectResult, WorkspaceFile } from "../types";
+import type { FileProfile, InspectResult, WorkspaceFile } from "../types";
 
 type Tab = "Data"|"Profile"|"Schema"|"Metadata";
 
@@ -16,6 +16,8 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
   const [files,setFiles] = useState<WorkspaceFile[]>([]);
   const [selected,setSelected] = useState("");
   const [inspect,setInspect] = useState<InspectResult|null>(null);
+  const [profile,setProfile] = useState<FileProfile|null>(null);
+  const [profiling,setProfiling] = useState(false);
   const [tab,setTab] = useState<Tab>("Data");
   const [error,setError] = useState("");
   const [importing,setImporting] = useState(false);
@@ -32,12 +34,34 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
 
   useEffect(()=>{ void loadFiles(); },[]);
   useEffect(()=>{
-    if (!selected) { setInspect(null); return; }
-    setInspect(null); setError("");
+    if (!selected) { setInspect(null); setProfile(null); return; }
+    setInspect(null); setProfile(null); setTab("Data"); setError("");
     getJson<InspectResult>(`/api/explore/inspect?path=${encodeURIComponent(selected)}&limit=200`)
       .then(setInspect)
       .catch(err=>setError(err instanceof Error ? err.message : "Could not inspect file."));
   },[selected]);
+
+  async function loadProfile() {
+    if (!inspect || profiling) return;
+    setProfiling(true); setError("");
+    try {
+      const selectedSheet = typeof inspect.metadata.selected_sheet === "string"
+        ? `&sheet=${encodeURIComponent(inspect.metadata.selected_sheet)}`
+        : "";
+      setProfile(await getJson<FileProfile>(
+        `/api/explore/profile?path=${encodeURIComponent(inspect.path)}${selectedSheet}`
+      ));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not profile file.");
+    } finally {
+      setProfiling(false);
+    }
+  }
+
+  function selectTab(next: Tab) {
+    setTab(next);
+    if (next === "Profile" && !profile) void loadProfile();
+  }
 
   async function importFile(file: File) {
     setImporting(true); setError("");
@@ -101,10 +125,13 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
       {error && <div className="errorText">{error}</div>}
       {inspect && <>
         <div className="tabStrip">
-          {(["Data","Profile","Schema","Metadata"] as Tab[]).map(name=><button className={tab===name?"selected":""} key={name} onClick={()=>setTab(name)}>{name}</button>)}
+          {(["Data","Profile","Schema","Metadata"] as Tab[]).map(name=><button className={tab===name?"selected":""} key={name} onClick={()=>selectTab(name)}>{name}</button>)}
         </div>
         {tab==="Data" && <DataTable columns={inspect.columns} rows={inspect.rows}/>}
-        {tab==="Profile" && <DataTable columns={inspect.profile.columns} rows={inspect.profile.rows}/>}
+        {tab==="Profile" && (profile
+          ? <DataTable columns={profile.columns} rows={profile.rows}/>
+          : <div className="emptyState">{profiling ? "Profiling file..." : "Open Profile to compute statistics."}</div>
+        )}
         {tab==="Schema" && <DataTable columns={["Column","Type","Nullable"]} rows={inspect.schema.map(c=>[c.name,c.type,c.nullable])}/>}
         {tab==="Metadata" && <div className="metadataStack">
           <DataTable columns={["Property","Value"]} rows={metadataRows}/>
