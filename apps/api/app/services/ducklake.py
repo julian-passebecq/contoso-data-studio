@@ -48,6 +48,7 @@ class DuckLakeService:
     @contextmanager
     def connection(self, read_only: bool = False) -> Iterator[duckdb.DuckDBPyConnection]:
         con = duckdb.connect(":memory:")
+        attached = False
         try:
             self._load_extensions(con)
             options = ["READ_ONLY"] if read_only else [
@@ -57,8 +58,11 @@ class DuckLakeService:
                 f"ATTACH 'ducklake:sqlite:{self._quote(self.settings.catalog_path)}' AS contoso "
                 f"({', '.join(options)})"
             )
+            attached = True
             yield con
         finally:
+            if attached:
+                con.execute("DETACH contoso")
             con.close()
 
     def bootstrap(self) -> None:
