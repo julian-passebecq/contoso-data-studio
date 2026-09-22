@@ -19,6 +19,14 @@ def _write_artifacts(root: Path) -> None:
                 "name": "monthly_sales",
                 "original_file_path": "models/gold/monthly_sales.sql",
             },
+            "test.contoso_data_studio.not_null_source_sales_sales_key": {
+                "name": "not_null_source_sales_sales_key",
+                "column_name": "sales_key",
+                "test_metadata": {"name": "not_null"},
+                "depends_on": {
+                    "nodes": ["source.contoso_data_studio.bronze.sales"]
+                },
+            },
             "test.contoso_data_studio.not_null_stg_sales_sales_key": {
                 "name": "not_null_stg_sales_sales_key",
                 "column_name": "sales_key",
@@ -36,7 +44,12 @@ def _write_artifacts(root: Path) -> None:
                 },
             },
         },
-        "sources": {},
+        "sources": {
+            "source.contoso_data_studio.bronze.sales": {
+                "name": "sales",
+                "source_name": "bronze",
+            },
+        },
     }
     run_results = {
         "metadata": {"generated_at": "2026-09-22T15:00:00Z"},
@@ -45,6 +58,13 @@ def _write_artifacts(root: Path) -> None:
                 "unique_id": "model.contoso_data_studio.stg_sales",
                 "status": "success",
                 "execution_time": 0.1,
+            },
+            {
+                "unique_id": "test.contoso_data_studio.not_null_source_sales_sales_key",
+                "status": "pass",
+                "failures": 0,
+                "execution_time": 0.01,
+                "message": None,
             },
             {
                 "unique_id": "test.contoso_data_studio.not_null_stg_sales_sales_key",
@@ -75,13 +95,14 @@ def test_quality_maps_tests_to_layers_and_models(tmp_path: Path, monkeypatch):
 
     assert quality["generated_at"] == "2026-09-22T15:00:00Z"
     assert quality["summary"] == {
-        "total": 2,
-        "pass": 1,
+        "total": 3,
+        "pass": 2,
         "fail": 1,
         "warn": 0,
         "error": 0,
         "skip": 0,
     }
+    assert quality["by_layer"]["bronze"]["pass"] == 1
     assert quality["by_layer"]["silver"]["pass"] == 1
     assert quality["by_layer"]["gold"]["fail"] == 1
 
