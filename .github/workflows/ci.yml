@@ -80,7 +80,10 @@ jobs:
           from app.config import Settings
           from app.services.ducklake import DuckLakeService
 
-          service = DuckLakeService(Settings.load())
+          from app.services.dbt_runner import DbtService
+
+          settings = Settings.load()
+          service = DuckLakeService(settings)
           gold = {row["name"] for row in service.catalog() if row["schema"] == "gold"}
           expected = {
               "monthly_sales",
@@ -110,7 +113,16 @@ jobs:
           )
           assert columns
           assert historical_rows
+
+          quality = DbtService(settings).quality()
+          assert quality["summary"]["total"] >= 30, quality
+          assert quality["summary"]["fail"] == 0, quality
+          assert quality["summary"]["error"] == 0, quality
+          assert quality["by_layer"]["silver"]["pass"] > 0, quality
+          assert quality["by_layer"]["gold"]["pass"] > 0, quality
+
           print("latest snapshot", latest["snapshot_id"])
+          print("quality", quality["summary"])
           print(sorted(gold))
           PY
 
