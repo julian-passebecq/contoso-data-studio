@@ -201,3 +201,20 @@ export type RunComparison = {
   base_snapshot_id: number | null;
   target_snapshot_id: number | null;
 };
+
+
+export type RunIntegrityFile = {
+  tracked: boolean;
+  valid: boolean | null;
+  expected_sha256: string | null;
+  actual_sha256: string | null;
+};
+
+export type RunIntegrity = {
+  run_id: string;
+  tracked_files: number;
+  valid_files: number;
+  all_tracked: boolean;
+  all_valid: boolean;
+  files: Record<string,RunIntegrityFile>;
+};
