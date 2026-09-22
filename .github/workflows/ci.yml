@@ -18,10 +18,53 @@ jobs:
         run: pip install -e "apps/api[dev,dbt]"
       - name: Compile Python
         run: python -m compileall -q apps/api/app
-      - name: Unit tests
+      - name: Unit and scenario tests
         run: pytest -q apps/api/tests
       - name: Parse dbt project
         run: dbt parse --project-dir dbt --profiles-dir dbt --no-use-colors
+      - name: Bootstrap integration DuckLake
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from app.config import Settings
+          from app.services.ducklake import DuckLakeService
+          from app.services.generator import GeneratorService
+
+          settings = Settings.load()
+          manifest = GeneratorService(settings).generate("margin-pressure", 2500, 42)
+          files = {name: Path(path) for name, path in manifest["files"].items()}
+          DuckLakeService(settings).load_parquet_to_bronze(files)
+          print(manifest["run_id"])
+          PY
+      - name: Build and test dbt models
+        working-directory: dbt
+        run: dbt build --project-dir . --profiles-dir . --no-use-colors
+      - name: Verify Gold marts
+        run: |
+          python - <<'PY'
+          from app.config import Settings
+          from app.services.ducklake import DuckLakeService
+
+          service = DuckLakeService(Settings.load())
+          gold = {row["name"] for row in service.catalog() if row["schema"] == "gold"}
+          expected = {
+              "monthly_sales",
+              "channel_performance",
+              "delivery_metrics",
+              "currency_exposure",
+              "product_performance",
+              "store_performance",
+          }
+          missing = expected - gold
+          assert not missing, f"Missing Gold marts: {sorted(missing)}"
+
+          _, rows, _ = service.query(
+              "select count(*) from contoso.gold.monthly_sales",
+              10,
+          )
+          assert rows[0][0] > 0
+          print(sorted(gold))
+          PY
 
   charts:
     runs-on: ubuntu-latest
