@@ -25,6 +25,8 @@ export type WorkspaceFile = {
 export type InspectResult = {
   path: string;
   source_sql: string;
+  raw_text: string | null;
+  raw_truncated: boolean;
   schema: Array<{name:string; type:string; nullable:string}>;
   columns: string[];
   rows: unknown[][];
