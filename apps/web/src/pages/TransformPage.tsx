@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 import { getJson, postJson } from "../api";
-import type { DbtQuality } from "../types";
+import type { DbtLineage, DbtLineageNode, DbtQuality } from "../types";
 import "../transform.css";
 
 type DbtModel = { name:string; path:string; layer:string };
@@ -33,6 +33,7 @@ type DbtRun = {
 
 export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
   const [status,setStatus] = useState<DbtStatus|null>(null);
+  const [lineage,setLineage] = useState<DbtLineage|null>(null);
   const [run,setRun] = useState<DbtRun|null>(null);
   const [busy,setBusy] = useState("");
   const [error,setError] = useState("");
@@ -40,7 +41,12 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
 
   async function refresh() {
     try {
-      setStatus(await getJson<DbtStatus>("/api/dbt/status"));
+      const [nextStatus,nextLineage]=await Promise.all([
+        getJson<DbtStatus>("/api/dbt/status"),
+        getJson<DbtLineage>("/api/dbt/lineage"),
+      ]);
+      setStatus(nextStatus);
+      setLineage(nextLineage);
       setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not inspect dbt project.");
@@ -68,6 +74,39 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
     gold: status?.models.filter(model=>model.layer==="gold") ?? [],
   };
 
+  const manifestNodes = lineage?.nodes ?? [];
+  const nodeById = new Map(manifestNodes.map(node=>[node.id,node]));
+  const lineageByLayer = {
+    bronze: manifestNodes.filter(node=>node.layer==="bronze"),
+    silver: manifestNodes.filter(node=>node.layer==="silver"),
+    gold: manifestNodes.filter(node=>node.layer==="gold"),
+  };
+
+  function fallbackNode(layer:string,name:string,resource_type:"source"|"model"):DbtLineageNode {
+    return {
+      id:`fallback.${layer}.${name}`,
+      name,
+      resource_type,
+      layer,
+      path:"",
+      schema:layer,
+      database:"contoso",
+      materialized:resource_type==="source" ? "source" : "table",
+    };
+  }
+
+  const dagNodes = {
+    bronze: lineageByLayer.bronze.length
+      ? lineageByLayer.bronze
+      : ["sales","customer","product","store","currency_exchange"].map(name=>fallbackNode("bronze",name,"source")),
+    silver: lineageByLayer.silver.length
+      ? lineageByLayer.silver
+      : grouped.silver.map(model=>fallbackNode("silver",model.name,"model")),
+    gold: lineageByLayer.gold.length
+      ? lineageByLayer.gold
+      : grouped.gold.map(model=>fallbackNode("gold",model.name,"model")),
+  };
+
   const quality = status?.quality;
   const qualityIssues = quality
     ? quality.summary.fail + quality.summary.error + quality.summary.warn
@@ -79,18 +118,26 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
       )
     : [];
 
-  function renderDagNode(layer:string,name:string,source=false) {
-    const tests=quality?.tests.filter(test=>test.layer===layer && test.model===name) ?? [];
+  function renderDagNode(node:DbtLineageNode) {
+    const tests=quality?.tests.filter(test=>test.layer===node.layer && test.model===node.name) ?? [];
     const issues=tests.filter(test=>["fail","error","warn"].includes(test.status)).length;
     const passed=tests.filter(test=>test.status==="pass").length;
     const label=tests.length
       ? (issues ? `${issues} issue${issues===1?"":"s"}` : `${passed}/${tests.length} checks`)
       : "";
+    const upstream=(lineage?.edges ?? [])
+      .filter(edge=>edge.target===node.id)
+      .map(edge=>nodeById.get(edge.source)?.name ?? edge.source)
+      .filter(Boolean);
     return <div
-      className={`dagNode${source?" source":""}${issues?" issue":""}`}
-      key={`${layer}.${name}`}
+      className={`dagNode${node.resource_type==="source"?" source":""}${issues?" issue":""}`}
+      key={node.id}
+      title={node.path || node.id}
     >
-      <span>{name}</span>
+      <div className="dagNodeCopy">
+        <span>{node.name}</span>
+        {upstream.length>0 && <em>← {upstream.join(", ")}</em>}
+      </div>
       {label && <small>{label}</small>}
     </div>;
   }
@@ -99,7 +146,9 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
     <Card>
       <CardHeader
         header={<Title3>dbt project</Title3>}
-        description={status?.project_dir ?? "Loading project..."}
+        description={lineage?.nodes.length
+          ? `${lineage.nodes.length} manifest nodes · ${lineage.edges.length} dependencies`
+          : status?.project_dir ?? "Loading project..."}
         action={<div className="buttonRow">
           <Button onClick={()=>execute("test")} disabled={!!busy || !status?.available}>{busy==="test"?"Testing...":"Test"}</Button>
           <Button appearance="primary" onClick={()=>execute("build")} disabled={!!busy || !status?.available}>{busy==="build"?"Building...":"Build"}</Button>
@@ -114,17 +163,17 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
       <div className="dag">
         <div className="dagColumn">
           <span className="dagLayer bronze">BRONZE</span>
-          {["sales","customer","product","store","currency_exchange"].map(name=>renderDagNode("bronze",name,true))}
+          {dagNodes.bronze.map(renderDagNode)}
         </div>
         <div className="dagArrow">→</div>
         <div className="dagColumn">
           <span className="dagLayer silver">SILVER</span>
-          {grouped.silver.map(model=>renderDagNode("silver",model.name))}
+          {dagNodes.silver.map(renderDagNode)}
         </div>
         <div className="dagArrow">→</div>
         <div className="dagColumn">
           <span className="dagLayer gold">GOLD</span>
-          {grouped.gold.map(model=>renderDagNode("gold",model.name))}
+          {dagNodes.gold.map(renderDagNode)}
         </div>
       </div>
     </Card>
