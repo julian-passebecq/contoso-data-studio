@@ -307,3 +307,35 @@ def test_reloading_same_run_appends_load_history(tmp_path: Path):
 
     assert detail["last_snapshot_id"] == 9
     assert [entry["snapshot_id"] for entry in detail["load_history"]] == [5, 9]
+
+
+def test_verify_run_reports_all_hashes_valid(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    manifest = service.generate("retail-baseline", 500, 42)
+    run_id = str(manifest["run_id"])
+
+    result = service.verify_run(run_id)
+
+    assert result["tracked_files"] == 5
+    assert result["valid_files"] == 5
+    assert result["all_tracked"] is True
+    assert result["all_valid"] is True
+    assert all(item["valid"] is True for item in result["files"].values())
+
+
+def test_verify_run_reports_tampered_file_without_raising(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    manifest = service.generate("retail-baseline", 500, 42)
+    run_id = str(manifest["run_id"])
+    sales = service.run_files(run_id)["sales"]
+
+    with sales.open("ab") as handle:
+        handle.write(b"tampered")
+
+    result = service.verify_run(run_id)
+
+    assert result["all_valid"] is False
+    assert result["files"]["sales"]["valid"] is False
+    assert result["files"]["sales"]["actual_sha256"] != result["files"]["sales"]["expected_sha256"]
