@@ -11,6 +11,9 @@ import duckdb
 from app.config import Settings
 
 
+MANIFEST_VERSION = 2
+GENERATOR_VERSION = "0.2.0"
+
 SCENARIO_CONFIG = {
     "retail-baseline": {
         "name": "Retail baseline",
@@ -52,6 +55,15 @@ class GeneratorService:
     @staticmethod
     def _sql_path(path: Path) -> str:
         return path.as_posix().replace("'", "''")
+
+    @staticmethod
+    def _generator_sha256() -> str:
+        path = Path(__file__).resolve()
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
 
     @staticmethod
     def _sha256(path: Path) -> str:
@@ -163,6 +175,9 @@ class GeneratorService:
         }
         return {
             "run_id": run_id,
+            "manifest_version": payload.get("manifest_version", 1),
+            "generator_version": payload.get("generator_version"),
+            "generator_sha256": payload.get("generator_sha256"),
             "scenario": payload.get("scenario"),
             "scenario_name": payload.get("scenario_name"),
             "business_focus": payload.get("business_focus"),
@@ -292,11 +307,19 @@ class GeneratorService:
                 "target_size_bytes": target_dict.get("size_bytes"),
             }
 
+        generator_changes = {
+            field: {"base": base.get(field), "target": target.get(field)}
+            for field in ("manifest_version", "generator_version", "generator_sha256")
+            if base.get(field) != target.get(field)
+        }
+
         return {
             "base_run_id": base_run_id,
             "target_run_id": target_run_id,
             "same_parameters": not parameter_changes,
             "parameter_changes": parameter_changes,
+            "same_generator": not generator_changes,
+            "generator_changes": generator_changes,
             "row_count_changes": row_count_changes,
             "all_hashes_available": all_hashes_available,
             "exact_files_equal": exact_files_equal if all_hashes_available else None,
@@ -591,6 +614,9 @@ class GeneratorService:
 
         manifest = {
             "run_id": run_id,
+            "manifest_version": MANIFEST_VERSION,
+            "generator_version": GENERATOR_VERSION,
+            "generator_sha256": self._generator_sha256(),
             "scenario": scenario,
             "scenario_name": config["name"],
             "business_focus": config["focus"],
