@@ -135,3 +135,49 @@ def test_currency_exposure_has_wider_fx_range_than_baseline(tmp_path: Path):
         assert fx_range(exposure) > fx_range(baseline) * 2
     finally:
         con.close()
+
+
+
+def test_run_detail_and_files_are_reproducible(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    manifest = service.generate("retail-baseline", 500, 123)
+
+    detail = service.get_run(str(manifest["run_id"]))
+    files = service.run_files(str(manifest["run_id"]))
+
+    assert detail["scenario"] == "retail-baseline"
+    assert detail["seed"] == 123
+    assert detail["scale"] == 500
+    assert detail["row_counts"]["sales"] == 500
+    assert set(files) == {"customer", "product", "store", "currency_exchange", "sales"}
+    assert all(path.exists() for path in files.values())
+    assert all(
+        str(file_info["path"]).startswith("staging/")
+        for file_info in detail["files"].values()
+    )
+
+
+@pytest.mark.parametrize("run_id", ["../escape", "nested/run", ".", "..", ""])
+def test_run_lookup_rejects_invalid_ids(tmp_path: Path, run_id: str):
+    service = GeneratorService(Settings(workspace=tmp_path))
+
+    with pytest.raises(ValueError, match="Invalid run id"):
+        service.get_run(run_id)
+
+
+def test_run_files_reject_manifest_escape(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    manifest = service.generate("retail-baseline", 500, 42)
+    run_id = str(manifest["run_id"])
+    manifest_path = workspace / "staging" / run_id / "manifest.json"
+
+    import json
+
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    payload["files"]["sales"] = str(tmp_path / "outside.parquet")
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="run directory"):
+        service.run_files(run_id)
