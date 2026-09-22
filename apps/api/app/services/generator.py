@@ -81,8 +81,8 @@ class GeneratorService:
         if not isinstance(declared, dict):
             raise ValueError("Run manifest does not contain files")
 
-        expected = {"customer", "product", "store", "currency_exchange", "sales"}
-        missing = expected - set(map(str, declared.keys()))
+        expected = ("customer", "product", "store", "currency_exchange", "sales")
+        missing = set(expected) - set(map(str, declared.keys()))
         if missing:
             raise ValueError(f"Run is missing files: {', '.join(sorted(missing))}")
 
@@ -185,13 +185,15 @@ class GeneratorService:
 
         runs: list[dict[str, object]] = []
         for manifest_path in self.settings.staging_path.glob("*/manifest.json"):
+            run_id = manifest_path.parent.name
             try:
-                payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
+                payload = self._load_manifest(run_id)
+            except ValueError:
                 continue
 
-            run_id = str(payload.get("run_id") or manifest_path.parent.name)
-            row_counts = payload.get("row_counts") or {}
+            row_counts = payload.get("row_counts")
+            if not isinstance(row_counts, dict):
+                row_counts = {}
             runs.append({
                 "run_id": run_id,
                 "scenario": payload.get("scenario"),
