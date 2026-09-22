@@ -1,0 +1,10 @@
+version: 2
+sources:
+  - name: bronze
+    database: contoso
+    schema: bronze
+    tables:
+      - name: customer
+      - name: product
+      - name: store
+      - name: sales
