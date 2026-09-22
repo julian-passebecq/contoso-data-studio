@@ -16,7 +16,8 @@ Generate -> Inspect -> Bronze (DuckLake) -> dbt Silver -> dbt Gold -> SQL / KPI 
 - read-only DuckDB SQL workbench
 - dbt-duckdb 1.11 Transform runtime with build/test feedback
 - starter Silver and Gold models with dbt data tests
-- starter dbt Charts board
+- dbt Charts 0.8 project + validated Executive Sales board
+- Gold KPI preview and dbt Charts validation status in the Charts tab
 - React + Fluent UI shell for Generate, Lakehouse, Transform, Query, Explore, Charts and Canvas
 
 ## Scope
@@ -35,6 +36,7 @@ workspace/
   imports/
 dbt/
 charts/
+dbt_charts.yml
 apps/api/
 apps/web/
 ```
@@ -69,6 +71,18 @@ npm run dev
 
 Open the Vite address (normally `http://localhost:5173`).
 
+### dbt Charts (isolated tool)
+
+Keep dbt Charts separate from the API virtual environment:
+
+```bash
+uv tool install dbt-charts --with dbt-duckdb==1.11.0
+dct validate charts/executive-sales.yml --project-dir . --dbt-project-dir dbt
+dct serve --project-dir . --dbt-project-dir dbt
+```
+
+The app detects `dct` on PATH and exposes board validation in **Charts**. The live dbt Charts renderer remains the official `dct serve` UI rather than being reimplemented inside Contoso Data Studio.
+
 ## First end-to-end flow
 
 1. **Generate** → create the Retail Baseline dataset.
@@ -77,5 +91,6 @@ Open the Vite address (normally `http://localhost:5173`).
 4. **Transform** → run `dbt build`.
 5. **Lakehouse** → confirm Silver/Gold models.
 6. **Query** → query `contoso.gold.monthly_sales`.
+7. **Charts** → inspect Gold KPIs and validate/open the dbt Charts board.
 
 See `docs/architecture.md`.
