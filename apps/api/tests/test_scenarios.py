@@ -197,6 +197,8 @@ def test_mark_bronze_loaded_tracks_active_run_and_snapshot(tmp_path: Path):
     first_detail = service.get_run(str(first["run_id"]))
     assert first_detail["is_active"] is True
     assert first_detail["active_snapshot_id"] == 11
+    assert first_detail["last_snapshot_id"] == 11
+    assert first_detail["load_history"][-1]["snapshot_id"] == 11
 
     service.mark_bronze_loaded(str(second["run_id"]), 22)
     first_detail = service.get_run(str(first["run_id"]))
@@ -204,8 +206,11 @@ def test_mark_bronze_loaded_tracks_active_run_and_snapshot(tmp_path: Path):
     active = service.active_run()
 
     assert first_detail["is_active"] is False
+    assert first_detail["last_snapshot_id"] == 11
+    assert first_detail["active_snapshot_id"] is None
     assert second_detail["is_active"] is True
     assert second_detail["active_snapshot_id"] == 22
+    assert second_detail["last_snapshot_id"] == 22
     assert active is not None
     assert active["run_id"] == second["run_id"]
     assert active["active_snapshot_id"] == 22
@@ -273,3 +278,32 @@ def test_compare_runs_rejects_same_run(tmp_path: Path):
 
     with pytest.raises(ValueError, match="two different runs"):
         service.compare_runs(run_id, run_id)
+
+
+def test_run_comparison_keeps_snapshot_ids_after_runs_become_inactive(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    first = service.generate("retail-baseline", 500, 10)
+    second = service.generate("online-migration", 500, 20)
+
+    service.mark_bronze_loaded(str(first["run_id"]), 101)
+    service.mark_bronze_loaded(str(second["run_id"]), 202)
+
+    comparison = service.compare_runs(str(first["run_id"]), str(second["run_id"]))
+
+    assert comparison["base_snapshot_id"] == 101
+    assert comparison["target_snapshot_id"] == 202
+
+
+def test_reloading_same_run_appends_load_history(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    manifest = service.generate("retail-baseline", 500, 42)
+    run_id = str(manifest["run_id"])
+
+    service.mark_bronze_loaded(run_id, 5)
+    service.mark_bronze_loaded(run_id, 9)
+    detail = service.get_run(run_id)
+
+    assert detail["last_snapshot_id"] == 9
+    assert [entry["snapshot_id"] for entry in detail["load_history"]] == [5, 9]
