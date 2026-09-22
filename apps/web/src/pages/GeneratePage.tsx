@@ -6,6 +6,7 @@ import type {
   GenerationRun,
   GenerationRunDetail,
   RunComparison,
+  RunIntegrity,
   RunReloadResult,
   Scenario,
 } from "../types";
@@ -45,6 +46,8 @@ export default function GeneratePage({
   const [compareTarget,setCompareTarget] = useState("");
   const [comparison,setComparison] = useState<RunComparison|null>(null);
   const [comparing,setComparing] = useState(false);
+  const [integrity,setIntegrity] = useState<RunIntegrity|null>(null);
+  const [verifyingRun,setVerifyingRun] = useState("");
 
   const selected = useMemo(
     ()=>scenarios.find(item=>item.id===scenarioId) ?? scenarios[0],
@@ -104,6 +107,25 @@ export default function GeneratePage({
     if (run.scale != null) setScale(String(run.scale));
     if (run.seed != null) setSeed(String(run.seed));
     onStatus(`Generator parameters restored from run ${run.run_id}. Generate creates a new run; Reload Bronze restores the exact persisted files.`);
+  }
+
+  async function verifyRun(runId:string) {
+    setVerifyingRun(runId);
+    try {
+      const result=await getJson<RunIntegrity>(
+        `/api/runs/${encodeURIComponent(runId)}/verify`
+      );
+      setIntegrity(result);
+      onStatus(
+        result.all_valid
+          ? `Verified ${result.valid_files}/${result.tracked_files} tracked files for ${runId}.`
+          : `Integrity check found untracked or modified files for ${runId}.`
+      );
+    } catch (error) {
+      onStatus(error instanceof Error ? error.message : "Could not verify run integrity.");
+    } finally {
+      setVerifyingRun("");
+    }
   }
 
   async function compareRuns() {
@@ -343,6 +365,12 @@ export default function GeneratePage({
           {selectedRun.is_active && <Badge appearance="outline" color="success">
             Active Bronze{selectedRun.active_snapshot_id==null?"":` · #${selectedRun.active_snapshot_id}`}
           </Badge>}
+          <Button
+            disabled={verifyingRun!==""}
+            onClick={()=>void verifyRun(selectedRun.run_id)}
+          >
+            {verifyingRun===selectedRun.run_id ? "Verifying..." : "Verify integrity"}
+          </Button>
           <Button onClick={()=>useRunParameters(selectedRun)}>Use parameters</Button>
           <Button
             appearance="primary"
@@ -372,9 +400,33 @@ export default function GeneratePage({
           <code>{entry.snapshot_id==null ? "snapshot —" : `snapshot #${entry.snapshot_id}`}</code>
         </div>)}
       </div>
+      {integrity && integrity.run_id===selectedRun.run_id && <div className="runIntegritySummary">
+        <Badge appearance="outline" color={integrity.all_valid?"success":"danger"}>
+          {integrity.all_valid ? "Integrity verified" : "Integrity issue"}
+        </Badge>
+        <span>{integrity.valid_files}/{integrity.tracked_files} tracked files valid</span>
+        {!integrity.all_tracked && <span>Some files are not hash-tracked</span>}
+      </div>}
       <div className="runFileGrid">
         {Object.entries(selectedRun.files).map(([name,file])=><div className="runFile" key={name}>
-          <div><b>{name}</b><Badge appearance="outline">Parquet</Badge></div>
+          <div><b>{name}</b><Badge
+            appearance="outline"
+            color={integrity?.run_id===selectedRun.run_id
+              ? integrity.files[name]?.valid===true
+                ? "success"
+                : integrity.files[name]?.valid===false
+                  ? "danger"
+                  : "informative"
+              : undefined}
+          >
+            {integrity?.run_id===selectedRun.run_id
+              ? integrity.files[name]?.valid===true
+                ? "verified"
+                : integrity.files[name]?.valid===false
+                  ? "mismatch"
+                  : "untracked"
+              : "Parquet"}
+          </Badge></div>
           <code>{file.path}</code>
           <span>
             {prettyBytes(file.size_bytes)} · {(selectedRun.row_counts[name] ?? 0).toLocaleString()} rows
