@@ -83,6 +83,37 @@ def catalog():
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/lakehouse/snapshots")
+def snapshots(limit: int = Query(default=50, ge=1, le=200)):
+    try:
+        return {"snapshots": ducklake.snapshots(limit)}
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
+@app.get("/api/lakehouse/time-travel", response_model=QueryResult)
+def time_travel(
+    schema: str = Query(min_length=1),
+    table: str = Query(min_length=1),
+    snapshot: int = Query(ge=0),
+    limit: int = Query(default=100, ge=1, le=2_000),
+):
+    try:
+        columns, rows, truncated = ducklake.preview_at_snapshot(
+            schema, table, snapshot, limit
+        )
+        return QueryResult(
+            columns=columns,
+            rows=rows,
+            row_count=len(rows),
+            truncated=truncated,
+        )
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.get("/api/explore/files")
 def files():
     try:
