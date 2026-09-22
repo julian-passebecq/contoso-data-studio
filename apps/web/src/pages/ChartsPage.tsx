@@ -11,6 +11,33 @@ type ChartsStatus = {
   boards:string[];
 };
 
+type BoardQuery = {
+  name:string;
+  sql:string | null;
+};
+
+type BoardChart = {
+  name:string;
+  label:string | null;
+  title:string | null;
+  type:string | null;
+  query:string | null;
+  x:string | null;
+  y:string | null;
+  color:string | null;
+  value:string | null;
+};
+
+type BoardDetail = {
+  board:string;
+  title:string | null;
+  notes:string | null;
+  source:string | null;
+  queries:BoardQuery[];
+  charts:BoardChart[];
+  rows:unknown[];
+};
+
 type ValidationResult = {
   board:string;
   ok:boolean;
@@ -52,7 +79,7 @@ function chartValue(value:number,format:ChartFormat) {
   return number(value);
 }
 
-export default function ChartsPage() {
+export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void}) {
   const [status,setStatus] = useState<ChartsStatus|null>(null);
   const [activeRun,setActiveRun] = useState<GenerationRunDetail|null>(null);
   const [goldScenario,setGoldScenario] = useState<string|null>(null);
@@ -61,14 +88,45 @@ export default function ChartsPage() {
   const [chartTitle,setChartTitle] = useState("Gold KPI preview");
   const [chartFormat,setChartFormat] = useState<ChartFormat>("money");
   const [validation,setValidation] = useState<ValidationResult|null>(null);
+  const [selectedBoard,setSelectedBoard] = useState("executive-sales.yml");
+  const [boardDetail,setBoardDetail] = useState<BoardDetail|null>(null);
+  const [boardError,setBoardError] = useState("");
   const [dashboardError,setDashboardError] = useState("");
   const [validationError,setValidationError] = useState("");
   const [validating,setValidating] = useState(false);
 
   useEffect(()=>{
     void loadDashboard();
-    getJson<ChartsStatus>("/api/charts/status").then(setStatus).catch(()=>{});
+    void loadChartsRuntime();
   },[]);
+
+  useEffect(()=>{
+    void loadBoard(selectedBoard);
+  },[selectedBoard]);
+
+  async function loadChartsRuntime() {
+    try {
+      const next=await getJson<ChartsStatus>("/api/charts/status");
+      setStatus(next);
+      if (next.boards.length && !next.boards.includes(selectedBoard)) {
+        setSelectedBoard(next.boards[0]);
+      }
+    } catch {
+      setStatus(null);
+    }
+  }
+
+  async function loadBoard(board:string) {
+    setBoardError("");
+    setBoardDetail(null);
+    try {
+      setBoardDetail(await getJson<BoardDetail>(
+        `/api/charts/board?board=${encodeURIComponent(board)}`
+      ));
+    } catch (err) {
+      setBoardError(err instanceof Error ? err.message : "Could not inspect board.");
+    }
+  }
 
   async function loadDashboard() {
     setDashboardError("");
@@ -240,7 +298,7 @@ export default function ChartsPage() {
     ()=>Math.max(1e-9,...chartItems.map(item=>item.value)),
     [chartItems],
   );
-  const board = status?.boards[0] ?? "executive-sales.yml";
+  const board = selectedBoard || status?.boards[0] || "executive-sales.yml";
   const goldCurrent = Boolean(
     activeRun?.scenario && goldScenario && activeRun.scenario===goldScenario
   );
@@ -305,6 +363,69 @@ export default function ChartsPage() {
       <CardHeader header={<Title3>Scenario KPIs unavailable</Title3>} description="Gold must be rebuilt from the active Bronze run."/>
       <Text className="muted">Generate or reload Bronze, then open Transform and run dbt Build. The dashboard refuses to mix KPIs from a previous scenario with the current Bronze data.</Text>
     </Card>}
+
+    <Card className="boardInspectorCard">
+      <CardHeader
+        header={<Title3>{boardDetail?.title ?? "Board definition"}</Title3>}
+        description={boardDetail?.notes ?? "Inspect the declarative dbt Charts YAML"}
+        action={status?.boards.length
+          ? <select
+              className="boardSelector"
+              value={selectedBoard}
+              onChange={event=>setSelectedBoard(event.target.value)}
+            >
+              {status.boards.map(item=><option key={item} value={item}>{item}</option>)}
+            </select>
+          : undefined}
+      />
+      {boardError && <div className="errorText">{boardError}</div>}
+      {boardDetail && <>
+        <div className="boardFacts">
+          <div><span>Board</span><code>{boardDetail.board}</code></div>
+          <div><span>Source</span><code>{boardDetail.source ?? "—"}</code></div>
+          <div><span>Queries</span><b>{boardDetail.queries.length}</b></div>
+          <div><span>Charts</span><b>{boardDetail.charts.length}</b></div>
+        </div>
+        <div className="boardSpecGrid">
+          <section>
+            <h4>Queries</h4>
+            <div className="boardQueries">
+              {boardDetail.queries.map(query=><div className="boardQuery" key={query.name}>
+                <div>
+                  <code>{query.name}</code>
+                  {query.sql && <Button size="small" onClick={()=>onOpenQuery(query.sql!)}>Open in Query</Button>}
+                </div>
+                {query.sql
+                  ? <pre>{query.sql}</pre>
+                  : <Text className="muted tiny">No SQL declared.</Text>}
+              </div>)}
+              {!boardDetail.queries.length && <Text className="muted tiny">No queries declared.</Text>}
+            </div>
+          </section>
+          <section>
+            <h4>Chart specs</h4>
+            <div className="boardCharts">
+              {boardDetail.charts.map(chart=><div className="boardChartSpec" key={chart.name}>
+                <div><code>{chart.name}</code><Badge appearance="outline">{chart.type ?? "chart"}</Badge></div>
+                <b>{chart.label ?? chart.title ?? chart.name}</b>
+                <span>{chart.query ?? "No query binding"}</span>
+                <small>
+                  {chart.value ? `value ${chart.value}` : ""}
+                  {chart.x ? `${chart.value ? " · " : ""}x ${chart.x}` : ""}
+                  {chart.y ? ` · y ${chart.y}` : ""}
+                  {chart.color ? ` · color ${chart.color}` : ""}
+                </small>
+              </div>)}
+              {!boardDetail.charts.length && <Text className="muted tiny">No chart specs declared.</Text>}
+            </div>
+          </section>
+        </div>
+        <details className="boardLayout">
+          <summary>Board row layout</summary>
+          <pre>{JSON.stringify(boardDetail.rows,null,2)}</pre>
+        </details>
+      </>}
+    </Card>
 
     <Card>
       <CardHeader
