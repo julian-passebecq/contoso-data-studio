@@ -15,7 +15,7 @@ class Settings:
         workspace = (
             Path(configured).expanduser().resolve()
             if configured
-            else Path(__file__).resolve().parents[4] / "workspace"
+            else Path(__file__).resolve().parents[3] / "workspace"
         )
         workspace.mkdir(parents=True, exist_ok=True)
         return cls(workspace=workspace)
@@ -25,7 +25,7 @@ class Settings:
         configured = os.getenv("CONTOSO_PROJECT_ROOT")
         if configured:
             return Path(configured).expanduser().resolve()
-        return Path(__file__).resolve().parents[4]
+        return Path(__file__).resolve().parents[3]
 
     @property
     def catalog_path(self) -> Path:
