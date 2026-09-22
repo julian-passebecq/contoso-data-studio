@@ -293,9 +293,12 @@ def dbt_quality():
 
 
 @app.post("/api/dbt/{command}")
-def dbt_run(command: str):
+def dbt_run(
+    command: str,
+    selector: str | None = Query(default=None, min_length=1, max_length=200),
+):
     try:
-        return dbt.run(command)
+        return dbt.run(command, selector)
     except ValueError as exc:
         raise HTTPException(400, detail=str(exc)) from exc
     except RuntimeError as exc:
