@@ -339,3 +339,36 @@ def test_verify_run_reports_tampered_file_without_raising(tmp_path: Path):
     assert result["all_valid"] is False
     assert result["files"]["sales"]["valid"] is False
     assert result["files"]["sales"]["actual_sha256"] != result["files"]["sales"]["expected_sha256"]
+
+
+def test_manifest_records_generator_provenance(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    manifest = service.generate("retail-baseline", 500, 42)
+    detail = service.get_run(str(manifest["run_id"]))
+
+    assert detail["manifest_version"] == 2
+    assert detail["generator_version"] == "0.2.0"
+    assert isinstance(detail["generator_sha256"], str)
+    assert len(detail["generator_sha256"]) == 64
+
+
+def test_compare_runs_detects_generator_fingerprint_change(tmp_path: Path):
+    import json
+
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    first = service.generate("retail-baseline", 500, 42)
+    second = service.generate("retail-baseline", 500, 42)
+
+    second_id = str(second["run_id"])
+    manifest_path = workspace / "staging" / second_id / "manifest.json"
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    payload["generator_sha256"] = "0" * 64
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    comparison = service.compare_runs(str(first["run_id"]), second_id)
+
+    assert comparison["same_parameters"] is True
+    assert comparison["same_generator"] is False
+    assert "generator_sha256" in comparison["generator_changes"]
