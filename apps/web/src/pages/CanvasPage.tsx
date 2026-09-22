@@ -6,6 +6,7 @@ import type {
   CatalogTable,
   DbtLineage,
   DbtLineageNode,
+  DbtQuality,
   GenerationRunDetail,
 } from "../types";
 import "../canvas.css";
@@ -16,6 +17,7 @@ type CanvasNode = {
   kind:string;
   query?:string;
   upstream?:string[];
+  quality?:{checks:number;issues:number;passed:number};
 };
 
 type Column = {
@@ -28,19 +30,22 @@ type Column = {
 export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void}) {
   const [catalog,setCatalog] = useState<CatalogTable[]>([]);
   const [lineage,setLineage] = useState<DbtLineage|null>(null);
+  const [quality,setQuality] = useState<DbtQuality|null>(null);
   const [activeRun,setActiveRun] = useState<GenerationRunDetail|null>(null);
   const [note,setNote] = useState(()=>localStorage.getItem("contoso-canvas-note") ?? "Active scenario → Bronze → dbt → Gold KPIs");
   const [saved,setSaved] = useState(false);
 
   useEffect(()=>{
     void (async()=>{
-      const [catalogResult,lineageResult,activeResult]=await Promise.allSettled([
+      const [catalogResult,lineageResult,qualityResult,activeResult]=await Promise.allSettled([
         getJson<{tables:CatalogTable[]}>("/api/lakehouse/catalog"),
         getJson<DbtLineage>("/api/dbt/lineage"),
+        getJson<DbtQuality>("/api/dbt/quality"),
         getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run"),
       ]);
       if (catalogResult.status==="fulfilled") setCatalog(catalogResult.value.tables);
       if (lineageResult.status==="fulfilled") setLineage(lineageResult.value);
+      if (qualityResult.status==="fulfilled") setQuality(qualityResult.value);
       if (activeResult.status==="fulfilled") setActiveRun(activeResult.value.run);
     })();
   },[]);
@@ -60,6 +65,14 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
     return `select * from contoso.${node.layer}.${node.name} limit 100;`;
   }
 
+  function qualityFor(layer:string,name:string) {
+    const tests=quality?.tests.filter(test=>test.layer===layer && test.model===name) ?? [];
+    if (!tests.length) return undefined;
+    const issues=tests.filter(test=>["fail","warn","error"].includes(test.status)).length;
+    const passed=tests.filter(test=>test.status==="pass").length;
+    return {checks:tests.length,issues,passed};
+  }
+
   function upstreamFor(nodeId:string) {
     return (lineage?.edges ?? [])
       .filter(edge=>edge.target===nodeId)
@@ -75,6 +88,7 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
         kind:node.resource_type==="source" ? "dbt source" : `dbt ${node.materialized}`,
         query:queryFor(node),
         upstream:upstreamFor(node.id),
+        quality:qualityFor(node.layer,node.name),
       }));
   }
 
@@ -86,6 +100,7 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
         label:table.name,
         kind:table.type,
         query:`select * from contoso.${schema}.${table.name} limit 100;`,
+        quality:qualityFor(schema,table.name),
       }));
   }
 
@@ -149,6 +164,12 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
           : "DuckLake catalog fallback — run dbt Parse/Build for manifest lineage"}
         action={<div className="buttonRow">
           {activeRun?.is_active && <Badge appearance="outline" color="success">Active Bronze #{activeRun.active_snapshot_id ?? "—"}</Badge>}
+          {quality && quality.summary.total>0 && <Badge
+            appearance="outline"
+            color={quality.summary.fail+quality.summary.error+quality.summary.warn===0 ? "success" : "danger"}
+          >
+            {quality.summary.pass}/{quality.summary.total} quality checks
+          </Badge>}
           <Badge appearance="outline">{catalog.length} physical tables</Badge>
         </div>}
       />
@@ -158,7 +179,7 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
             <div className="canvasStageHeader"><b>{column.title}</b><span>{column.subtitle}</span></div>
             <div className="canvasNodes">
               {column.nodes.map(node=><button
-                className="canvasNode"
+                className={node.quality?.issues ? "canvasNode issue" : "canvasNode"}
                 key={node.id}
                 disabled={!node.query}
                 onClick={()=>node.query && onOpenQuery(node.query)}
@@ -166,6 +187,11 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
               >
                 <span>{node.label}</span>
                 <small>{node.kind}</small>
+                {node.quality && <strong className={node.quality.issues ? "nodeQuality issue" : "nodeQuality"}>
+                  {node.quality.issues
+                    ? `${node.quality.issues} issue${node.quality.issues===1?"":"s"} · ${node.quality.checks} checks`
+                    : `${node.quality.passed}/${node.quality.checks} checks passing`}
+                </strong>}
                 {node.upstream && node.upstream.length>0 && <em>← {node.upstream.join(", ")}</em>}
               </button>)}
               {!column.nodes.length && <div className="canvasEmpty">Run the previous stage</div>}
