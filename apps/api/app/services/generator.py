@@ -104,6 +104,27 @@ class GeneratorService:
             resolved[name] = candidate
         return resolved
 
+    def _active_marker(self) -> dict[str, object] | None:
+        if not self.active_run_path.exists():
+            return None
+        try:
+            payload = json.loads(self.active_run_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        return payload if isinstance(payload, dict) else None
+
+    def _active_run_id_only(self) -> str | None:
+        payload = self._active_marker()
+        run_id = payload.get("run_id") if payload else None
+        return str(run_id) if isinstance(run_id, str) and run_id else None
+
+    def _active_snapshot_id_only(self, run_id: str) -> int | None:
+        payload = self._active_marker()
+        if not payload or payload.get("run_id") != run_id:
+            return None
+        value = payload.get("snapshot_id")
+        return int(value) if isinstance(value, int) else None
+
     def get_run(self, run_id: str) -> dict[str, object]:
         payload = self._load_manifest(run_id)
         files = self.run_files(run_id)
@@ -126,13 +147,41 @@ class GeneratorService:
             "scale": payload.get("scale"),
             "row_counts": payload.get("row_counts") or {},
             "bronze_loaded_at": payload.get("bronze_loaded_at"),
+            "is_active": (
+                self.active_run_path.exists()
+                and self._active_run_id_only() == run_id
+            ),
+            "active_snapshot_id": self._active_snapshot_id_only(run_id),
             "files": public_files,
             "run_path": directory.relative_to(self.settings.workspace.resolve()).as_posix(),
+        }
+
+    @property
+    def active_run_path(self) -> Path:
+        return self.settings.workspace / "active_run.json"
+
+    def active_run(self) -> dict[str, object] | None:
+        payload = self._active_marker()
+        run_id = payload.get("run_id") if payload else None
+        if not isinstance(run_id, str) or not run_id:
+            return None
+        try:
+            detail = self.get_run(run_id)
+        except ValueError:
+            return None
+        return {
+            **detail,
+            "active_loaded_at": payload.get("loaded_at") if payload else None,
+            "active_snapshot_id": payload.get("snapshot_id") if payload else None,
         }
 
     def list_runs(self, limit: int = 20) -> list[dict[str, object]]:
         if not self.settings.staging_path.exists():
             return []
+
+        active = self.active_run()
+        active_run_id = str(active["run_id"]) if active else None
+        active_snapshot_id = active.get("active_snapshot_id") if active else None
 
         runs: list[dict[str, object]] = []
         for manifest_path in self.settings.staging_path.glob("*/manifest.json"):
@@ -152,16 +201,34 @@ class GeneratorService:
                 "scale": payload.get("scale"),
                 "sales_rows": row_counts.get("sales"),
                 "bronze_loaded_at": payload.get("bronze_loaded_at"),
+                "is_active": run_id == active_run_id,
+                "active_snapshot_id": active_snapshot_id if run_id == active_run_id else None,
             })
 
         runs.sort(key=lambda item: str(item.get("created_at") or ""), reverse=True)
         return runs[:max(1, min(limit, 100))]
 
-    def mark_bronze_loaded(self, run_id: str) -> dict[str, object]:
+    def mark_bronze_loaded(
+        self,
+        run_id: str,
+        snapshot_id: int | None = None,
+    ) -> dict[str, object]:
         payload = self._load_manifest(run_id)
         manifest_path = self._run_directory(run_id) / "manifest.json"
-        payload["bronze_loaded_at"] = datetime.now(timezone.utc).isoformat()
+        loaded_at = datetime.now(timezone.utc).isoformat()
+        payload["bronze_loaded_at"] = loaded_at
         manifest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        self.active_run_path.write_text(
+            json.dumps(
+                {
+                    "run_id": run_id,
+                    "loaded_at": loaded_at,
+                    "snapshot_id": snapshot_id,
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
         return payload
 
     def generate(self, scenario: str, scale: int, seed: int) -> dict[str, object]:
