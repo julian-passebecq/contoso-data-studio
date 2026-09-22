@@ -229,7 +229,9 @@ class DbtService:
         relation_name = node.get("relation_name")
         materialized = "source" if resource_type == "source" else str(config.get("materialized") or "model")
         physical_query = None
-        if layer in {"bronze", "silver", "gold"}:
+        if isinstance(relation_name, str) and relation_name.strip():
+            physical_query = f"select * from {relation_name.strip()} limit 100;"
+        elif layer in {"bronze", "silver", "gold"}:
             physical_query = f"select * from contoso.{layer}.{name} limit 100;"
 
         return {
