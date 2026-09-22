@@ -80,6 +80,14 @@ def reload_run(run_id: str):
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/workspace/active-run")
+def active_run():
+    try:
+        return {"run": generator.active_run()}
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.post("/api/lakehouse/bootstrap")
 def bootstrap():
     try:
