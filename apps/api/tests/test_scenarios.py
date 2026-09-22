@@ -372,3 +372,23 @@ def test_compare_runs_detects_generator_fingerprint_change(tmp_path: Path):
     assert comparison["same_parameters"] is True
     assert comparison["same_generator"] is False
     assert "generator_sha256" in comparison["generator_changes"]
+
+
+def test_reproduce_run_creates_new_exact_artifacts_without_touching_active_marker(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    source = service.generate("retail-baseline", 500, 99)
+    source_id = str(source["run_id"])
+
+    result = service.reproduce_run(source_id)
+
+    assert result["source_run_id"] == source_id
+    assert result["reproduced_run"]["run_id"] != source_id
+    assert result["reproduced_run"]["scenario"] == "retail-baseline"
+    assert result["reproduced_run"]["seed"] == 99
+    assert result["reproduced_run"]["scale"] == 500
+    assert result["comparison"]["same_parameters"] is True
+    assert result["comparison"]["same_generator"] is True
+    assert result["comparison"]["exact_files_equal"] is True
+    assert result["bronze_changed"] is False
+    assert service.active_run() is None
