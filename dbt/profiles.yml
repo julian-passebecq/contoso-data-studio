@@ -7,7 +7,7 @@ contoso_data_studio:
       threads: 4
       extensions: [ducklake]
       attach:
-        - path: "ducklake:../workspace/contoso.ducklake"
+        - path: "ducklake:{{ env_var('CONTOSO_DUCKLAKE_CATALOG', '../workspace/contoso.ducklake') }}"
           alias: contoso
           options:
-            data_path: "../workspace/contoso.ducklake.files"
+            data_path: "{{ env_var('CONTOSO_DUCKLAKE_DATA_PATH', '../workspace/contoso.ducklake.files') }}"
