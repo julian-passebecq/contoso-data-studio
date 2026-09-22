@@ -133,6 +133,19 @@ async def import_file(request: Request, filename: str = Query(min_length=1, max_
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/explore/profile")
+def profile_file(
+    path: str = Query(min_length=1),
+    sheet: str | None = Query(default=None, max_length=200),
+):
+    try:
+        return explorer.profile(path, sheet)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.get("/api/explore/inspect")
 def inspect_file(
     path: str = Query(min_length=1),
