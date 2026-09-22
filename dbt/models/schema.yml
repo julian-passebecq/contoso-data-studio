@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: stg_sales
+    description: Cleaned sales lines from the generated Bronze sales table.
+    columns:
+      - name: sales_key
+        data_tests: [not_null, unique]
+      - name: order_date
+        data_tests: [not_null]
+      - name: customer_key
+        data_tests: [not_null]
+      - name: product_key
+        data_tests: [not_null]
+      - name: store_key
+        data_tests: [not_null]
+      - name: net_revenue
+        data_tests: [not_null]
+      - name: gross_margin
+        data_tests: [not_null]
+
+  - name: monthly_sales
+    description: Monthly revenue and gross margin KPIs by channel.
+    columns:
+      - name: order_month
+        data_tests: [not_null]
+      - name: channel
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Online", "Store"]
