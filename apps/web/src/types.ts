@@ -231,3 +231,36 @@ export type RunReproduction = {
   comparison: RunComparison;
   bronze_changed: boolean;
 };
+
+
+export type DbtNodeLink = {
+  id: string;
+  name: string;
+  layer: string;
+  resource_type: "source" | "model";
+};
+
+export type DbtNodeColumn = {
+  name: string;
+  description: string | null;
+  data_type: string | null;
+};
+
+export type DbtNodeDetail = {
+  id: string;
+  name: string;
+  resource_type: "source" | "model";
+  layer: string;
+  path: string;
+  schema: string | null;
+  database: string | null;
+  relation_name: string | null;
+  materialized: string;
+  source_code: string | null;
+  compiled_code: string | null;
+  physical_query: string | null;
+  upstream: DbtNodeLink[];
+  downstream: DbtNodeLink[];
+  tests: DbtQualityTest[];
+  columns: DbtNodeColumn[];
+};
