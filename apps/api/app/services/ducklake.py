@@ -1,9 +1,20 @@
 from __future__ import annotations
+
+import re
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
+
 import duckdb
+
 from app.config import Settings
+
+
+FORBIDDEN_SQL = re.compile(
+    r"\b(insert|update|delete|create|drop|alter|copy|attach|detach|install|load|call|export|import|truncate|replace|merge)\b",
+    re.IGNORECASE,
+)
+
 
 class DuckLakeService:
     def __init__(self, settings: Settings):
@@ -13,12 +24,31 @@ class DuckLakeService:
     def _quote(path: Path) -> str:
         return str(path).replace("'", "''")
 
+    @staticmethod
+    def _normalize(value: Any) -> Any:
+        if hasattr(value, "isoformat"):
+            return value.isoformat()
+        if isinstance(value, (bytes, bytearray)):
+            return value.hex()
+        if isinstance(value, dict):
+            return {str(k): DuckLakeService._normalize(v) for k, v in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [DuckLakeService._normalize(v) for v in value]
+        return value
+
+    @staticmethod
+    def _load_ducklake(con: duckdb.DuckDBPyConnection) -> None:
+        try:
+            con.execute("LOAD ducklake")
+        except duckdb.Error:
+            con.execute("INSTALL ducklake")
+            con.execute("LOAD ducklake")
+
     @contextmanager
     def connection(self) -> Iterator[duckdb.DuckDBPyConnection]:
         con = duckdb.connect(":memory:")
         try:
-            con.execute("INSTALL ducklake")
-            con.execute("LOAD ducklake")
+            self._load_ducklake(con)
             con.execute(
                 f"ATTACH 'ducklake:{self._quote(self.settings.catalog_path)}' AS contoso "
                 f"(DATA_PATH '{self._quote(self.settings.data_path)}')"
@@ -54,15 +84,26 @@ class DuckLakeService:
         return [{"schema": s, "name": n, "type": t} for s, n, t in rows]
 
     def query(self, sql: str, limit: int):
-        statement = sql.strip().rstrip(";")
-        first = statement.lstrip().split(None, 1)[0].lower() if statement else ""
+        statement = sql.strip()
+        if statement.endswith(";"):
+            statement = statement[:-1].rstrip()
+        if not statement:
+            raise ValueError("SQL is empty")
+        if ";" in statement:
+            raise ValueError("Only one SQL statement can be executed at a time")
+
+        first = statement.lstrip().split(None, 1)[0].lower()
         if first not in {"select", "with", "show", "describe", "explain", "pragma"}:
             raise ValueError("Only read-only SQL is accepted")
+        if FORBIDDEN_SQL.search(statement):
+            raise ValueError("Mutating or administrative SQL is not allowed in the Query workbench")
+
         with self.connection() as con:
             cur = con.execute(statement)
             columns = [d[0] for d in cur.description or []]
             rows = cur.fetchmany(limit + 1)
+
         truncated = len(rows) > limit
         rows = rows[:limit]
-        normalized = [[v.isoformat() if hasattr(v, "isoformat") else v for v in row] for row in rows]
+        normalized = [[self._normalize(v) for v in row] for row in rows]
         return columns, normalized, truncated
