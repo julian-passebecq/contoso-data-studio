@@ -126,7 +126,9 @@ jobs:
           generator = GeneratorService(settings)
           run_id = str(generator.list_runs(1)[0]["run_id"])
           before_reload = int(service.snapshots(1)[0]["snapshot_id"])
-          service.load_parquet_to_bronze(generator.run_files(run_id))
+          service.load_parquet_to_bronze(
+              generator.run_files(run_id, verify_hashes=True)
+          )
           after_reload = int(service.snapshots(1)[0]["snapshot_id"])
           comparison = service.compare_snapshots(
               "bronze", "sales", before_reload, after_reload
