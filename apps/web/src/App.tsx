@@ -57,7 +57,7 @@ export default function App() {
     if (page==="Transform") return <TransformPage onBuilt={onDbtBuilt} onOpenQuery={openQuery}/>;
     if (page==="Query") return <QueryPage initialSql={querySeed}/>;
     if (page==="Explore") return <ExplorePage onOpenQuery={openQuery}/>;
-    if (page==="Charts") return <ChartsPage/>;
+    if (page==="Charts") return <ChartsPage onOpenQuery={openQuery}/>;
     return <CanvasPage onOpenQuery={openQuery}/>;
   }
 
