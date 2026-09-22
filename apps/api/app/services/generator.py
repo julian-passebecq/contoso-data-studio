@@ -186,6 +186,47 @@ class GeneratorService:
             "run_path": directory.relative_to(self.settings.workspace.resolve()).as_posix(),
         }
 
+    def verify_run(self, run_id: str) -> dict[str, object]:
+        payload = self._load_manifest(run_id)
+        files = self.run_files(run_id, verify_hashes=False)
+        hashes = payload.get("file_sha256")
+        tracked = hashes if isinstance(hashes, dict) else {}
+
+        results: dict[str, dict[str, object]] = {}
+        tracked_count = 0
+        valid_count = 0
+        for name, path in files.items():
+            expected = tracked.get(name)
+            if not isinstance(expected, str) or not expected:
+                results[name] = {
+                    "tracked": False,
+                    "valid": None,
+                    "expected_sha256": None,
+                    "actual_sha256": None,
+                }
+                continue
+
+            tracked_count += 1
+            actual = self._sha256(path)
+            valid = actual == expected
+            if valid:
+                valid_count += 1
+            results[name] = {
+                "tracked": True,
+                "valid": valid,
+                "expected_sha256": expected,
+                "actual_sha256": actual,
+            }
+
+        return {
+            "run_id": run_id,
+            "tracked_files": tracked_count,
+            "valid_files": valid_count,
+            "all_tracked": tracked_count == len(files),
+            "all_valid": tracked_count == len(files) and valid_count == tracked_count,
+            "files": results,
+        }
+
     def compare_runs(self, base_run_id: str, target_run_id: str) -> dict[str, object]:
         if base_run_id == target_run_id:
             raise ValueError("Choose two different runs")
