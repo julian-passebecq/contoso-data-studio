@@ -29,13 +29,16 @@ export type InspectResult = {
   columns: string[];
   rows: unknown[][];
   preview_count: number;
-  profile: {
-    columns: string[];
-    rows: unknown[][];
-  };
   metadata: Record<string, unknown> & {
     columns?: Array<Record<string, unknown>>;
   };
+};
+
+export type FileProfile = {
+  path: string;
+  selected_sheet: string | null;
+  columns: string[];
+  rows: unknown[][];
 };
 
 export type QueryResult = {
