@@ -47,6 +47,36 @@ def runs(limit: int = Query(default=20, ge=1, le=100)):
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/runs/{run_id}")
+def run_detail(run_id: str):
+    try:
+        return generator.get_run(run_id)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
+@app.post("/api/runs/{run_id}/reload")
+def reload_run(run_id: str):
+    try:
+        run = generator.get_run(run_id)
+        before = ducklake.snapshots(1)
+        ducklake.load_parquet_to_bronze(generator.run_files(run_id))
+        generator.mark_bronze_loaded(run_id)
+        after = ducklake.snapshots(1)
+        return {
+            "run": generator.get_run(run_id),
+            "bronze_loaded": True,
+            "previous_snapshot_id": before[0]["snapshot_id"] if before else None,
+            "snapshot_id": after[0]["snapshot_id"] if after else None,
+        }
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.post("/api/lakehouse/bootstrap")
 def bootstrap():
     try:
@@ -108,6 +138,21 @@ def time_travel(
             row_count=len(rows),
             truncated=truncated,
         )
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
+@app.get("/api/lakehouse/compare")
+def compare_snapshots(
+    schema: str = Query(min_length=1),
+    table: str = Query(min_length=1),
+    base: int = Query(ge=0),
+    target: int = Query(ge=0),
+):
+    try:
+        return ducklake.compare_snapshots(schema, table, base, target)
     except ValueError as exc:
         raise HTTPException(400, detail=str(exc)) from exc
     except Exception as exc:
