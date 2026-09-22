@@ -1,0 +1,14 @@
+name: contoso_data_studio
+version: "0.1.0"
+config-version: 2
+profile: contoso_data_studio
+model-paths: ["models"]
+models:
+  contoso_data_studio:
+    +database: contoso
+    silver:
+      +schema: silver
+      +materialized: table
+    gold:
+      +schema: gold
+      +materialized: table
