@@ -60,6 +60,8 @@ export type GenerationRun = {
   scale: number | null;
   sales_rows: number | null;
   bronze_loaded_at: string | null;
+  last_snapshot_id: number | null;
+  load_count: number;
   is_active: boolean;
   active_snapshot_id: number | null;
 };
@@ -122,6 +124,8 @@ export type GenerationRunDetail = {
   scale: number | null;
   row_counts: Record<string, number>;
   bronze_loaded_at: string | null;
+  last_snapshot_id: number | null;
+  load_history: Array<{loaded_at:string;snapshot_id:number|null}>;
   is_active: boolean;
   active_snapshot_id: number | null;
   integrity_tracked: boolean;
