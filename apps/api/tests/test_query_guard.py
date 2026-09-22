@@ -62,3 +62,28 @@ def test_query_policy_ignores_keywords_inside_literals_identifiers_and_comments(
 
     assert not __import__("app.services.ducklake", fromlist=["FORBIDDEN_SQL"]).FORBIDDEN_SQL.search(policy)
     assert ";" not in policy
+
+
+
+def test_snapshot_compare_rejects_unknown_schema_without_opening_catalog(tmp_path: Path):
+    service = DuckLakeService(Settings(workspace=tmp_path))
+
+    with pytest.raises(ValueError, match="Schema must be"):
+        service.compare_snapshots("private", "sales", 1, 2)
+
+
+@pytest.mark.parametrize("base,target", [(-1, 2), (1, -2)])
+def test_snapshot_compare_rejects_negative_ids(
+    tmp_path: Path, base: int, target: int
+):
+    service = DuckLakeService(Settings(workspace=tmp_path))
+
+    with pytest.raises(ValueError, match="non-negative"):
+        service.compare_snapshots("bronze", "sales", base, target)
+
+
+def test_snapshot_compare_requires_different_versions(tmp_path: Path):
+    service = DuckLakeService(Settings(workspace=tmp_path))
+
+    with pytest.raises(ValueError, match="different snapshots"):
+        service.compare_snapshots("bronze", "sales", 4, 4)
