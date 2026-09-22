@@ -3,7 +3,7 @@ import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-c
 
 import { getJson } from "../api";
 import DataTable from "../components/DataTable";
-import type { CatalogTable, DbtQuality, DuckLakeSnapshot, QueryResult } from "../types";
+import type { CatalogTable, DbtQuality, DuckLakeSnapshot, QueryResult, SnapshotComparison } from "../types";
 
 function changeSummary(changes: Record<string, unknown> | null) {
   if (!changes) return "No catalog changes";
@@ -28,6 +28,11 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
   const [error,setError] = useState("");
   const [previewError,setPreviewError] = useState("");
   const [loadingSnapshot,setLoadingSnapshot] = useState<number|null>(null);
+  const [compareBase,setCompareBase] = useState("");
+  const [compareTarget,setCompareTarget] = useState("");
+  const [comparison,setComparison] = useState<SnapshotComparison|null>(null);
+  const [compareError,setCompareError] = useState("");
+  const [comparing,setComparing] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -39,6 +44,18 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
       setTables(catalogData.tables);
       setSnapshots(snapshotData.snapshots);
       setQuality(qualityData);
+      setCompareTarget(current=>{
+        if (current && snapshotData.snapshots.some(item=>String(item.snapshot_id)===current)) return current;
+        return snapshotData.snapshots[0] ? String(snapshotData.snapshots[0].snapshot_id) : "";
+      });
+      setCompareBase(current=>{
+        if (current && snapshotData.snapshots.some(item=>String(item.snapshot_id)===current)) return current;
+        return snapshotData.snapshots[1]
+          ? String(snapshotData.snapshots[1].snapshot_id)
+          : snapshotData.snapshots[0]
+            ? String(snapshotData.snapshots[0].snapshot_id)
+            : "";
+      });
       setSelectedTable(current=>{
         if (current && catalogData.tables.some(
           table=>table.schema===current.schema && table.name===current.name
@@ -77,6 +94,24 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
     const issues=tests.filter(test=>["fail","error","warn"].includes(test.status)).length;
     const passed=tests.filter(test=>test.status==="pass").length;
     return issues===0 ? `${passed}/${tests.length} tests` : `${issues} issue${issues===1?"":"s"}`;
+  }
+
+  async function compareSelectedSnapshots() {
+    if (!selectedTable || !compareBase || !compareTarget || compareBase===compareTarget) return;
+    setComparing(true); setCompareError(""); setComparison(null);
+    try {
+      const params=new URLSearchParams({
+        schema:selectedTable.schema,
+        table:selectedTable.name,
+        base:compareBase,
+        target:compareTarget,
+      });
+      setComparison(await getJson<SnapshotComparison>(`/api/lakehouse/compare?${params}`));
+    } catch (err) {
+      setCompareError(err instanceof Error ? err.message : "Snapshot comparison failed.");
+    } finally {
+      setComparing(false);
+    }
   }
 
   async function inspectSnapshot(snapshot:DuckLakeSnapshot) {
@@ -127,6 +162,8 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
               setPreview(null);
               setPreviewSnapshot(null);
               setPreviewError("");
+              setComparison(null);
+              setCompareError("");
             }}
           >
             <span>{table.name}</span><small>{tableHealth(table) ?? table.type}</small>
@@ -144,6 +181,32 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
           : "Select a table above to inspect historical versions"}
         action={<Badge appearance="outline">{snapshots.length} shown</Badge>}
       />
+      <div className="snapshotCompareBar">
+        <div>
+          <Text className="muted tiny">Base</Text>
+          <select value={compareBase} onChange={event=>setCompareBase(event.target.value)}>
+            {snapshots.map(snapshot=><option key={`base-${snapshot.snapshot_id}`} value={snapshot.snapshot_id}>
+              #{snapshot.snapshot_id} · {new Date(snapshot.snapshot_time).toLocaleString()}
+            </option>)}
+          </select>
+        </div>
+        <span>→</span>
+        <div>
+          <Text className="muted tiny">Target</Text>
+          <select value={compareTarget} onChange={event=>setCompareTarget(event.target.value)}>
+            {snapshots.map(snapshot=><option key={`target-${snapshot.snapshot_id}`} value={snapshot.snapshot_id}>
+              #{snapshot.snapshot_id} · {new Date(snapshot.snapshot_time).toLocaleString()}
+            </option>)}
+          </select>
+        </div>
+        <Button
+          disabled={!selectedTable || !compareBase || !compareTarget || compareBase===compareTarget || comparing}
+          onClick={()=>void compareSelectedSnapshots()}
+        >
+          {comparing ? "Comparing..." : "Compare"}
+        </Button>
+      </div>
+      {compareError && <div className="errorText">{compareError}</div>}
       <div className="snapshotList">
         {snapshots.map(snapshot=><div className="snapshotRow" key={snapshot.snapshot_id}>
           <div className="snapshotId">
@@ -165,6 +228,39 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
         {!snapshots.length && <Text className="muted tiny">No DuckLake snapshots yet.</Text>}
       </div>
     </Card>
+
+    {comparison && <Card>
+      <CardHeader
+        header={<Title3>Snapshot comparison</Title3>}
+        description={`${comparison.schema}.${comparison.table} · #${comparison.base.snapshot_id} → #${comparison.target.snapshot_id}`}
+        action={<Badge
+          appearance="outline"
+          color={comparison.row_delta===0 && !comparison.added_columns.length && !comparison.removed_columns.length ? "success" : "informative"}
+        >
+          {comparison.row_delta===0 ? "same row count" : `${comparison.row_delta>0?"+":""}${comparison.row_delta.toLocaleString()} rows`}
+        </Badge>}
+      />
+      <div className="snapshotCompareResult">
+        <div><span>Base rows</span><b>{comparison.base.row_count.toLocaleString()}</b></div>
+        <div><span>Target rows</span><b>{comparison.target.row_count.toLocaleString()}</b></div>
+        <div><span>Row delta</span><b>{comparison.row_delta>0?"+":""}{comparison.row_delta.toLocaleString()}</b></div>
+        <div><span>Columns</span><b>{comparison.target.columns.length}</b></div>
+      </div>
+      <div className="schemaDelta">
+        <div>
+          <span>Added columns</span>
+          {comparison.added_columns.length
+            ? comparison.added_columns.map(column=><Badge key={column} appearance="outline" color="success">{column}</Badge>)
+            : <Text className="muted tiny">None</Text>}
+        </div>
+        <div>
+          <span>Removed columns</span>
+          {comparison.removed_columns.length
+            ? comparison.removed_columns.map(column=><Badge key={column} appearance="outline" color="danger">{column}</Badge>)
+            : <Text className="muted tiny">None</Text>}
+        </div>
+      </div>
+    </Card>}
 
     {(previewSnapshot || previewError) && <Card>
       <CardHeader
