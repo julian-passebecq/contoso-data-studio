@@ -131,11 +131,17 @@ class DuckLakeService:
     def load_parquet_to_bronze(self, files: dict[str, Path]) -> None:
         self.bootstrap()
         with self.connection() as con:
-            for table, path in files.items():
-                con.execute(
-                    f"CREATE OR REPLACE TABLE contoso.bronze.{table} AS "
-                    f"SELECT * FROM read_parquet('{self._quote(path)}')"
-                )
+            con.execute("BEGIN TRANSACTION")
+            try:
+                for table, path in files.items():
+                    con.execute(
+                        f"CREATE OR REPLACE TABLE contoso.bronze.{table} AS "
+                        f"SELECT * FROM read_parquet('{self._quote(path)}')"
+                    )
+                con.execute("COMMIT")
+            except Exception:
+                con.execute("ROLLBACK")
+                raise
 
     def catalog(self) -> list[dict[str, object]]:
         self.bootstrap()
