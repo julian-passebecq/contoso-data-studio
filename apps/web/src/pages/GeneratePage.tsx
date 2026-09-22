@@ -110,10 +110,11 @@ export default function GeneratePage({
       setSelectedRun(result.run);
       await loadRuns();
       onGenerated();
+      const integrity=result.integrity_verified ? " · SHA-256 verified" : " · legacy run (hashes unavailable)";
       onStatus(
         result.snapshot_id == null
-          ? `Reloaded exact persisted run ${runId} into Bronze.`
-          : `Reloaded exact persisted run ${runId} into Bronze · DuckLake snapshot #${result.snapshot_id}.`
+          ? `Reloaded exact persisted run ${runId} into Bronze${integrity}.`
+          : `Reloaded exact persisted run ${runId} into Bronze · DuckLake snapshot #${result.snapshot_id}${integrity}.`
       );
     } catch (error) {
       onStatus(error instanceof Error ? error.message : "Could not reload run.");
@@ -240,6 +241,9 @@ export default function GeneratePage({
         header={<Title3>{selectedRun.scenario_name ?? selectedRun.scenario ?? selectedRun.run_id}</Title3>}
         description={selectedRun.run_id}
         action={<div className="buttonRow">
+          <Badge appearance="outline" color={selectedRun.integrity_tracked?"success":"warning"}>
+            {selectedRun.integrity_tracked ? "SHA-256 tracked" : "Legacy untracked"}
+          </Badge>
           {selectedRun.is_active && <Badge appearance="outline" color="success">
             Active Bronze{selectedRun.active_snapshot_id==null?"":` · #${selectedRun.active_snapshot_id}`}
           </Badge>}
@@ -268,7 +272,10 @@ export default function GeneratePage({
         {Object.entries(selectedRun.files).map(([name,file])=><div className="runFile" key={name}>
           <div><b>{name}</b><Badge appearance="outline">Parquet</Badge></div>
           <code>{file.path}</code>
-          <span>{prettyBytes(file.size_bytes)} · {(selectedRun.row_counts[name] ?? 0).toLocaleString()} rows</span>
+          <span>
+            {prettyBytes(file.size_bytes)} · {(selectedRun.row_counts[name] ?? 0).toLocaleString()} rows
+            {file.sha256 ? ` · sha256 ${file.sha256.slice(0,10)}…` : ""}
+          </span>
         </div>)}
       </div>
     </Card>}
