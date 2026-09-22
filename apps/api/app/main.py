@@ -47,6 +47,19 @@ def runs(limit: int = Query(default=20, ge=1, le=100)):
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/runs/compare")
+def compare_runs(
+    base: str = Query(min_length=1),
+    target: str = Query(min_length=1),
+):
+    try:
+        return generator.compare_runs(base, target)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.get("/api/runs/{run_id}")
 def run_detail(run_id: str):
     try:
