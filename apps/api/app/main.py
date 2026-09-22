@@ -39,6 +39,14 @@ def scenarios():
     return SCENARIOS
 
 
+@app.get("/api/runs")
+def runs(limit: int = Query(default=20, ge=1, le=100)):
+    try:
+        return {"runs": generator.list_runs(limit)}
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.post("/api/lakehouse/bootstrap")
 def bootstrap():
     try:
@@ -59,6 +67,7 @@ def generate(request: GenerateRequest):
         ducklake.load_parquet_to_bronze(
             {key: Path(value) for key, value in manifest["files"].items()}
         )
+        manifest = generator.mark_bronze_loaded(str(manifest["run_id"]))
         return {**manifest, "bronze_loaded": True}
     except ValueError as exc:
         raise HTTPException(400, detail=str(exc)) from exc
