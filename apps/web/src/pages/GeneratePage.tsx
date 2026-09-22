@@ -5,6 +5,7 @@ import { getJson, postJson } from "../api";
 import type {
   GenerationRun,
   GenerationRunDetail,
+  RunComparison,
   RunReloadResult,
   Scenario,
 } from "../types";
@@ -40,6 +41,10 @@ export default function GeneratePage({
   const [selectedRun,setSelectedRun] = useState<GenerationRunDetail|null>(null);
   const [loadingRun,setLoadingRun] = useState("");
   const [reloadingRun,setReloadingRun] = useState("");
+  const [compareBase,setCompareBase] = useState("");
+  const [compareTarget,setCompareTarget] = useState("");
+  const [comparison,setComparison] = useState<RunComparison|null>(null);
+  const [comparing,setComparing] = useState(false);
 
   const selected = useMemo(
     ()=>scenarios.find(item=>item.id===scenarioId) ?? scenarios[0],
@@ -50,6 +55,8 @@ export default function GeneratePage({
     try {
       const data=await getJson<{runs:GenerationRun[]}>("/api/runs?limit=12");
       setRuns(data.runs);
+      setCompareBase(current=>current || data.runs[1]?.run_id || data.runs[0]?.run_id || "");
+      setCompareTarget(current=>current || data.runs[0]?.run_id || "");
     } catch {
       setRuns([]);
     }
@@ -97,6 +104,21 @@ export default function GeneratePage({
     if (run.scale != null) setScale(String(run.scale));
     if (run.seed != null) setSeed(String(run.seed));
     onStatus(`Generator parameters restored from run ${run.run_id}. Generate creates a new run; Reload Bronze restores the exact persisted files.`);
+  }
+
+  async function compareRuns() {
+    if (!compareBase || !compareTarget || compareBase===compareTarget) return;
+    setComparing(true);
+    try {
+      const params=new URLSearchParams({base:compareBase,target:compareTarget});
+      const result=await getJson<RunComparison>(`/api/runs/compare?${params}`);
+      setComparison(result);
+      onStatus(`Compared runs ${compareBase} and ${compareTarget}.`);
+    } catch (error) {
+      onStatus(error instanceof Error ? error.message : "Could not compare runs.");
+    } finally {
+      setComparing(false);
+    }
   }
 
   async function reloadRun(runId:string) {
@@ -199,6 +221,31 @@ export default function GeneratePage({
         description="Persisted manifests + exact Parquet inputs in workspace/staging"
         action={<Button onClick={loadRuns}>Refresh</Button>}
       />
+      {runs.length>1 && <div className="runCompareBar">
+        <div>
+          <Text className="muted tiny">Base run</Text>
+          <select value={compareBase} onChange={event=>setCompareBase(event.target.value)}>
+            {runs.map(run=><option key={`base-${run.run_id}`} value={run.run_id}>
+              {run.scenario_name ?? run.scenario ?? "Run"} · {run.run_id.slice(-8)}
+            </option>)}
+          </select>
+        </div>
+        <span>→</span>
+        <div>
+          <Text className="muted tiny">Target run</Text>
+          <select value={compareTarget} onChange={event=>setCompareTarget(event.target.value)}>
+            {runs.map(run=><option key={`target-${run.run_id}`} value={run.run_id}>
+              {run.scenario_name ?? run.scenario ?? "Run"} · {run.run_id.slice(-8)}
+            </option>)}
+          </select>
+        </div>
+        <Button
+          disabled={!compareBase || !compareTarget || compareBase===compareTarget || comparing}
+          onClick={()=>void compareRuns()}
+        >
+          {comparing ? "Comparing..." : "Compare runs"}
+        </Button>
+      </div>}
       <div className="runLedger">
         {runs.map(run=><div className="runLedgerRow" key={run.run_id}>
           <div>
@@ -235,6 +282,54 @@ export default function GeneratePage({
         {!runs.length && <Text className="muted tiny">No generator runs recorded yet.</Text>}
       </div>
     </Card>
+
+    {comparison && <Card className="runComparisonCard">
+      <CardHeader
+        header={<Title3>Run comparison</Title3>}
+        description={`${comparison.base_run_id} → ${comparison.target_run_id}`}
+        action={<div className="buttonRow">
+          <Badge appearance="outline" color={comparison.same_parameters?"success":"informative"}>
+            {comparison.same_parameters ? "Same parameters" : "Parameters changed"}
+          </Badge>
+          <Badge
+            appearance="outline"
+            color={comparison.exact_files_equal===true?"success":comparison.exact_files_equal===false?"warning":"informative"}
+          >
+            {comparison.exact_files_equal===true
+              ? "Exact files match"
+              : comparison.exact_files_equal===false
+                ? "Files differ"
+                : "Hashes unavailable"}
+          </Badge>
+        </div>}
+      />
+      <div className="runCompareSummary">
+        <div><span>Parameter changes</span><b>{Object.keys(comparison.parameter_changes).length}</b></div>
+        <div><span>Row-count changes</span><b>{Object.keys(comparison.row_count_changes).length}</b></div>
+        <div><span>Files compared</span><b>{Object.keys(comparison.files).length}</b></div>
+        <div><span>Hashes tracked</span><b>{comparison.all_hashes_available ? "Yes" : "Partial"}</b></div>
+      </div>
+      {Object.keys(comparison.parameter_changes).length>0 && <div className="runCompareSection">
+        <b>Parameters</b>
+        {Object.entries(comparison.parameter_changes).map(([name,value])=><div key={name}>
+          <code>{name}</code><span>{String(value.base)} → {String(value.target)}</span>
+        </div>)}
+      </div>}
+      {Object.keys(comparison.row_count_changes).length>0 && <div className="runCompareSection">
+        <b>Row counts</b>
+        {Object.entries(comparison.row_count_changes).map(([name,value])=><div key={name}>
+          <code>{name}</code><span>{value.base ?? "—"} → {value.target ?? "—"}{value.delta==null?"":` · ${value.delta>0?"+":""}${value.delta}`}</span>
+        </div>)}
+      </div>}
+      <div className="runFileCompareGrid">
+        {Object.entries(comparison.files).map(([name,file])=><div className="runFileCompare" key={name}>
+          <div><b>{name}</b><Badge appearance="outline" color={file.same_hash===true?"success":file.same_hash===false?"warning":"informative"}>
+            {file.same_hash===true ? "same" : file.same_hash===false ? "different" : "untracked"}
+          </Badge></div>
+          <span>{prettyBytes(file.base_size_bytes ?? 0)} → {prettyBytes(file.target_size_bytes ?? 0)}</span>
+        </div>)}
+      </div>
+    </Card>}
 
     {selectedRun && <Card className="runDetailCard">
       <CardHeader
