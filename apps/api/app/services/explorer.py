@@ -148,6 +148,40 @@ class ExplorerService:
                 con.execute("LOAD excel")
         return con
 
+    def profile(
+        self,
+        relative_path: str,
+        sheet: str | None = None,
+    ) -> dict[str, Any]:
+        path = self._resolve(relative_path)
+        suffix = path.suffix.lower()
+        selected_sheet: str | None = None
+        if suffix == ".xlsx":
+            sheets = self._excel_sheets(path)
+            if not sheets:
+                raise ValueError("Workbook contains no worksheets")
+            selected_sheet = sheet or sheets[0]
+            if selected_sheet not in sheets:
+                raise ValueError(f"Unknown worksheet: {selected_sheet}")
+
+        source = self._source_sql(path, selected_sheet)
+        con = self._connect(suffix == ".xlsx")
+        try:
+            cursor = con.execute(f"SUMMARIZE SELECT * FROM {source}")
+            columns = [entry[0] for entry in cursor.description or []]
+            rows = [
+                [self._normalize(value) for value in row]
+                for row in cursor.fetchall()
+            ]
+            return {
+                "path": relative_path,
+                "selected_sheet": selected_sheet,
+                "columns": columns,
+                "rows": rows,
+            }
+        finally:
+            con.close()
+
     def inspect(
         self,
         relative_path: str,
@@ -180,13 +214,6 @@ class ExplorerService:
             ]
 
             count = con.execute(f"SELECT count(*) FROM {source}").fetchone()[0]
-
-            profile_cursor = con.execute(f"SUMMARIZE SELECT * FROM {source}")
-            profile_columns = [entry[0] for entry in profile_cursor.description or []]
-            profile_rows = [
-                [self._normalize(value) for value in row]
-                for row in profile_cursor.fetchall()
-            ]
 
             metadata: dict[str, Any] = {
                 "format": SUPPORTED_EXTENSIONS[suffix],
@@ -247,10 +274,6 @@ class ExplorerService:
                 "columns": columns,
                 "rows": rows,
                 "preview_count": len(rows),
-                "profile": {
-                    "columns": profile_columns,
-                    "rows": profile_rows,
-                },
                 "metadata": metadata,
             }
         finally:
