@@ -60,6 +60,16 @@ def compare_runs(
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/runs/{run_id}/verify")
+def verify_run(run_id: str):
+    try:
+        return generator.verify_run(run_id)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.get("/api/runs/{run_id}")
 def run_detail(run_id: str):
     try:
