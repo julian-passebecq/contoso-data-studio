@@ -14,10 +14,22 @@ def _write_artifacts(root: Path) -> None:
             "model.contoso_data_studio.stg_sales": {
                 "name": "stg_sales",
                 "original_file_path": "models/silver/stg_sales.sql",
+                "schema": "silver",
+                "database": "contoso",
+                "config": {"materialized": "table"},
+                "depends_on": {
+                    "nodes": ["source.contoso_data_studio.bronze.sales"]
+                },
             },
             "model.contoso_data_studio.monthly_sales": {
                 "name": "monthly_sales",
                 "original_file_path": "models/gold/monthly_sales.sql",
+                "schema": "gold",
+                "database": "contoso",
+                "config": {"materialized": "table"},
+                "depends_on": {
+                    "nodes": ["model.contoso_data_studio.stg_sales"]
+                },
             },
             "test.contoso_data_studio.relationships_sales_customer_key": {
                 "name": "relationships_sales_customer_key",
@@ -60,10 +72,16 @@ def _write_artifacts(root: Path) -> None:
             "source.contoso_data_studio.bronze.sales": {
                 "name": "sales",
                 "source_name": "bronze",
+                "schema": "bronze",
+                "database": "contoso",
+                "original_file_path": "models/sources.yml",
             },
             "source.contoso_data_studio.bronze.customer": {
                 "name": "customer",
                 "source_name": "bronze",
+                "schema": "bronze",
+                "database": "contoso",
+                "original_file_path": "models/sources.yml",
             },
         },
     }
@@ -152,3 +170,40 @@ def test_quality_is_empty_without_dbt_artifacts(tmp_path: Path, monkeypatch):
 
     assert quality["summary"]["total"] == 0
     assert quality["tests"] == []
+
+
+
+def test_lineage_maps_manifest_sources_models_and_edges(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CONTOSO_PROJECT_ROOT", str(tmp_path))
+    _write_artifacts(tmp_path)
+
+    service = DbtService(Settings(workspace=tmp_path / "workspace"))
+    lineage = service.lineage()
+
+    nodes = {node["id"]: node for node in lineage["nodes"]}
+    edges = {(edge["source"], edge["target"]) for edge in lineage["edges"]}
+
+    assert nodes["source.contoso_data_studio.bronze.sales"]["layer"] == "bronze"
+    assert nodes["model.contoso_data_studio.stg_sales"]["layer"] == "silver"
+    assert nodes["model.contoso_data_studio.monthly_sales"]["layer"] == "gold"
+    assert nodes["model.contoso_data_studio.monthly_sales"]["materialized"] == "table"
+
+    assert (
+        "source.contoso_data_studio.bronze.sales",
+        "model.contoso_data_studio.stg_sales",
+    ) in edges
+    assert (
+        "model.contoso_data_studio.stg_sales",
+        "model.contoso_data_studio.monthly_sales",
+    ) in edges
+    assert all(not source.startswith("test.") for source, _ in edges)
+
+
+def test_lineage_is_empty_without_manifest(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CONTOSO_PROJECT_ROOT", str(tmp_path))
+
+    service = DbtService(Settings(workspace=tmp_path / "workspace"))
+    lineage = service.lineage()
+
+    assert lineage["nodes"] == []
+    assert lineage["edges"] == []
