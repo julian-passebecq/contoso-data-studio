@@ -60,6 +60,8 @@ export type GenerationRun = {
   scale: number | null;
   sales_rows: number | null;
   bronze_loaded_at: string | null;
+  is_active: boolean;
+  active_snapshot_id: number | null;
 };
 
 
@@ -119,6 +121,8 @@ export type GenerationRunDetail = {
   scale: number | null;
   row_counts: Record<string, number>;
   bronze_loaded_at: string | null;
+  is_active: boolean;
+  active_snapshot_id: number | null;
   files: Record<string, GenerationRunFile>;
   run_path: string;
 };
