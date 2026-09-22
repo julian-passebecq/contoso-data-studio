@@ -222,6 +222,63 @@ class DuckLakeService:
         ]
         return columns, normalized, truncated
 
+    def compare_snapshots(
+        self,
+        schema: str,
+        table: str,
+        base_snapshot: int,
+        target_snapshot: int,
+    ) -> dict[str, Any]:
+        if schema not in {"bronze", "silver", "gold"}:
+            raise ValueError("Schema must be bronze, silver, or gold")
+        if base_snapshot < 0 or target_snapshot < 0:
+            raise ValueError("Snapshot ids must be non-negative")
+        if base_snapshot == target_snapshot:
+            raise ValueError("Choose two different snapshots")
+
+        available = {
+            (str(item["schema"]), str(item["name"]))
+            for item in self.catalog()
+        }
+        if (schema, table) not in available:
+            raise ValueError(f"Unknown current table: {schema}.{table}")
+
+        schema_sql = self._quote_identifier(schema)
+        table_sql = self._quote_identifier(table)
+
+        def snapshot_state(
+            con: duckdb.DuckDBPyConnection,
+            snapshot_id: int,
+        ) -> dict[str, Any]:
+            relation = (
+                f"contoso.{schema_sql}.{table_sql} "
+                f"AT (VERSION => {int(snapshot_id)})"
+            )
+            count = con.execute(f"SELECT count(*) FROM {relation}").fetchone()[0]
+            cursor = con.execute(f"SELECT * FROM {relation} LIMIT 0")
+            columns = [entry[0] for entry in cursor.description or []]
+            return {
+                "snapshot_id": snapshot_id,
+                "row_count": int(count),
+                "columns": columns,
+            }
+
+        with self.connection(read_only=True) as con:
+            base = snapshot_state(con, base_snapshot)
+            target = snapshot_state(con, target_snapshot)
+
+        base_columns = set(map(str, base["columns"]))
+        target_columns = set(map(str, target["columns"]))
+        return {
+            "schema": schema,
+            "table": table,
+            "base": base,
+            "target": target,
+            "row_delta": int(target["row_count"]) - int(base["row_count"]),
+            "added_columns": sorted(target_columns - base_columns),
+            "removed_columns": sorted(base_columns - target_columns),
+        }
+
     def query(self, sql: str, limit: int):
         statement = sql.strip()
         if statement.endswith(";"):
