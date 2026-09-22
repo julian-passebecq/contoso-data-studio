@@ -55,3 +55,8 @@
 }
 
 .qualityEmpty{padding:14px 4px;color:#666;font-size:12px}
+
+.dagNode{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dagNode span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dagNode small{font:9px "Segoe UI",system-ui,sans-serif;color:#777;white-space:nowrap}
+.dagNode.issue{border-color:#c46b6b;background:#fff8f8}
