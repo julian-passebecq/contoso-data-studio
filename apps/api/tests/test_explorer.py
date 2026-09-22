@@ -32,10 +32,11 @@ def test_inspect_profiles_csv_columns(tmp_path: Path):
     )
 
     result = service.inspect(imported["path"], limit=10)
+    profile_result = service.profile(imported["path"])
 
     assert result["columns"] == ["id", "category", "value"]
     assert result["metadata"]["row_count"] == 3
-    assert result["profile"]["columns"] == [
+    assert profile_result["columns"] == [
         "column_name",
         "column_type",
         "min",
@@ -49,6 +50,6 @@ def test_inspect_profiles_csv_columns(tmp_path: Path):
         "count",
         "null_percentage",
     ]
-    profile = {row[0]: row for row in result["profile"]["rows"]}
+    profile = {row[0]: row for row in profile_result["rows"]}
     assert profile["category"][4] == 2
     assert profile["value"][11] != "0.00%"
