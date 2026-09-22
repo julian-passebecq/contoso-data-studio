@@ -207,8 +207,12 @@ export default function GeneratePage({
           <span>{(run.sales_rows ?? run.scale ?? 0).toLocaleString()} sales</span>
           <span>seed {run.seed ?? "—"}</span>
           <span>{run.created_at ? new Date(run.created_at).toLocaleString() : "—"}</span>
-          <Badge appearance="outline" color={run.bronze_loaded_at?"success":"warning"}>
-            {run.bronze_loaded_at ? "Bronze loaded" : "Generated"}
+          <Badge appearance="outline" color={run.is_active?"success":run.bronze_loaded_at?"informative":"warning"}>
+            {run.is_active
+              ? `Active Bronze${run.active_snapshot_id==null?"":` · #${run.active_snapshot_id}`}`
+              : run.bronze_loaded_at
+                ? "Previously loaded"
+                : "Generated"}
           </Badge>
           <div className="runLedgerActions">
             <Button
@@ -236,6 +240,9 @@ export default function GeneratePage({
         header={<Title3>{selectedRun.scenario_name ?? selectedRun.scenario ?? selectedRun.run_id}</Title3>}
         description={selectedRun.run_id}
         action={<div className="buttonRow">
+          {selectedRun.is_active && <Badge appearance="outline" color="success">
+            Active Bronze{selectedRun.active_snapshot_id==null?"":` · #${selectedRun.active_snapshot_id}`}
+          </Badge>}
           <Button onClick={()=>useRunParameters(selectedRun)}>Use parameters</Button>
           <Button
             appearance="primary"
@@ -252,6 +259,7 @@ export default function GeneratePage({
         <div><span>Scale</span><b>{(selectedRun.scale ?? 0).toLocaleString()}</b></div>
         <div><span>Generated</span><b>{selectedRun.created_at ? new Date(selectedRun.created_at).toLocaleString() : "—"}</b></div>
         <div><span>Last Bronze load</span><b>{selectedRun.bronze_loaded_at ? new Date(selectedRun.bronze_loaded_at).toLocaleString() : "Never"}</b></div>
+        <div><span>Active snapshot</span><b>{selectedRun.is_active && selectedRun.active_snapshot_id!=null ? `#${selectedRun.active_snapshot_id}` : "—"}</b></div>
       </div>
       <div className="runModeNote">
         <b>Use parameters</b> generates a new deterministic run. <b>Reload exact Bronze</b> reuses these persisted Parquet files unchanged.
