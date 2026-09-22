@@ -36,6 +36,7 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
   const [run,setRun] = useState<DbtRun|null>(null);
   const [busy,setBusy] = useState("");
   const [error,setError] = useState("");
+  const [showIssuesOnly,setShowIssuesOnly] = useState(false);
 
   async function refresh() {
     try {
@@ -71,6 +72,12 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
   const qualityIssues = quality
     ? quality.summary.fail + quality.summary.error + quality.summary.warn
     : 0;
+
+  const visibleQualityTests = quality
+    ? quality.tests.filter(test=>
+        !showIssuesOnly || ["fail","error","warn"].includes(test.status)
+      )
+    : [];
 
   return <div className="transformGrid">
     <Card>
@@ -129,14 +136,22 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
           ? `Latest dbt test artifacts · ${new Date(quality.generated_at).toLocaleString()}`
           : "Run dbt Test or Build to populate quality results"}
         action={quality && quality.summary.total>0
-          ? <Badge
-              appearance="outline"
-              color={qualityIssues===0 ? "success" : "danger"}
-            >
-              {qualityIssues===0
-                ? `${quality.summary.pass}/${quality.summary.total} passing`
-                : `${qualityIssues} issue${qualityIssues===1?"":"s"}`}
-            </Badge>
+          ? <div className="buttonRow">
+              {qualityIssues>0 && <Button
+                size="small"
+                onClick={()=>setShowIssuesOnly(value=>!value)}
+              >
+                {showIssuesOnly ? "Show all tests" : "Issues only"}
+              </Button>}
+              <Badge
+                appearance="outline"
+                color={qualityIssues===0 ? "success" : "danger"}
+              >
+                {qualityIssues===0
+                  ? `${quality.summary.pass}/${quality.summary.total} passing`
+                  : `${qualityIssues} issue${qualityIssues===1?"":"s"}`}
+              </Badge>
+            </div>
           : undefined}
       />
       {quality && quality.summary.total>0 ? <>
@@ -149,7 +164,7 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
           <div><span>Skip</span><b>{quality.summary.skip}</b></div>
         </div>
         <div className="qualityTests">
-          {quality.tests.map(test=><div className="qualityTest" key={test.unique_id}>
+          {visibleQualityTests.map(test=><div className="qualityTest" key={test.unique_id}>
             <Badge
               appearance="outline"
               color={test.status==="pass" ? "success" : test.status==="warn" || test.status==="skip" ? "warning" : "danger"}
@@ -165,6 +180,7 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
             <small>{test.failures == null ? "" : `${test.failures} fail${test.failures===1?"":"s"}`}</small>
             <small>{test.execution_time == null ? "" : `${test.execution_time.toFixed(2)}s`}</small>
           </div>)}
+          {showIssuesOnly && visibleQualityTests.length===0 && <div className="qualityEmpty">No failed, warning, or error tests.</div>}
         </div>
       </> : <Text className="muted">No dbt test results recorded yet.</Text>}
     </Card>
