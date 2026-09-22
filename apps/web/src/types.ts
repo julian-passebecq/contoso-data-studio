@@ -40,3 +40,15 @@ export type QueryResult = {
   row_count: number;
   truncated: boolean;
 };
+
+
+export type GenerationRun = {
+  run_id: string;
+  scenario: string | null;
+  scenario_name: string | null;
+  created_at: string | null;
+  seed: number | null;
+  scale: number | null;
+  sales_rows: number | null;
+  bronze_loaded_at: string | null;
+};
