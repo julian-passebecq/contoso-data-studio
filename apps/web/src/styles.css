@@ -149,3 +149,5 @@ main{padding:28px 32px;min-width:0}
 .sheetPicker select{
   min-width:180px;padding:6px 8px;border:1px solid #d6d6da;border-radius:5px;background:#fff;
 }
+
+.layerTitleBadges{display:flex;align-items:center;gap:6px}
