@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import Settings
 from app.models import GenerateRequest, QueryRequest, QueryResult
+from app.services.charts import ChartsService
 from app.services.dbt_runner import DbtService
 from app.services.ducklake import DuckLakeService
 from app.services.explorer import ExplorerService
@@ -16,8 +17,9 @@ ducklake = DuckLakeService(settings)
 explorer = ExplorerService(settings)
 generator = GeneratorService(settings)
 dbt = DbtService(settings)
+charts = ChartsService(settings)
 
-app = FastAPI(title="Contoso Data Studio API", version="0.3.0")
+app = FastAPI(title="Contoso Data Studio API", version="0.4.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -111,6 +113,28 @@ def dbt_run(command: str):
         raise HTTPException(409, detail=str(exc)) from exc
     except subprocess.TimeoutExpired as exc:
         raise HTTPException(504, detail=f"dbt {command} timed out") from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
+@app.get("/api/charts/status")
+def charts_status():
+    try:
+        return charts.status()
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
+@app.post("/api/charts/validate")
+def charts_validate(board: str = Query(default="executive-sales.yml")):
+    try:
+        return charts.validate(board)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(409, detail=str(exc)) from exc
+    except subprocess.TimeoutExpired as exc:
+        raise HTTPException(504, detail="dbt Charts validation timed out") from exc
     except Exception as exc:
         raise HTTPException(500, detail=str(exc)) from exc
 
