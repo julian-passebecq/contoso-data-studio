@@ -181,3 +181,33 @@ def test_run_files_reject_manifest_escape(tmp_path: Path):
 
     with pytest.raises(ValueError, match="run directory"):
         service.run_files(run_id)
+
+
+
+def test_mark_bronze_loaded_tracks_active_run_and_snapshot(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    first = service.generate("retail-baseline", 500, 1)
+    second = service.generate("online-migration", 500, 2)
+
+    service.mark_bronze_loaded(str(first["run_id"]), 11)
+    first_detail = service.get_run(str(first["run_id"]))
+    assert first_detail["is_active"] is True
+    assert first_detail["active_snapshot_id"] == 11
+
+    service.mark_bronze_loaded(str(second["run_id"]), 22)
+    first_detail = service.get_run(str(first["run_id"]))
+    second_detail = service.get_run(str(second["run_id"]))
+    active = service.active_run()
+
+    assert first_detail["is_active"] is False
+    assert second_detail["is_active"] is True
+    assert second_detail["active_snapshot_id"] == 22
+    assert active is not None
+    assert active["run_id"] == second["run_id"]
+    assert active["active_snapshot_id"] == 22
+
+    ledger = service.list_runs(10)
+    active_rows = [run for run in ledger if run["is_active"]]
+    assert len(active_rows) == 1
+    assert active_rows[0]["run_id"] == second["run_id"]
