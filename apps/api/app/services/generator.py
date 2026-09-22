@@ -52,6 +52,43 @@ class GeneratorService:
     def _sql_path(path: Path) -> str:
         return path.as_posix().replace("'", "''")
 
+    def list_runs(self, limit: int = 20) -> list[dict[str, object]]:
+        if not self.settings.staging_path.exists():
+            return []
+
+        runs: list[dict[str, object]] = []
+        for manifest_path in self.settings.staging_path.glob("*/manifest.json"):
+            try:
+                payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+
+            run_id = str(payload.get("run_id") or manifest_path.parent.name)
+            row_counts = payload.get("row_counts") or {}
+            runs.append({
+                "run_id": run_id,
+                "scenario": payload.get("scenario"),
+                "scenario_name": payload.get("scenario_name"),
+                "created_at": payload.get("created_at"),
+                "seed": payload.get("seed"),
+                "scale": payload.get("scale"),
+                "sales_rows": row_counts.get("sales"),
+                "bronze_loaded_at": payload.get("bronze_loaded_at"),
+            })
+
+        runs.sort(key=lambda item: str(item.get("created_at") or ""), reverse=True)
+        return runs[:max(1, min(limit, 100))]
+
+    def mark_bronze_loaded(self, run_id: str) -> dict[str, object]:
+        manifest_path = self.settings.staging_path / run_id / "manifest.json"
+        if not manifest_path.exists():
+            raise ValueError(f"Run manifest not found: {run_id}")
+
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["bronze_loaded_at"] = datetime.now(timezone.utc).isoformat()
+        manifest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        return payload
+
     def generate(self, scenario: str, scale: int, seed: int) -> dict[str, object]:
         if scenario not in SCENARIO_CONFIG:
             raise ValueError(f"Unknown scenario: {scenario!r}")
