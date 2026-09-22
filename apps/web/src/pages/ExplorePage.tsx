@@ -4,7 +4,7 @@ import { getJson, postBinary } from "../api";
 import DataTable from "../components/DataTable";
 import type { FileProfile, InspectResult, WorkspaceFile } from "../types";
 
-type Tab = "Data"|"Profile"|"Schema"|"Metadata";
+type Tab = "Data"|"Raw"|"Profile"|"Schema"|"Metadata";
 
 function prettyBytes(bytes:number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -125,9 +125,13 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
       {error && <div className="errorText">{error}</div>}
       {inspect && <>
         <div className="tabStrip">
-          {(["Data","Profile","Schema","Metadata"] as Tab[]).map(name=><button className={tab===name?"selected":""} key={name} onClick={()=>selectTab(name)}>{name}</button>)}
+          {(["Data", ...(inspect.raw_text !== null ? ["Raw" as Tab] : []), "Profile", "Schema", "Metadata"] as Tab[]).map(name=><button className={tab===name?"selected":""} key={name} onClick={()=>selectTab(name)}>{name}</button>)}
         </div>
         {tab==="Data" && <DataTable columns={inspect.columns} rows={inspect.rows}/>}
+        {tab==="Raw" && inspect.raw_text !== null && <div className="rawPanel">
+          {inspect.raw_truncated && <Badge appearance="outline" color="warning">Preview truncated at 200 KB</Badge>}
+          <pre className="rawPreview">{inspect.raw_text}</pre>
+        </div>}
         {tab==="Profile" && (profile
           ? <DataTable columns={profile.columns} rows={profile.rows}/>
           : <div className="emptyState">{profiling ? "Profiling file..." : "Open Profile to compute statistics."}</div>
