@@ -22,3 +22,33 @@ def test_import_rejects_unsupported_extension(tmp_path: Path):
 
     with pytest.raises(ValueError, match="Unsupported file type"):
         service.import_file("payload.exe", b"not allowed")
+
+
+def test_inspect_profiles_csv_columns(tmp_path: Path):
+    service = ExplorerService(Settings(workspace=tmp_path))
+    imported = service.import_file(
+        "sample.csv",
+        b"id,category,value\n1,A,10\n2,A,20\n3,B,\n",
+    )
+
+    result = service.inspect(imported["path"], limit=10)
+
+    assert result["columns"] == ["id", "category", "value"]
+    assert result["metadata"]["row_count"] == 3
+    assert result["profile"]["columns"] == [
+        "column_name",
+        "column_type",
+        "min",
+        "max",
+        "approx_unique",
+        "avg",
+        "std",
+        "q25",
+        "q50",
+        "q75",
+        "count",
+        "null_percentage",
+    ]
+    profile = {row[0]: row for row in result["profile"]["rows"]}
+    assert profile["category"][4] == 2
+    assert profile["value"][11] != "0.00%"
