@@ -314,6 +314,9 @@ export default function GeneratePage({
           <Badge appearance="outline" color={comparison.same_parameters?"success":"informative"}>
             {comparison.same_parameters ? "Same parameters" : "Parameters changed"}
           </Badge>
+          <Badge appearance="outline" color={comparison.same_generator?"success":"warning"}>
+            {comparison.same_generator ? "Same generator" : "Generator changed"}
+          </Badge>
           <Badge
             appearance="outline"
             color={comparison.exact_files_equal===true?"success":comparison.exact_files_equal===false?"warning":"informative"}
@@ -336,6 +339,12 @@ export default function GeneratePage({
         <b>Parameters</b>
         {Object.entries(comparison.parameter_changes).map(([name,value])=><div key={name}>
           <code>{name}</code><span>{String(value.base)} → {String(value.target)}</span>
+        </div>)}
+      </div>}
+      {Object.keys(comparison.generator_changes).length>0 && <div className="runCompareSection">
+        <b>Generator provenance</b>
+        {Object.entries(comparison.generator_changes).map(([name,value])=><div key={name}>
+          <code>{name}</code><span>{String(value.base ?? "—")} → {String(value.target ?? "—")}</span>
         </div>)}
       </div>}
       {Object.keys(comparison.row_count_changes).length>0 && <div className="runCompareSection">
@@ -361,6 +370,9 @@ export default function GeneratePage({
         action={<div className="buttonRow">
           <Badge appearance="outline" color={selectedRun.integrity_tracked?"success":"warning"}>
             {selectedRun.integrity_tracked ? "SHA-256 tracked" : "Legacy untracked"}
+          </Badge>
+          <Badge appearance="outline" color={selectedRun.generator_sha256?"informative":"warning"}>
+            {selectedRun.generator_version ? `Generator ${selectedRun.generator_version}` : "Generator unversioned"}
           </Badge>
           {selectedRun.is_active && <Badge appearance="outline" color="success">
             Active Bronze{selectedRun.active_snapshot_id==null?"":` · #${selectedRun.active_snapshot_id}`}
@@ -389,6 +401,8 @@ export default function GeneratePage({
         <div><span>Last Bronze load</span><b>{selectedRun.bronze_loaded_at ? new Date(selectedRun.bronze_loaded_at).toLocaleString() : "Never"}</b></div>
         <div><span>Last snapshot</span><b>{selectedRun.last_snapshot_id!=null ? `#${selectedRun.last_snapshot_id}` : "—"}</b></div>
         <div><span>Load count</span><b>{selectedRun.load_history.length}</b></div>
+        <div><span>Manifest</span><b>v{selectedRun.manifest_version}</b></div>
+        <div><span>Generator hash</span><b>{selectedRun.generator_sha256 ? `${selectedRun.generator_sha256.slice(0,10)}…` : "—"}</b></div>
       </div>
       <div className="runModeNote">
         <b>Use parameters</b> generates a new deterministic run. <b>Reload exact Bronze</b> reuses these persisted Parquet files unchanged.
