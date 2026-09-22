@@ -31,6 +31,7 @@ type DbtStatus = {
 };
 type DbtRun = {
   command:string;
+  selector:string | null;
   exit_code:number;
   ok:boolean;
   output:string;
@@ -101,12 +102,15 @@ export default function TransformPage({
 
   useEffect(()=>{ void refresh(); },[]);
 
-  async function execute(command:"build"|"test") {
-    setBusy(command); setError("");
+  async function execute(command:"build"|"test", selector?:string) {
+    const busyKey=selector ? `${command}:${selector}` : command;
+    setBusy(busyKey); setError("");
     try {
-      const result = await postJson<DbtRun>(`/api/dbt/${command}`, {});
+      const suffix=selector ? `?selector=${encodeURIComponent(selector)}` : "";
+      const result = await postJson<DbtRun>(`/api/dbt/${command}${suffix}`, {});
       setRun(result);
       await refresh();
+      if (selector && selectedNodeId) await loadNode(selectedNodeId);
       if (result.ok) onBuilt();
     } catch (err) {
       setError(err instanceof Error ? err.message : `dbt ${command} failed.`);
@@ -265,8 +269,29 @@ export default function TransformPage({
         description={nodeDetail
           ? `${nodeDetail.layer.toUpperCase()} · ${nodeDetail.resource_type} · ${nodeDetail.materialized}${nodeDetail.path ? ` · ${nodeDetail.path}` : ""}`
           : "Select a Bronze, Silver, or Gold node in the DAG to inspect it"}
-        action={nodeDetail?.physical_query
-          ? <Button appearance="primary" onClick={()=>onOpenQuery(nodeDetail.physical_query!)}>Open result in Query</Button>
+        action={nodeDetail
+          ? <div className="buttonRow">
+              {nodeDetail.resource_type==="model" && <>
+                <Button
+                  disabled={!!busy || !status?.available}
+                  onClick={()=>void execute("test",nodeDetail.name)}
+                >
+                  {busy===`test:${nodeDetail.name}` ? "Testing model..." : "Test model"}
+                </Button>
+                <Button
+                  disabled={!!busy || !status?.available}
+                  onClick={()=>void execute("build",nodeDetail.name)}
+                >
+                  {busy===`build:${nodeDetail.name}` ? "Building model..." : "Build model"}
+                </Button>
+              </>}
+              {nodeDetail.physical_query && <Button
+                appearance="primary"
+                onClick={()=>onOpenQuery(nodeDetail.physical_query!)}
+              >
+                Open result in Query
+              </Button>}
+            </div>
           : undefined}
       />
       {nodeDetail ? <>
