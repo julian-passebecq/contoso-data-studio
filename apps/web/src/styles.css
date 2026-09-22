@@ -137,3 +137,10 @@ main{padding:28px 32px;min-width:0}
 .snapshotId b{font:12px Consolas,"Cascadia Code",monospace}
 .snapshotId span,.snapshotWhen span{font-size:10px;color:#777}
 .snapshotWhen b{font-size:11px;font-weight:600}
+
+.rawPanel{display:grid;gap:8px}
+.rawPreview{
+  margin:0;max-height:520px;overflow:auto;padding:14px;border:1px solid #e2e2e4;
+  border-radius:5px;background:#fafafa;font:12px/1.55 Consolas,"Cascadia Code",monospace;
+  white-space:pre-wrap;overflow-wrap:anywhere;
+}
