@@ -101,3 +101,47 @@ export type DbtQuality = {
   by_layer: Record<string, DbtQualitySummary>;
   tests: DbtQualityTest[];
 };
+
+
+export type GenerationRunFile = {
+  name: string;
+  path: string;
+  size_bytes: number;
+};
+
+export type GenerationRunDetail = {
+  run_id: string;
+  scenario: string | null;
+  scenario_name: string | null;
+  business_focus: string | null;
+  created_at: string | null;
+  seed: number | null;
+  scale: number | null;
+  row_counts: Record<string, number>;
+  bronze_loaded_at: string | null;
+  files: Record<string, GenerationRunFile>;
+  run_path: string;
+};
+
+export type RunReloadResult = {
+  run: GenerationRunDetail;
+  bronze_loaded: boolean;
+  previous_snapshot_id: number | null;
+  snapshot_id: number | null;
+};
+
+export type SnapshotComparisonState = {
+  snapshot_id: number;
+  row_count: number;
+  columns: string[];
+};
+
+export type SnapshotComparison = {
+  schema: string;
+  table: string;
+  base: SnapshotComparisonState;
+  target: SnapshotComparisonState;
+  row_delta: number;
+  added_columns: string[];
+  removed_columns: string[];
+};
