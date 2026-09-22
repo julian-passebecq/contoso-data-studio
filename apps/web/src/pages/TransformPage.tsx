@@ -248,7 +248,14 @@ export default function TransformPage({
     </Card>
 
     <Card>
-      <CardHeader header={<Title3>Latest run</Title3>} description="dbt run_results.json"/>
+      <CardHeader
+        header={<Title3>Latest run</Title3>}
+        description={run?.selector
+          ? `dbt ${run.command} --select ${run.selector}`
+          : run
+            ? `dbt ${run.command}`
+            : "dbt run_results.json"}
+      />
       {error && <div className="errorText">{error}</div>}
       {(run?.run_results ?? status?.latest_run) ? <div className="runResults">
         {(run?.run_results ?? status?.latest_run)?.results.map(item=><div className="runResult" key={item.unique_id}>
