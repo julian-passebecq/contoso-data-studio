@@ -407,6 +407,8 @@ class DbtService:
         ]
         selected_model = None
         if selector is not None:
+            if command not in {"build", "run", "test"}:
+                raise ValueError(f"dbt {command} does not accept a model selector here")
             selected_model = self._validate_model_selector(selector)
             args.extend(["--select", selected_model])
 
