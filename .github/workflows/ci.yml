@@ -9,7 +9,7 @@ jobs:
   api:
     runs-on: ubuntu-latest
     env:
-      CONTOSO_DUCKLAKE_CATALOG: ${{ github.workspace }}/workspace/contoso.ducklake
+      CONTOSO_DUCKLAKE_CATALOG: ${{ github.workspace }}/workspace/contoso.ducklake.sqlite
       CONTOSO_DUCKLAKE_DATA_PATH: ${{ github.workspace }}/workspace/contoso.ducklake.files
     steps:
       - uses: actions/checkout@v4
@@ -38,6 +38,19 @@ jobs:
           files = {name: Path(path) for name, path in manifest["files"].items()}
           DuckLakeService(settings).load_parquet_to_bronze(files)
           print(manifest["run_id"])
+          PY
+      - name: Verify Bronze persists across processes
+        run: |
+          python - <<'PY'
+          from app.config import Settings
+          from app.services.ducklake import DuckLakeService
+
+          tables = DuckLakeService(Settings.load()).catalog()
+          bronze = {row["name"] for row in tables if row["schema"] == "bronze"}
+          expected = {"customer", "product", "store", "sales"}
+          missing = expected - bronze
+          assert not missing, f"Bronze did not persist across clients: {sorted(missing)}"
+          print(sorted(bronze))
           PY
       - name: Build and test dbt models
         working-directory: dbt
