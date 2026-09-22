@@ -4,10 +4,10 @@ contoso_data_studio:
     dev:
       type: duckdb
       path: ":memory:"
-      threads: 4
-      extensions: [ducklake]
+      threads: 1
+      extensions: [ducklake, sqlite]
       attach:
-        - path: "ducklake:{{ env_var('CONTOSO_DUCKLAKE_CATALOG', '../workspace/contoso.ducklake') }}"
+        - path: "ducklake:sqlite:{{ env_var('CONTOSO_DUCKLAKE_CATALOG', '../workspace/contoso.ducklake.sqlite') }}"
           alias: contoso
           options:
             data_path: "{{ env_var('CONTOSO_DUCKLAKE_DATA_PATH', '../workspace/contoso.ducklake.files') }}"
