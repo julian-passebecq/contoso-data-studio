@@ -116,6 +116,9 @@ export type GenerationRunFile = {
 
 export type GenerationRunDetail = {
   run_id: string;
+  manifest_version: number;
+  generator_version: string | null;
+  generator_sha256: string | null;
   scenario: string | null;
   scenario_name: string | null;
   business_focus: string | null;
@@ -194,6 +197,8 @@ export type RunComparison = {
   target_run_id: string;
   same_parameters: boolean;
   parameter_changes: Record<string,{base:unknown;target:unknown}>;
+  same_generator: boolean;
+  generator_changes: Record<string,{base:unknown;target:unknown}>;
   row_count_changes: Record<string,{base:number|null;target:number|null;delta:number|null}>;
   all_hashes_available: boolean;
   exact_files_equal: boolean | null;
