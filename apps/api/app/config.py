@@ -42,3 +42,7 @@ class Settings:
     @property
     def dbt_path(self) -> Path:
         return self.project_root / "dbt"
+
+    @property
+    def charts_path(self) -> Path:
+        return self.project_root / "charts"
