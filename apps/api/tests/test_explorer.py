@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import duckdb
 import pytest
 
 from app.config import Settings
@@ -66,3 +67,31 @@ def test_json_inspection_exposes_raw_preview(tmp_path: Path):
     assert result["raw_text"] == payload.decode("utf-8")
     assert result["raw_truncated"] is False
     assert result["columns"] == ["id", "name"]
+
+
+def test_parquet_inspection_exposes_row_group_statistics(tmp_path: Path):
+    service = ExplorerService(Settings(workspace=tmp_path))
+    parquet_path = tmp_path / "imports" / "row-groups.parquet"
+
+    con = duckdb.connect(":memory:")
+    try:
+        con.execute(
+            f"""COPY (
+                SELECT i::BIGINT AS id, (i % 7)::INTEGER AS segment
+                FROM range(5000) t(i)
+            ) TO '{parquet_path.as_posix()}'
+            (FORMAT PARQUET, COMPRESSION ZSTD, ROW_GROUP_SIZE 2048)"""
+        )
+    finally:
+        con.close()
+
+    result = service.inspect("imports/row-groups.parquet", limit=10)
+    groups = result["metadata"]["row_groups"]
+
+    assert result["metadata"]["format"] == "Parquet"
+    assert result["metadata"]["num_row_groups"] >= 2
+    assert len(groups) == result["metadata"]["num_row_groups"]
+    assert sum(int(group["rows"]) for group in groups) == 5000
+    assert all(int(group["columns"]) == 2 for group in groups)
+    assert all(int(group["compressed_bytes"]) > 0 for group in groups)
+    assert all(int(group["uncompressed_bytes"]) > 0 for group in groups)
