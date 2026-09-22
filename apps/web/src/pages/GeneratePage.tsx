@@ -3,6 +3,7 @@ import { Badge, Button, Card, CardHeader, Input, Text, Title3 } from "@fluentui/
 
 import { postJson } from "../api";
 import type { Scenario } from "../types";
+import "../generator.css";
 
 type GenerateResult = {
   scale:number;
