@@ -10,7 +10,7 @@ Generate -> Inspect -> Bronze (DuckLake) -> dbt Silver -> dbt Gold -> SQL / KPI 
 
 - deterministic `retail-baseline` generator
 - Parquet staging
-- local DuckLake catalog with Bronze / Silver / Gold schemas
+- local DuckLake catalog with SQLite metadata + managed Parquet data and Bronze / Silver / Gold schemas
 - unified Parquet / JSON / CSV / XLSX Explorer
 - Parquet file metadata and column statistics through DuckDB
 - read-only DuckDB SQL workbench
@@ -30,7 +30,7 @@ Out of v1: DAX execution, Power BI emulation, Spark, Fabric, Databricks, Airflow
 
 ```text
 workspace/
-  contoso.ducklake
+  contoso.ducklake.sqlite
   contoso.ducklake.files/
   staging/<run-id>/*.parquet
   imports/
@@ -57,7 +57,7 @@ pip install -e "apps/api[dbt]"
 uvicorn app.main:app --app-dir apps/api --reload
 ```
 
-The first DuckLake/Excel use may install DuckDB extensions into DuckDB's local extension cache.
+The first DuckLake/Excel use may install DuckDB extensions into DuckDB's local extension cache. DuckLake uses a SQLite metadata catalog so the API and dbt can safely reconnect as separate local clients.
 
 ### Web
 
