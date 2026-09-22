@@ -24,3 +24,14 @@
 .scenarioChoice>div{display:grid;gap:3px;min-width:0}
 .scenarioChoice b{font-size:12px}
 .scenarioChoice span{font-size:11px;color:#666;line-height:1.35}
+
+.generateStack{display:grid;gap:18px}
+.runLedger{display:grid}
+.runLedgerRow{
+  display:grid;grid-template-columns:minmax(220px,1fr) 110px 90px 170px auto;
+  gap:14px;align-items:center;padding:10px 4px;border-bottom:1px solid #ededee;font-size:11px
+}
+.runLedgerRow>div{display:grid;gap:2px;min-width:0}
+.runLedgerRow b{font-size:12px}
+.runLedgerRow code{font:10px Consolas,"Cascadia Code",monospace;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.runLedgerRow>span{color:#666;white-space:nowrap}
