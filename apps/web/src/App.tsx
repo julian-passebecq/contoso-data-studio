@@ -54,7 +54,7 @@ export default function App() {
   function renderPage() {
     if (page==="Generate") return <GeneratePage scenarios={scenarios} onStatus={setMessage} onGenerated={()=>setRefreshToken(v=>v+1)}/>;
     if (page==="Lakehouse") return <LakehousePage refreshToken={refreshToken}/>;
-    if (page==="Transform") return <TransformPage onBuilt={onDbtBuilt}/>;
+    if (page==="Transform") return <TransformPage onBuilt={onDbtBuilt} onOpenQuery={openQuery}/>;
     if (page==="Query") return <QueryPage initialSql={querySeed}/>;
     if (page==="Explore") return <ExplorePage onOpenQuery={openQuery}/>;
     if (page==="Charts") return <ChartsPage/>;
