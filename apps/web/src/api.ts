@@ -17,3 +17,12 @@ export async function postJson<T>(url: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   }));
 }
+
+
+export async function postBinary<T>(url: string, body: Blob | ArrayBuffer): Promise<T> {
+  return parse<T>(await fetch(url, {
+    method: "POST",
+    headers: {"Content-Type":"application/octet-stream"},
+    body,
+  }));
+}
