@@ -144,3 +144,8 @@ main{padding:28px 32px;min-width:0}
   border-radius:5px;background:#fafafa;font:12px/1.55 Consolas,"Cascadia Code",monospace;
   white-space:pre-wrap;overflow-wrap:anywhere;
 }
+
+.sheetPicker{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.sheetPicker select{
+  min-width:180px;padding:6px 8px;border:1px solid #d6d6da;border-radius:5px;background:#fff;
+}
