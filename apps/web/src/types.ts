@@ -29,6 +29,10 @@ export type InspectResult = {
   columns: string[];
   rows: unknown[][];
   preview_count: number;
+  profile: {
+    columns: string[];
+    rows: unknown[][];
+  };
   metadata: Record<string, unknown> & {
     columns?: Array<Record<string, unknown>>;
   };
