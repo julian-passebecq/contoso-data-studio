@@ -52,6 +52,40 @@ class ExplorerService:
             raise ValueError(f"Unsupported file type: {candidate.suffix}")
         return candidate
 
+    def import_file(self, filename: str, payload: bytes) -> dict[str, Any]:
+        safe_name = Path(filename).name
+        suffix = Path(safe_name).suffix.lower()
+        if not safe_name or safe_name in {".", ".."}:
+            raise ValueError("A valid filename is required")
+        if suffix not in SUPPORTED_EXTENSIONS:
+            raise ValueError(
+                "Unsupported file type. Use Parquet, JSON, JSONL, NDJSON, CSV, or XLSX."
+            )
+        if not payload:
+            raise ValueError("Uploaded file is empty")
+        if len(payload) > 100 * 1024 * 1024:
+            raise ValueError("Uploaded file exceeds the 100 MB local import limit")
+
+        destination = self.imports_path / safe_name
+        if destination.exists():
+            stem = destination.stem
+            suffix_text = destination.suffix
+            index = 2
+            while destination.exists():
+                destination = self.imports_path / f"{stem}-{index}{suffix_text}"
+                index += 1
+
+        destination.write_bytes(payload)
+        workspace = self.settings.workspace.resolve()
+        stat = destination.stat()
+        return {
+            "path": destination.resolve().relative_to(workspace).as_posix(),
+            "name": destination.name,
+            "format": SUPPORTED_EXTENSIONS[suffix],
+            "size_bytes": stat.st_size,
+            "modified_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+        }
+
     def list_files(self) -> list[dict[str, Any]]:
         roots = [self.settings.staging_path, self.imports_path]
         files: list[dict[str, Any]] = []
