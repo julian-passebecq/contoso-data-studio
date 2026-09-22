@@ -19,6 +19,18 @@ def _write_artifacts(root: Path) -> None:
                 "name": "monthly_sales",
                 "original_file_path": "models/gold/monthly_sales.sql",
             },
+            "test.contoso_data_studio.relationships_sales_customer_key": {
+                "name": "relationships_sales_customer_key",
+                "column_name": "customer_key",
+                "test_metadata": {"name": "relationships"},
+                "attached_node": "source.contoso_data_studio.bronze.sales",
+                "depends_on": {
+                    "nodes": [
+                        "source.contoso_data_studio.bronze.customer",
+                        "source.contoso_data_studio.bronze.sales"
+                    ]
+                },
+            },
             "test.contoso_data_studio.not_null_source_sales_sales_key": {
                 "name": "not_null_source_sales_sales_key",
                 "column_name": "sales_key",
@@ -49,6 +61,10 @@ def _write_artifacts(root: Path) -> None:
                 "name": "sales",
                 "source_name": "bronze",
             },
+            "source.contoso_data_studio.bronze.customer": {
+                "name": "customer",
+                "source_name": "bronze",
+            },
         },
     }
     run_results = {
@@ -58,6 +74,13 @@ def _write_artifacts(root: Path) -> None:
                 "unique_id": "model.contoso_data_studio.stg_sales",
                 "status": "success",
                 "execution_time": 0.1,
+            },
+            {
+                "unique_id": "test.contoso_data_studio.relationships_sales_customer_key",
+                "status": "pass",
+                "failures": 0,
+                "execution_time": 0.01,
+                "message": None,
             },
             {
                 "unique_id": "test.contoso_data_studio.not_null_source_sales_sales_key",
@@ -95,14 +118,14 @@ def test_quality_maps_tests_to_layers_and_models(tmp_path: Path, monkeypatch):
 
     assert quality["generated_at"] == "2026-09-22T15:00:00Z"
     assert quality["summary"] == {
-        "total": 3,
-        "pass": 2,
+        "total": 4,
+        "pass": 3,
         "fail": 1,
         "warn": 0,
         "error": 0,
         "skip": 0,
     }
-    assert quality["by_layer"]["bronze"]["pass"] == 1
+    assert quality["by_layer"]["bronze"]["pass"] == 2
     assert quality["by_layer"]["silver"]["pass"] == 1
     assert quality["by_layer"]["gold"]["fail"] == 1
 
@@ -112,6 +135,13 @@ def test_quality_maps_tests_to_layers_and_models(tmp_path: Path, monkeypatch):
     assert failed["model"] == "monthly_sales"
     assert failed["column_name"] == "order_month"
     assert failed["failures"] == 3
+
+    relationship = next(
+        test for test in quality["tests"]
+        if test["test_type"] == "relationships"
+    )
+    assert relationship["layer"] == "bronze"
+    assert relationship["model"] == "sales"
 
 
 def test_quality_is_empty_without_dbt_artifacts(tmp_path: Path, monkeypatch):
