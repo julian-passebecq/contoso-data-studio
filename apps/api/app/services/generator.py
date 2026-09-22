@@ -184,6 +184,84 @@ class GeneratorService:
             "run_path": directory.relative_to(self.settings.workspace.resolve()).as_posix(),
         }
 
+    def compare_runs(self, base_run_id: str, target_run_id: str) -> dict[str, object]:
+        if base_run_id == target_run_id:
+            raise ValueError("Choose two different runs")
+
+        base = self.get_run(base_run_id)
+        target = self.get_run(target_run_id)
+
+        parameter_fields = ("scenario", "seed", "scale")
+        parameter_changes = {
+            field: {"base": base.get(field), "target": target.get(field)}
+            for field in parameter_fields
+            if base.get(field) != target.get(field)
+        }
+
+        base_counts = base.get("row_counts")
+        target_counts = target.get("row_counts")
+        base_rows = base_counts if isinstance(base_counts, dict) else {}
+        target_rows = target_counts if isinstance(target_counts, dict) else {}
+        row_keys = sorted(set(map(str, base_rows)) | set(map(str, target_rows)))
+        row_count_changes = {
+            name: {
+                "base": base_rows.get(name),
+                "target": target_rows.get(name),
+                "delta": (
+                    int(target_rows.get(name, 0)) - int(base_rows.get(name, 0))
+                    if isinstance(base_rows.get(name, 0), int)
+                    and isinstance(target_rows.get(name, 0), int)
+                    else None
+                ),
+            }
+            for name in row_keys
+            if base_rows.get(name) != target_rows.get(name)
+        }
+
+        base_files = base.get("files")
+        target_files = target.get("files")
+        base_file_map = base_files if isinstance(base_files, dict) else {}
+        target_file_map = target_files if isinstance(target_files, dict) else {}
+        file_names = sorted(set(map(str, base_file_map)) | set(map(str, target_file_map)))
+        file_comparison: dict[str, dict[str, object]] = {}
+        all_hashes_available = True
+        exact_files_equal = True
+
+        for name in file_names:
+            base_info = base_file_map.get(name)
+            target_info = target_file_map.get(name)
+            base_dict = base_info if isinstance(base_info, dict) else {}
+            target_dict = target_info if isinstance(target_info, dict) else {}
+            base_hash = base_dict.get("sha256")
+            target_hash = target_dict.get("sha256")
+            hashes_available = (
+                isinstance(base_hash, str) and bool(base_hash)
+                and isinstance(target_hash, str) and bool(target_hash)
+            )
+            same_hash = bool(hashes_available and base_hash == target_hash)
+            all_hashes_available = all_hashes_available and hashes_available
+            exact_files_equal = exact_files_equal and same_hash
+            file_comparison[name] = {
+                "same_hash": same_hash if hashes_available else None,
+                "base_sha256": base_hash if isinstance(base_hash, str) else None,
+                "target_sha256": target_hash if isinstance(target_hash, str) else None,
+                "base_size_bytes": base_dict.get("size_bytes"),
+                "target_size_bytes": target_dict.get("size_bytes"),
+            }
+
+        return {
+            "base_run_id": base_run_id,
+            "target_run_id": target_run_id,
+            "same_parameters": not parameter_changes,
+            "parameter_changes": parameter_changes,
+            "row_count_changes": row_count_changes,
+            "all_hashes_available": all_hashes_available,
+            "exact_files_equal": exact_files_equal if all_hashes_available else None,
+            "files": file_comparison,
+            "base_snapshot_id": base.get("active_snapshot_id") if base.get("is_active") else None,
+            "target_snapshot_id": target.get("active_snapshot_id") if target.get("is_active") else None,
+        }
+
     @property
     def active_run_path(self) -> Path:
         return self.settings.workspace / "active_run.json"
