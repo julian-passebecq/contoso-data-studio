@@ -46,13 +46,16 @@ class DuckLakeService:
                 con.execute(f"LOAD {extension}")
 
     @contextmanager
-    def connection(self) -> Iterator[duckdb.DuckDBPyConnection]:
+    def connection(self, read_only: bool = False) -> Iterator[duckdb.DuckDBPyConnection]:
         con = duckdb.connect(":memory:")
         try:
             self._load_extensions(con)
+            options = ["READ_ONLY"] if read_only else [
+                f"DATA_PATH '{self._quote(self.settings.data_path)}'"
+            ]
             con.execute(
                 f"ATTACH 'ducklake:sqlite:{self._quote(self.settings.catalog_path)}' AS contoso "
-                f"(DATA_PATH '{self._quote(self.settings.data_path)}')"
+                f"({', '.join(options)})"
             )
             yield con
         finally:
@@ -94,12 +97,12 @@ class DuckLakeService:
             raise ValueError("Only one SQL statement can be executed at a time")
 
         first = statement.lstrip().split(None, 1)[0].lower()
-        if first not in {"select", "with", "show", "describe", "explain", "pragma"}:
+        if first not in {"select", "with", "show", "describe", "explain"}:
             raise ValueError("Only read-only SQL is accepted")
         if FORBIDDEN_SQL.search(statement):
             raise ValueError("Mutating or administrative SQL is not allowed in the Query workbench")
 
-        with self.connection() as con:
+        with self.connection(read_only=True) as con:
             cur = con.execute(statement)
             columns = [d[0] for d in cur.description or []]
             rows = cur.fetchmany(limit + 1)
