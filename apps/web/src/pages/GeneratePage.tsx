@@ -8,6 +8,7 @@ import type {
   RunComparison,
   RunIntegrity,
   RunReloadResult,
+  RunReproduction,
   Scenario,
 } from "../types";
 import "../generator.css";
@@ -48,6 +49,7 @@ export default function GeneratePage({
   const [comparing,setComparing] = useState(false);
   const [integrity,setIntegrity] = useState<RunIntegrity|null>(null);
   const [verifyingRun,setVerifyingRun] = useState("");
+  const [reproducingRun,setReproducingRun] = useState("");
 
   const selected = useMemo(
     ()=>scenarios.find(item=>item.id===scenarioId) ?? scenarios[0],
@@ -107,6 +109,29 @@ export default function GeneratePage({
     if (run.scale != null) setScale(String(run.scale));
     if (run.seed != null) setSeed(String(run.seed));
     onStatus(`Generator parameters restored from run ${run.run_id}. Generate creates a new run; Reload Bronze restores the exact persisted files.`);
+  }
+
+  async function reproduceRun(runId:string) {
+    setReproducingRun(runId);
+    onStatus(`Reproducing recipe from ${runId} without changing active Bronze...`);
+    try {
+      const result=await postJson<RunReproduction>(
+        `/api/runs/${encodeURIComponent(runId)}/reproduce`,
+        {},
+      );
+      setComparison(result.comparison);
+      setSelectedRun(result.reproduced_run);
+      await loadRuns();
+      onStatus(
+        result.comparison.exact_files_equal
+          ? `Reproduced ${runId}: exact Parquet hashes match the source run.`
+          : `Reproduced ${runId}: recipe completed, but artifacts differ from the source run.`
+      );
+    } catch (error) {
+      onStatus(error instanceof Error ? error.message : "Could not reproduce run recipe.");
+    } finally {
+      setReproducingRun("");
+    }
   }
 
   async function verifyRun(runId:string) {
@@ -383,6 +408,12 @@ export default function GeneratePage({
           >
             {verifyingRun===selectedRun.run_id ? "Verifying..." : "Verify integrity"}
           </Button>
+          <Button
+            disabled={reproducingRun!==""}
+            onClick={()=>void reproduceRun(selectedRun.run_id)}
+          >
+            {reproducingRun===selectedRun.run_id ? "Reproducing..." : "Reproduce recipe"}
+          </Button>
           <Button onClick={()=>useRunParameters(selectedRun)}>Use parameters</Button>
           <Button
             appearance="primary"
@@ -405,7 +436,7 @@ export default function GeneratePage({
         <div><span>Generator hash</span><b>{selectedRun.generator_sha256 ? `${selectedRun.generator_sha256.slice(0,10)}…` : "—"}</b></div>
       </div>
       <div className="runModeNote">
-        <b>Use parameters</b> generates a new deterministic run. <b>Reload exact Bronze</b> reuses these persisted Parquet files unchanged.
+        <b>Use parameters</b> restores the recipe in the form. <b>Reproduce recipe</b> creates a new run from the stored scenario/seed/scale without changing Bronze. <b>Reload exact Bronze</b> reuses the persisted Parquet files unchanged.
       </div>
       {selectedRun.load_history.length>0 && <div className="runLoadHistory">
         <b>Bronze load history</b>
