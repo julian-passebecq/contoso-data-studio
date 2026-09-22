@@ -1,0 +1,13 @@
+contoso_data_studio:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ":memory:"
+      threads: 4
+      extensions: [ducklake]
+      attach:
+        - path: "ducklake:../workspace/contoso.ducklake"
+          alias: contoso
+          options:
+            data_path: "../workspace/contoso.ducklake.files"
