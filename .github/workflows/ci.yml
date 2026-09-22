@@ -23,6 +23,19 @@ jobs:
       - name: Parse dbt project
         run: dbt parse --project-dir dbt --profiles-dir dbt --no-use-colors
 
+  charts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dbt Charts
+        run: pip install dbt-charts==0.8.0 dbt-duckdb==1.11.0
+      - name: Validate board
+        run: dct validate charts/executive-sales.yml --project-dir . --dbt-project-dir dbt
+
   web:
     runs-on: ubuntu-latest
     defaults:
