@@ -229,3 +229,47 @@ def test_run_hash_verification_rejects_tampered_parquet(tmp_path: Path):
 
     with pytest.raises(ValueError, match="hash mismatch: sales"):
         service.run_files(run_id, verify_hashes=True)
+
+
+def test_compare_runs_detects_same_parameters_and_exact_files(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    first = service.generate("retail-baseline", 500, 77)
+    second = service.generate("retail-baseline", 500, 77)
+
+    comparison = service.compare_runs(str(first["run_id"]), str(second["run_id"]))
+
+    assert comparison["same_parameters"] is True
+    assert comparison["parameter_changes"] == {}
+    assert comparison["row_count_changes"] == {}
+    assert comparison["all_hashes_available"] is True
+    assert comparison["exact_files_equal"] is True
+    assert all(
+        item["same_hash"] is True
+        for item in comparison["files"].values()
+    )
+
+
+def test_compare_runs_detects_seed_and_scale_changes(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    first = service.generate("retail-baseline", 500, 1)
+    second = service.generate("retail-baseline", 700, 2)
+
+    comparison = service.compare_runs(str(first["run_id"]), str(second["run_id"]))
+
+    assert comparison["same_parameters"] is False
+    assert comparison["parameter_changes"]["seed"] == {"base": 1, "target": 2}
+    assert comparison["parameter_changes"]["scale"] == {"base": 500, "target": 700}
+    assert comparison["row_count_changes"]["sales"]["delta"] == 200
+    assert comparison["exact_files_equal"] is False
+
+
+def test_compare_runs_rejects_same_run(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    service = GeneratorService(Settings(workspace=workspace))
+    manifest = service.generate("retail-baseline", 500, 1)
+    run_id = str(manifest["run_id"])
+
+    with pytest.raises(ValueError, match="two different runs"):
+        service.compare_runs(run_id, run_id)
