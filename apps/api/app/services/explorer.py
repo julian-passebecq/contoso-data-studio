@@ -180,6 +180,14 @@ class ExplorerService:
             ]
 
             count = con.execute(f"SELECT count(*) FROM {source}").fetchone()[0]
+
+            profile_cursor = con.execute(f"SUMMARIZE SELECT * FROM {source}")
+            profile_columns = [entry[0] for entry in profile_cursor.description or []]
+            profile_rows = [
+                [self._normalize(value) for value in row]
+                for row in profile_cursor.fetchall()
+            ]
+
             metadata: dict[str, Any] = {
                 "format": SUPPORTED_EXTENSIONS[suffix],
                 "size_bytes": path.stat().st_size,
@@ -239,6 +247,10 @@ class ExplorerService:
                 "columns": columns,
                 "rows": rows,
                 "preview_count": len(rows),
+                "profile": {
+                    "columns": profile_columns,
+                    "rows": profile_rows,
+                },
                 "metadata": metadata,
             }
         finally:
