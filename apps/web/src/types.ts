@@ -52,3 +52,13 @@ export type GenerationRun = {
   sales_rows: number | null;
   bronze_loaded_at: string | null;
 };
+
+
+export type DuckLakeSnapshot = {
+  snapshot_id: number;
+  snapshot_time: string;
+  schema_version: number;
+  changes: Record<string, unknown> | null;
+  author: string | null;
+  commit_message: string | null;
+};
