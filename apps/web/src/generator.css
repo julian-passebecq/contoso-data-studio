@@ -67,3 +67,39 @@
   .runLedgerActions{grid-column:1/-1;justify-content:flex-start}
   .runDetailFacts{grid-template-columns:repeat(2,1fr)}
 }
+
+.runCompareBar{
+  display:grid;grid-template-columns:minmax(180px,1fr) 24px minmax(180px,1fr) auto;
+  gap:10px;align-items:end;margin:0 0 12px;padding:10px 12px;border:1px solid #e2e2e4;
+  border-radius:7px;background:#fafafa
+}
+.runCompareBar>div{display:grid;gap:4px}
+.runCompareBar>span{align-self:center;justify-self:center;color:#888}
+.runCompareBar select{
+  min-width:0;padding:7px 8px;border:1px solid #d6d6da;border-radius:5px;background:#fff;font-size:11px
+}
+.runComparisonCard{display:grid;gap:14px}
+.runCompareSummary{
+  display:grid;grid-template-columns:repeat(4,minmax(110px,1fr));gap:8px
+}
+.runCompareSummary>div{
+  display:grid;gap:3px;padding:10px 12px;border:1px solid #e2e2e4;border-radius:6px;background:#fafafa
+}
+.runCompareSummary span{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#888}
+.runCompareSummary b{font-size:16px}
+.runCompareSection{display:grid;gap:4px;padding:10px 12px;border:1px solid #e4e4e6;border-radius:6px}
+.runCompareSection>b{font-size:11px;margin-bottom:3px}
+.runCompareSection>div{display:grid;grid-template-columns:140px 1fr;gap:10px;font-size:11px}
+.runCompareSection code{font:10px Consolas,"Cascadia Code",monospace}
+.runCompareSection span{color:#666}
+.runFileCompareGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.runFileCompare{display:grid;gap:6px;padding:9px 10px;border:1px solid #e2e2e4;border-radius:6px;background:#fcfcfc}
+.runFileCompare>div{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.runFileCompare b{font-size:10px}
+.runFileCompare span{font-size:9px;color:#777}
+@media(max-width:1250px){
+  .runCompareBar{grid-template-columns:1fr 24px 1fr}
+  .runCompareBar>button{grid-column:1/-1;justify-self:start}
+  .runCompareSummary{grid-template-columns:repeat(2,1fr)}
+  .runFileCompareGrid{grid-template-columns:repeat(2,1fr)}
+}
