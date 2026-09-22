@@ -53,3 +53,5 @@
   .qualityTest{grid-template-columns:70px 58px minmax(0,1fr)}
   .qualityTest>small{display:none}
 }
+
+.qualityEmpty{padding:14px 4px;color:#666;font-size:12px}
