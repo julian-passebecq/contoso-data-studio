@@ -63,13 +63,14 @@ def reload_run(run_id: str):
         run = generator.get_run(run_id)
         before = ducklake.snapshots(1)
         ducklake.load_parquet_to_bronze(generator.run_files(run_id))
-        generator.mark_bronze_loaded(run_id)
         after = ducklake.snapshots(1)
+        snapshot_id = int(after[0]["snapshot_id"]) if after else None
+        generator.mark_bronze_loaded(run_id, snapshot_id)
         return {
             "run": generator.get_run(run_id),
             "bronze_loaded": True,
-            "previous_snapshot_id": before[0]["snapshot_id"] if before else None,
-            "snapshot_id": after[0]["snapshot_id"] if after else None,
+            "previous_snapshot_id": int(before[0]["snapshot_id"]) if before else None,
+            "snapshot_id": snapshot_id,
         }
     except ValueError as exc:
         raise HTTPException(400, detail=str(exc)) from exc
@@ -97,8 +98,17 @@ def generate(request: GenerateRequest):
         ducklake.load_parquet_to_bronze(
             {key: Path(value) for key, value in manifest["files"].items()}
         )
-        manifest = generator.mark_bronze_loaded(str(manifest["run_id"]))
-        return {**manifest, "bronze_loaded": True}
+        latest = ducklake.snapshots(1)
+        snapshot_id = int(latest[0]["snapshot_id"]) if latest else None
+        manifest = generator.mark_bronze_loaded(
+            str(manifest["run_id"]),
+            snapshot_id,
+        )
+        return {
+            **manifest,
+            "bronze_loaded": True,
+            "snapshot_id": snapshot_id,
+        }
     except ValueError as exc:
         raise HTTPException(400, detail=str(exc)) from exc
     except Exception as exc:
