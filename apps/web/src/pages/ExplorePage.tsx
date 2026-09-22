@@ -4,7 +4,7 @@ import { getJson, postBinary } from "../api";
 import DataTable from "../components/DataTable";
 import type { FileProfile, InspectResult, WorkspaceFile } from "../types";
 
-type Tab = "Data"|"Raw"|"Profile"|"Schema"|"Metadata";
+type Tab = "Data"|"Raw"|"Profile"|"Schema"|"Row groups"|"Metadata";
 
 function prettyBytes(bytes:number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -98,7 +98,7 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
   const metadataRows = useMemo(()=>{
     if (!inspect) return [];
     return Object.entries(inspect.metadata)
-      .filter(([key])=>key!=="columns")
+      .filter(([key])=>!["columns","row_groups"].includes(key))
       .map(([key,value])=>[key,value]);
   },[inspect]);
 
@@ -150,7 +150,14 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
       </div>}
       {inspect && <>
         <div className="tabStrip">
-          {(["Data", ...(inspect.raw_text !== null ? ["Raw" as Tab] : []), "Profile", "Schema", "Metadata"] as Tab[]).map(name=><button className={tab===name?"selected":""} key={name} onClick={()=>selectTab(name)}>{name}</button>)}
+          {([
+            "Data",
+            ...(inspect.raw_text !== null ? ["Raw" as Tab] : []),
+            "Profile",
+            "Schema",
+            ...(Array.isArray(inspect.metadata.row_groups) ? ["Row groups" as Tab] : []),
+            "Metadata",
+          ] as Tab[]).map(name=><button className={tab===name?"selected":""} key={name} onClick={()=>selectTab(name)}>{name}</button>)}
         </div>
         {tab==="Data" && <DataTable columns={inspect.columns} rows={inspect.rows}/>}
         {tab==="Raw" && inspect.raw_text !== null && <div className="rawPanel">
@@ -162,6 +169,21 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
           : <div className="emptyState">{profiling ? "Profiling file..." : "Open Profile to compute statistics."}</div>
         )}
         {tab==="Schema" && <DataTable columns={["Column","Type","Nullable"]} rows={inspect.schema.map(c=>[c.name,c.type,c.nullable])}/>}
+        {tab==="Row groups" && Array.isArray(inspect.metadata.row_groups) && <DataTable
+          columns={["Row group","Rows","Columns","Compressed","Uncompressed","Ratio"]}
+          rows={(inspect.metadata.row_groups as Array<Record<string,unknown>>).map(group=>{
+            const compressed=Number(group.compressed_bytes ?? 0);
+            const uncompressed=Number(group.uncompressed_bytes ?? 0);
+            return [
+              group.row_group,
+              group.rows,
+              group.columns,
+              prettyBytes(compressed),
+              prettyBytes(uncompressed),
+              uncompressed>0 ? `${((compressed/uncompressed)*100).toFixed(1)}%` : "—",
+            ];
+          })}
+        />}
         {tab==="Metadata" && <div className="metadataStack">
           <DataTable columns={["Property","Value"]} rows={metadataRows}/>
           {Array.isArray(inspect.metadata.columns) && inspect.metadata.columns.length>0 && <>
