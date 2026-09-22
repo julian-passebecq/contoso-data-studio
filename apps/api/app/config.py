@@ -29,7 +29,7 @@ class Settings:
 
     @property
     def catalog_path(self) -> Path:
-        return self.workspace / "contoso.ducklake"
+        return self.workspace / "contoso.ducklake.sqlite"
 
     @property
     def data_path(self) -> Path:
