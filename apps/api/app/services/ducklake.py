@@ -26,6 +26,10 @@ class DuckLakeService:
         return str(path).replace("'", "''")
 
     @staticmethod
+    def _quote_identifier(value: str) -> str:
+        return '"' + value.replace('"', '""') + '"'
+
+    @staticmethod
     def _normalize(value: Any) -> Any:
         if hasattr(value, "isoformat"):
             return value.isoformat()
@@ -100,6 +104,71 @@ class DuckLakeService:
             {"schema": schema, "name": name, "type": "BASE TABLE"}
             for schema, name in rows
         ]
+
+    def snapshots(self, limit: int = 50) -> list[dict[str, Any]]:
+        self.bootstrap()
+        with self.connection(read_only=True) as con:
+            rows = con.execute(
+                """
+                SELECT snapshot_id, snapshot_time, schema_version, changes,
+                       author, commit_message
+                FROM contoso.snapshots()
+                ORDER BY snapshot_id DESC
+                LIMIT ?
+                """,
+                [max(1, min(limit, 200))],
+            ).fetchall()
+
+        return [
+            {
+                "snapshot_id": row[0],
+                "snapshot_time": self._normalize(row[1]),
+                "schema_version": row[2],
+                "changes": self._normalize(row[3]),
+                "author": row[4],
+                "commit_message": row[5],
+            }
+            for row in rows
+        ]
+
+    def preview_at_snapshot(
+        self,
+        schema: str,
+        table: str,
+        snapshot_id: int,
+        limit: int = 100,
+    ) -> tuple[list[str], list[list[Any]], bool]:
+        if schema not in {"bronze", "silver", "gold"}:
+            raise ValueError("Schema must be bronze, silver, or gold")
+        if snapshot_id < 0:
+            raise ValueError("Snapshot id must be non-negative")
+
+        available = {
+            (str(item["schema"]), str(item["name"]))
+            for item in self.catalog()
+        }
+        if (schema, table) not in available:
+            raise ValueError(f"Unknown current table: {schema}.{table}")
+
+        schema_sql = self._quote_identifier(schema)
+        table_sql = self._quote_identifier(table)
+        fetch_limit = max(1, min(limit, 2_000))
+        statement = (
+            f"SELECT * FROM contoso.{schema_sql}.{table_sql} "
+            f"AT (VERSION => {int(snapshot_id)})"
+        )
+
+        with self.connection(read_only=True) as con:
+            cur = con.execute(statement)
+            columns = [entry[0] for entry in cur.description or []]
+            rows = cur.fetchmany(fetch_limit + 1)
+
+        truncated = len(rows) > fetch_limit
+        normalized = [
+            [self._normalize(value) for value in row]
+            for row in rows[:fetch_limit]
+        ]
+        return columns, normalized, truncated
 
     def query(self, sql: str, limit: int):
         statement = sql.strip()
