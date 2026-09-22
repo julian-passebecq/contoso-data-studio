@@ -211,9 +211,14 @@ class DuckLakeService:
         )
 
         with self.connection(read_only=True) as con:
-            cur = con.execute(statement)
-            columns = [entry[0] for entry in cur.description or []]
-            rows = cur.fetchmany(fetch_limit + 1)
+            try:
+                cur = con.execute(statement)
+                columns = [entry[0] for entry in cur.description or []]
+                rows = cur.fetchmany(fetch_limit + 1)
+            except duckdb.Error as exc:
+                raise ValueError(
+                    f"{schema}.{table} is not available at snapshot #{snapshot_id}"
+                ) from exc
 
         truncated = len(rows) > fetch_limit
         normalized = [
@@ -254,8 +259,13 @@ class DuckLakeService:
                 f"contoso.{schema_sql}.{table_sql} "
                 f"AT (VERSION => {int(snapshot_id)})"
             )
-            count = con.execute(f"SELECT count(*) FROM {relation}").fetchone()[0]
-            cursor = con.execute(f"SELECT * FROM {relation} LIMIT 0")
+            try:
+                count = con.execute(f"SELECT count(*) FROM {relation}").fetchone()[0]
+                cursor = con.execute(f"SELECT * FROM {relation} LIMIT 0")
+            except duckdb.Error as exc:
+                raise ValueError(
+                    f"{schema}.{table} is not available at snapshot #{snapshot_id}"
+                ) from exc
             columns = [entry[0] for entry in cursor.description or []]
             return {
                 "snapshot_id": snapshot_id,
