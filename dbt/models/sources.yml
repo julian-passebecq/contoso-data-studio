@@ -6,7 +6,89 @@ sources:
     schema: bronze
     tables:
       - name: customer
+        columns:
+          - name: customer_key
+            data_tests: [not_null, unique]
+          - name: country
+            data_tests: [not_null]
+          - name: segment
+            data_tests: [not_null]
+
       - name: product
+        columns:
+          - name: product_key
+            data_tests: [not_null, unique]
+          - name: category
+            data_tests: [not_null]
+          - name: unit_price
+            data_tests: [not_null]
+          - name: unit_cost
+            data_tests: [not_null]
+
       - name: store
+        columns:
+          - name: store_key
+            data_tests: [not_null, unique]
+          - name: country
+            data_tests: [not_null]
+          - name: currency
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ["NOK", "CHF", "EUR", "GBP"]
+
       - name: currency_exchange
+        columns:
+          - name: rate_month
+            data_tests: [not_null]
+          - name: currency
+            data_tests: [not_null]
+          - name: exchange_rate_to_usd
+            data_tests: [not_null]
+
       - name: sales
+        columns:
+          - name: sales_key
+            data_tests: [not_null, unique]
+          - name: customer_key
+            data_tests:
+              - not_null
+              - relationships:
+                  arguments:
+                    to: source('bronze', 'customer')
+                    field: customer_key
+          - name: product_key
+            data_tests:
+              - not_null
+              - relationships:
+                  arguments:
+                    to: source('bronze', 'product')
+                    field: product_key
+          - name: store_key
+            data_tests:
+              - not_null
+              - relationships:
+                  arguments:
+                    to: source('bronze', 'store')
+                    field: store_key
+          - name: order_date
+            data_tests: [not_null]
+          - name: delivery_date
+            data_tests: [not_null]
+          - name: quantity
+            data_tests: [not_null]
+          - name: channel
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ["Online", "Store"]
+          - name: currency
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ["NOK", "CHF", "EUR", "GBP"]
+          - name: exchange_rate_to_usd
+            data_tests: [not_null]
