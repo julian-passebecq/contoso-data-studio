@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 import { getJson, postJson } from "../api";
+import "../transform.css";
 
 type DbtModel = { name:string; path:string; layer:string };
 type DbtNodeResult = {
