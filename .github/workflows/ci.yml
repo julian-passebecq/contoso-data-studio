@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install API
+        run: pip install -e "apps/api[dev,dbt]"
+      - name: Compile Python
+        run: python -m compileall -q apps/api/app
+      - name: Unit tests
+        run: pytest -q apps/api/tests
+      - name: Parse dbt project
+        run: dbt parse --project-dir dbt --profiles-dir dbt --no-use-colors
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package.json
+      - name: Install web
+        run: npm install
+      - name: Typecheck and build
+        run: npm run build
