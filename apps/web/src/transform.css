@@ -1,0 +1,30 @@
+.transformGrid{display:grid;grid-template-columns:1.3fr .8fr;gap:14px;align-items:start}
+.buttonRow{display:flex;gap:8px}
+.runtimeRow{display:flex;align-items:center;gap:10px;margin:4px 0 18px}
+.runtimeRow code{font:11px Consolas,"Cascadia Code",monospace}
+.dag{
+  display:grid;grid-template-columns:minmax(150px,1fr) 34px minmax(150px,1fr) 34px minmax(150px,1fr);
+  gap:8px;align-items:start;padding:18px 8px;border:1px solid #e3e3e5;border-radius:7px;background:#fafafa
+}
+.dagColumn{display:grid;gap:7px}
+.dagLayer{font-size:10px;letter-spacing:.09em;color:#666;font-weight:700;margin-bottom:2px}
+.dagNode{
+  padding:9px 10px;border:1px solid #d9d9dc;border-radius:6px;background:#fff;
+  font:12px Consolas,"Cascadia Code",monospace
+}
+.dagNode.source{background:#f7f7f8}
+.dagArrow{align-self:center;justify-self:center;color:#999;font-size:20px}
+.runResults{display:grid;gap:7px}
+.runResult{
+  display:grid;grid-template-columns:72px minmax(0,1fr) 50px;gap:8px;align-items:center;
+  padding:8px 0;border-bottom:1px solid #ededee
+}
+.runResult span{font:11px Consolas,"Cascadia Code",monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.runResult small{color:#777;text-align:right}
+.consoleDetails{margin-top:16px;border-top:1px solid #e5e5e7;padding-top:10px}
+.consoleDetails summary{cursor:pointer;font-size:12px;color:#555}
+.consoleDetails pre{
+  max-height:340px;overflow:auto;white-space:pre-wrap;background:#1f1f1f;color:#ededed;
+  border-radius:6px;padding:12px;font:11px/1.45 Consolas,"Cascadia Code",monospace
+}
+@media(max-width:1150px){.transformGrid{grid-template-columns:1fr}}
