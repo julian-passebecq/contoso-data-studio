@@ -66,7 +66,7 @@ jobs:
 
           tables = DuckLakeService(Settings.load()).catalog()
           bronze = {row["name"] for row in tables if row["schema"] == "bronze"}
-          expected = {"customer", "product", "store", "sales"}
+          expected = {"customer", "product", "store", "currency_exchange", "sales"}
           missing = expected - bronze
           assert not missing, f"Bronze did not persist across clients: {sorted(missing)}"
           print(sorted(bronze))
@@ -81,6 +81,7 @@ jobs:
           from app.services.ducklake import DuckLakeService
 
           from app.services.dbt_runner import DbtService
+          from app.services.generator import GeneratorService
 
           settings = Settings.load()
           service = DuckLakeService(settings)
@@ -118,10 +119,27 @@ jobs:
           assert quality["summary"]["total"] >= 30, quality
           assert quality["summary"]["fail"] == 0, quality
           assert quality["summary"]["error"] == 0, quality
+          assert quality["by_layer"]["bronze"]["pass"] > 0, quality
           assert quality["by_layer"]["silver"]["pass"] > 0, quality
           assert quality["by_layer"]["gold"]["pass"] > 0, quality
 
+          generator = GeneratorService(settings)
+          run_id = str(generator.list_runs(1)[0]["run_id"])
+          before_reload = int(service.snapshots(1)[0]["snapshot_id"])
+          service.load_parquet_to_bronze(generator.run_files(run_id))
+          after_reload = int(service.snapshots(1)[0]["snapshot_id"])
+          comparison = service.compare_snapshots(
+              "bronze", "sales", before_reload, after_reload
+          )
+          assert comparison["base"]["row_count"] == 2500, comparison
+          assert comparison["target"]["row_count"] == 2500, comparison
+          assert comparison["row_delta"] == 0, comparison
+          assert comparison["added_columns"] == [], comparison
+          assert comparison["removed_columns"] == [], comparison
+
           print("latest snapshot", latest["snapshot_id"])
+          print("reload snapshots", before_reload, after_reload)
+          print("reload comparison", comparison)
           print("quality", quality["summary"])
           print(sorted(gold))
           PY
