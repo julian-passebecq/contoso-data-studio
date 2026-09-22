@@ -201,6 +201,26 @@ class GeneratorService:
             "run_path": directory.relative_to(self.settings.workspace.resolve()).as_posix(),
         }
 
+    def reproduce_run(self, run_id: str) -> dict[str, object]:
+        source = self.get_run(run_id)
+        scenario = source.get("scenario")
+        seed = source.get("seed")
+        scale = source.get("scale")
+        if not isinstance(scenario, str) or scenario not in SCENARIO_CONFIG:
+            raise ValueError("Run does not contain a reproducible scenario")
+        if not isinstance(seed, int) or not isinstance(scale, int):
+            raise ValueError("Run does not contain reproducible seed/scale parameters")
+
+        manifest = self.generate(scenario, scale, seed)
+        reproduced_run_id = str(manifest["run_id"])
+        comparison = self.compare_runs(run_id, reproduced_run_id)
+        return {
+            "source_run_id": run_id,
+            "reproduced_run": self.get_run(reproduced_run_id),
+            "comparison": comparison,
+            "bronze_changed": False,
+        }
+
     def verify_run(self, run_id: str) -> dict[str, object]:
         payload = self._load_manifest(run_id)
         files = self.run_files(run_id, verify_hashes=False)
