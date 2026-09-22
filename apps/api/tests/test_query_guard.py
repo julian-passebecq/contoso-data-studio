@@ -13,6 +13,7 @@ from app.services.ducklake import DuckLakeService
         "delete from contoso.bronze.sales",
         "create table x as select 1",
         "select 1; select 2",
+        "pragma threads=8",
     ],
 )
 def test_query_workbench_rejects_mutating_or_multiple_statements(tmp_path: Path, sql: str):
