@@ -20,3 +20,13 @@
 }
 .validationOk{margin-top:12px;padding:9px 11px;border:1px solid #b9d6bf;background:#f5fbf6;border-radius:5px;font-size:12px}
 @media(max-width:1200px){.chartGrid{grid-template-columns:1fr}}
+
+.scenarioContextCard{display:grid;gap:8px}
+.staleGoldWarning{
+  padding:10px 12px;border:1px solid #e2c27a;border-radius:6px;background:#fffaf0;
+  font-size:12px;color:#6b5316
+}
+.chartFootnote{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:10px;color:#777
+}
+.chartFootnote span{padding:3px 6px;border:1px solid #e5e5e7;border-radius:4px;background:#fafafa}
