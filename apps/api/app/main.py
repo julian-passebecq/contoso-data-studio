@@ -168,6 +168,14 @@ def dbt_status():
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/dbt/quality")
+def dbt_quality():
+    try:
+        return dbt.quality()
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.post("/api/dbt/{command}")
 def dbt_run(command: str):
     try:
