@@ -169,6 +169,24 @@ class DbtService:
         if not isinstance(compiled_code, str) or not compiled_code.strip():
             compiled_code = None
 
+        if compiled_code is None and resource_type == "model" and original_file_path:
+            compiled_root = self.settings.dbt_path / "target" / "compiled"
+            if compiled_root.exists():
+                for package_dir in sorted(compiled_root.iterdir()):
+                    if not package_dir.is_dir():
+                        continue
+                    candidate = (package_dir / original_file_path).resolve()
+                    if (
+                        candidate.is_relative_to(compiled_root.resolve())
+                        and candidate.is_file()
+                    ):
+                        try:
+                            compiled_code = candidate.read_text(encoding="utf-8")
+                        except OSError:
+                            compiled_code = None
+                        if compiled_code:
+                            break
+
         dependencies = [
             str(item)
             for item in node.get("depends_on", {}).get("nodes", [])
