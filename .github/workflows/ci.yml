@@ -123,6 +123,18 @@ jobs:
           assert quality["by_layer"]["silver"]["pass"] > 0, quality
           assert quality["by_layer"]["gold"]["pass"] > 0, quality
 
+          dashboard_queries = {
+              "gold_scenario": "select scenario from contoso.gold.monthly_sales group by 1 order by 1",
+              "online_migration": "select order_year, revenue_share, revenue from contoso.gold.channel_performance where channel='Online' order by order_year",
+              "margin_pressure": "select extract(year from order_month)::integer yr, sum(gross_margin)/nullif(sum(revenue),0) margin_rate, avg(avg_discount_rate) discount_rate, sum(revenue) revenue from contoso.gold.monthly_sales group by 1 order by 1",
+              "logistics_delays": "select channel, round(avg(avg_delivery_days),2) avg_days, round(avg(p90_delivery_days),2) p90_days, round(avg(over_7_day_rate),4) over_7_rate from contoso.gold.delivery_metrics group by 1 order by 1",
+              "currency_exposure": "select currency, min(avg_exchange_rate_to_usd) min_rate, max(avg_exchange_rate_to_usd) max_rate, max(avg_exchange_rate_to_usd)-min(avg_exchange_rate_to_usd) spread, sum(revenue_usd) revenue_usd from contoso.gold.currency_exposure group by 1 order by spread desc",
+          }
+          for name, sql in dashboard_queries.items():
+              columns, dashboard_rows, _ = service.query(sql, 100)
+              assert columns, (name, columns)
+              assert dashboard_rows, (name, dashboard_rows)
+
           generator = GeneratorService(settings)
           run_id = str(generator.list_runs(1)[0]["run_id"])
           before_reload = int(service.snapshots(1)[0]["snapshot_id"])
