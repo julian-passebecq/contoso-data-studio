@@ -255,6 +255,7 @@ export default function GeneratePage({
           <span>{(run.sales_rows ?? run.scale ?? 0).toLocaleString()} sales</span>
           <span>seed {run.seed ?? "—"}</span>
           <span>{run.created_at ? new Date(run.created_at).toLocaleString() : "—"}</span>
+          <span>{run.last_snapshot_id==null ? "no snapshot" : `snapshot #${run.last_snapshot_id}`}</span>
           <Badge appearance="outline" color={run.is_active?"success":run.bronze_loaded_at?"informative":"warning"}>
             {run.is_active
               ? `Active Bronze${run.active_snapshot_id==null?"":` · #${run.active_snapshot_id}`}`
@@ -358,10 +359,18 @@ export default function GeneratePage({
         <div><span>Scale</span><b>{(selectedRun.scale ?? 0).toLocaleString()}</b></div>
         <div><span>Generated</span><b>{selectedRun.created_at ? new Date(selectedRun.created_at).toLocaleString() : "—"}</b></div>
         <div><span>Last Bronze load</span><b>{selectedRun.bronze_loaded_at ? new Date(selectedRun.bronze_loaded_at).toLocaleString() : "Never"}</b></div>
-        <div><span>Active snapshot</span><b>{selectedRun.is_active && selectedRun.active_snapshot_id!=null ? `#${selectedRun.active_snapshot_id}` : "—"}</b></div>
+        <div><span>Last snapshot</span><b>{selectedRun.last_snapshot_id!=null ? `#${selectedRun.last_snapshot_id}` : "—"}</b></div>
+        <div><span>Load count</span><b>{selectedRun.load_history.length}</b></div>
       </div>
       <div className="runModeNote">
         <b>Use parameters</b> generates a new deterministic run. <b>Reload exact Bronze</b> reuses these persisted Parquet files unchanged.
+      </div>
+      {selectedRun.load_history.length>0 && <div className="runLoadHistory">
+        <b>Bronze load history</b>
+        {selectedRun.load_history.slice().reverse().map((entry,index)=><div key={`${entry.loaded_at}-${index}`}>
+          <span>{new Date(entry.loaded_at).toLocaleString()}</span>
+          <code>{entry.snapshot_id==null ? "snapshot —" : `snapshot #${entry.snapshot_id}`}</code>
+        </div>)}
       </div>
       <div className="runFileGrid">
         {Object.entries(selectedRun.files).map(([name,file])=><div className="runFile" key={name}>
