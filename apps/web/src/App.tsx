@@ -15,6 +15,7 @@ import ExplorePage from "./pages/ExplorePage";
 import GeneratePage from "./pages/GeneratePage";
 import LakehousePage from "./pages/LakehousePage";
 import QueryPage from "./pages/QueryPage";
+import TransformPage from "./pages/TransformPage";
 import type { Page, Scenario } from "./types";
 
 const pages: Array<[Page, ReactNode]> = [
@@ -43,9 +44,15 @@ export default function App() {
     setPage("Query");
   }
 
+  function onDbtBuilt() {
+    setRefreshToken(value=>value+1);
+    setMessage("dbt completed. Silver and Gold catalog state refreshed.");
+  }
+
   function renderPage() {
     if (page==="Generate") return <GeneratePage scenarios={scenarios} onStatus={setMessage} onGenerated={()=>setRefreshToken(v=>v+1)}/>;
     if (page==="Lakehouse") return <LakehousePage refreshToken={refreshToken}/>;
+    if (page==="Transform") return <TransformPage onBuilt={onDbtBuilt}/>;
     if (page==="Query") return <QueryPage initialSql={querySeed}/>;
     if (page==="Explore") return <ExplorePage onOpenQuery={openQuery}/>;
     return <Card>
