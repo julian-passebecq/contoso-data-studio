@@ -98,6 +98,19 @@ jobs:
               10,
           )
           assert rows[0][0] > 0
+
+          snapshots = service.snapshots(20)
+          assert snapshots, "Expected DuckLake snapshot history"
+          latest = snapshots[0]
+          columns, historical_rows, _ = service.preview_at_snapshot(
+              "gold",
+              "monthly_sales",
+              int(latest["snapshot_id"]),
+              5,
+          )
+          assert columns
+          assert historical_rows
+          print("latest snapshot", latest["snapshot_id"])
           print(sorted(gold))
           PY
 
