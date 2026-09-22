@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import Settings
@@ -78,6 +78,17 @@ def catalog():
 def files():
     try:
         return {"files": explorer.list_files()}
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
+@app.post("/api/explore/import")
+async def import_file(request: Request, filename: str = Query(min_length=1, max_length=255)):
+    try:
+        payload = await request.body()
+        return explorer.import_file(filename, payload)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(500, detail=str(exc)) from exc
 
