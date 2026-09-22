@@ -71,3 +71,33 @@ export type DuckLakeSnapshot = {
   author: string | null;
   commit_message: string | null;
 };
+
+
+export type DbtQualitySummary = {
+  total: number;
+  pass: number;
+  fail: number;
+  warn: number;
+  error: number;
+  skip: number;
+};
+
+export type DbtQualityTest = {
+  unique_id: string;
+  name: string;
+  test_type: string;
+  column_name: string | null;
+  layer: string;
+  model: string;
+  status: "pass" | "fail" | "warn" | "error" | "skip";
+  failures: number | null;
+  execution_time: number | null;
+  message: string | null;
+};
+
+export type DbtQuality = {
+  generated_at: string | null;
+  summary: DbtQualitySummary;
+  by_layer: Record<string, DbtQualitySummary>;
+  tests: DbtQualityTest[];
+};
