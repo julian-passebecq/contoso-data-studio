@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 import { getJson, postJson } from "../api";
+import type { DbtQuality } from "../types";
 import "../transform.css";
 
 type DbtModel = { name:string; path:string; layer:string };
@@ -20,6 +21,7 @@ type DbtStatus = {
     generated_at:string | null;
     results:DbtNodeResult[];
   };
+  quality:DbtQuality;
 };
 type DbtRun = {
   command:string;
@@ -64,6 +66,11 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
     silver: status?.models.filter(model=>model.layer==="silver") ?? [],
     gold: status?.models.filter(model=>model.layer==="gold") ?? [],
   };
+
+  const quality = status?.quality;
+  const qualityIssues = quality
+    ? quality.summary.fail + quality.summary.error + quality.summary.warn
+    : 0;
 
   return <div className="transformGrid">
     <Card>
@@ -113,6 +120,53 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
         <summary>Console output · exit {run.exit_code}</summary>
         <pre>{run.output}</pre>
       </details>}
+    </Card>
+
+    <Card className="qualityCard">
+      <CardHeader
+        header={<Title3>Data quality</Title3>}
+        description={quality?.generated_at
+          ? `Latest dbt test artifacts · ${new Date(quality.generated_at).toLocaleString()}`
+          : "Run dbt Test or Build to populate quality results"}
+        action={quality && quality.summary.total>0
+          ? <Badge
+              appearance="outline"
+              color={qualityIssues===0 ? "success" : "danger"}
+            >
+              {qualityIssues===0
+                ? `${quality.summary.pass}/${quality.summary.total} passing`
+                : `${qualityIssues} issue${qualityIssues===1?"":"s"}`}
+            </Badge>
+          : undefined}
+      />
+      {quality && quality.summary.total>0 ? <>
+        <div className="qualitySummary">
+          <div><span>Total</span><b>{quality.summary.total}</b></div>
+          <div><span>Pass</span><b>{quality.summary.pass}</b></div>
+          <div><span>Fail</span><b>{quality.summary.fail}</b></div>
+          <div><span>Warn</span><b>{quality.summary.warn}</b></div>
+          <div><span>Error</span><b>{quality.summary.error}</b></div>
+          <div><span>Skip</span><b>{quality.summary.skip}</b></div>
+        </div>
+        <div className="qualityTests">
+          {quality.tests.map(test=><div className="qualityTest" key={test.unique_id}>
+            <Badge
+              appearance="outline"
+              color={test.status==="pass" ? "success" : test.status==="warn" || test.status==="skip" ? "warning" : "danger"}
+            >
+              {test.status}
+            </Badge>
+            <span className="qualityLayer">{test.layer.toUpperCase()}</span>
+            <div className="qualityTestName">
+              <b>{test.model}</b>
+              <span>{test.test_type}{test.column_name ? ` · ${test.column_name}` : ""}</span>
+              {test.message && test.status!=="pass" && <small>{test.message}</small>}
+            </div>
+            <small>{test.failures == null ? "" : `${test.failures} fail${test.failures===1?"":"s"}`}</small>
+            <small>{test.execution_time == null ? "" : `${test.execution_time.toFixed(2)}s`}</small>
+          </div>)}
+        </div>
+      </> : <Text className="muted">No dbt test results recorded yet.</Text>}
     </Card>
   </div>;
 }
