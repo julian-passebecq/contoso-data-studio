@@ -28,3 +28,17 @@ def test_query_workbench_rejects_empty_sql(tmp_path: Path):
 
     with pytest.raises(ValueError, match="SQL is empty"):
         service.query("   ", 100)
+
+
+def test_time_travel_rejects_unknown_schema_without_opening_catalog(tmp_path: Path):
+    service = DuckLakeService(Settings(workspace=tmp_path))
+
+    with pytest.raises(ValueError, match="Schema must be"):
+        service.preview_at_snapshot("private", "sales", 1, 100)
+
+
+def test_time_travel_rejects_negative_snapshot_without_opening_catalog(tmp_path: Path):
+    service = DuckLakeService(Settings(workspace=tmp_path))
+
+    with pytest.raises(ValueError, match="non-negative"):
+        service.preview_at_snapshot("bronze", "sales", -1, 100)
