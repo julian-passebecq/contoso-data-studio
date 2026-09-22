@@ -109,6 +109,7 @@ export type GenerationRunFile = {
   name: string;
   path: string;
   size_bytes: number;
+  sha256: string | null;
 };
 
 export type GenerationRunDetail = {
@@ -123,6 +124,7 @@ export type GenerationRunDetail = {
   bronze_loaded_at: string | null;
   is_active: boolean;
   active_snapshot_id: number | null;
+  integrity_tracked: boolean;
   files: Record<string, GenerationRunFile>;
   run_path: string;
 };
@@ -132,6 +134,7 @@ export type RunReloadResult = {
   bronze_loaded: boolean;
   previous_snapshot_id: number | null;
   snapshot_id: number | null;
+  integrity_verified: boolean;
 };
 
 export type SnapshotComparisonState = {
