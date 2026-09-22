@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
-import { getJson } from "../api";
+import { getJson, postBinary } from "../api";
 import DataTable from "../components/DataTable";
 import type { InspectResult, WorkspaceFile } from "../types";
 
@@ -18,6 +18,7 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
   const [inspect,setInspect] = useState<InspectResult|null>(null);
   const [tab,setTab] = useState<Tab>("Data");
   const [error,setError] = useState("");
+  const [importing,setImporting] = useState(false);
 
   async function loadFiles() {
     try {
@@ -38,6 +39,22 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
       .catch(err=>setError(err instanceof Error ? err.message : "Could not inspect file."));
   },[selected]);
 
+  async function importFile(file: File) {
+    setImporting(true); setError("");
+    try {
+      const imported = await postBinary<WorkspaceFile>(
+        `/api/explore/import?filename=${encodeURIComponent(file.name)}`,
+        file,
+      );
+      await loadFiles();
+      setSelected(imported.path);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not import file.");
+    } finally {
+      setImporting(false);
+    }
+  }
+
   const metadataRows = useMemo(()=>{
     if (!inspect) return [];
     return Object.entries(inspect.metadata)
@@ -47,7 +64,25 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
 
   return <div className="workbench explorerWorkbench">
     <Card className="filePane">
-      <CardHeader header={<Title3>Workspace files</Title3>} action={<Button onClick={loadFiles}>Refresh</Button>}/>
+      <CardHeader
+        header={<Title3>Workspace files</Title3>}
+        action={<div className="buttonRow">
+          <label className="fileImportButton">
+            <input
+              type="file"
+              accept=".parquet,.json,.jsonl,.ndjson,.csv,.xlsx"
+              disabled={importing}
+              onChange={event=>{
+                const file=event.target.files?.[0];
+                if (file) void importFile(file);
+                event.currentTarget.value="";
+              }}
+            />
+            <span>{importing ? "Importing..." : "Import file"}</span>
+          </label>
+          <Button onClick={loadFiles}>Refresh</Button>
+        </div>}
+      />
       <Text className="muted tiny">Generated files and workspace/imports</Text>
       <div className="fileList">
         {files.map(file=><button className={file.path===selected?"selected":""} key={file.path} onClick={()=>setSelected(file.path)}>
