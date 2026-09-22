@@ -29,10 +29,20 @@ class Settings:
 
     @property
     def catalog_path(self) -> Path:
+        configured = os.getenv("CONTOSO_DUCKLAKE_CATALOG")
+        if configured:
+            path = Path(configured).expanduser().resolve()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            return path
         return self.workspace / "contoso.ducklake.sqlite"
 
     @property
     def data_path(self) -> Path:
+        configured = os.getenv("CONTOSO_DUCKLAKE_DATA_PATH")
+        if configured:
+            path = Path(configured).expanduser().resolve()
+            path.mkdir(parents=True, exist_ok=True)
+            return path
         return self.workspace / "contoso.ducklake.files"
 
     @property
