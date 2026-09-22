@@ -1,36 +1,58 @@
-title: Contoso retail baseline
+title: Contoso Retail Baseline
+notes: Gold-layer retail KPIs produced by the local dbt project.
 source: db
 
 queries:
-  monthly: |
-    select order_month, channel, revenue, gross_margin, gross_margin_rate
-    from contoso.gold.monthly_sales
-    order by order_month, channel
-  totals: |
-    select round(sum(revenue),2) revenue,
-           round(sum(gross_margin),2) gross_margin,
-           round(sum(gross_margin)/nullif(sum(revenue),0),4) gross_margin_rate
-    from contoso.gold.monthly_sales
+  monthly:
+    sql: |
+      select
+        order_month,
+        channel,
+        revenue,
+        gross_margin,
+        gross_margin_rate,
+        units
+      from contoso.gold.monthly_sales
+      order by order_month, channel
+
+  totals:
+    sql: |
+      select
+        round(sum(revenue), 2) as revenue,
+        round(sum(gross_margin), 2) as gross_margin,
+        sum(units) as units
+      from contoso.gold.monthly_sales
 
 charts:
   revenue_kpi:
     label: Revenue
-    query: totals
+    query: queries.totals
     type: kpi
     value: revenue
+
   margin_kpi:
     label: Gross margin
-    query: totals
+    query: queries.totals
     type: kpi
     value: gross_margin
+
+  units_kpi:
+    label: Units sold
+    query: queries.totals
+    type: kpi
+    value: units
+
   revenue_trend:
     title: Monthly revenue by channel
-    query: monthly
+    query: queries.monthly
     type: line
     x: order_month
     y: revenue
     color: channel
 
 rows:
-  - cols: [revenue_kpi, margin_kpi]
-  - rows: [revenue_trend]
+  - cols:
+      - revenue_kpi
+      - margin_kpi
+      - units_kpi
+  - revenue_trend
