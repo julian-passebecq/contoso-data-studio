@@ -18,6 +18,7 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
   const [inspect,setInspect] = useState<InspectResult|null>(null);
   const [profile,setProfile] = useState<FileProfile|null>(null);
   const [profiling,setProfiling] = useState(false);
+  const [selectedSheet,setSelectedSheet] = useState("");
   const [tab,setTab] = useState<Tab>("Data");
   const [error,setError] = useState("");
   const [importing,setImporting] = useState(false);
@@ -33,12 +34,27 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
   }
 
   useEffect(()=>{ void loadFiles(); },[]);
-  useEffect(()=>{
+  async function loadInspect(sheet="") {
     if (!selected) { setInspect(null); setProfile(null); return; }
     setInspect(null); setProfile(null); setTab("Data"); setError("");
-    getJson<InspectResult>(`/api/explore/inspect?path=${encodeURIComponent(selected)}&limit=200`)
-      .then(setInspect)
-      .catch(err=>setError(err instanceof Error ? err.message : "Could not inspect file."));
+    try {
+      const sheetParam = sheet ? `&sheet=${encodeURIComponent(sheet)}` : "";
+      const data = await getJson<InspectResult>(
+        `/api/explore/inspect?path=${encodeURIComponent(selected)}&limit=200${sheetParam}`
+      );
+      setInspect(data);
+      const activeSheet = typeof data.metadata.selected_sheet === "string"
+        ? data.metadata.selected_sheet
+        : "";
+      setSelectedSheet(activeSheet);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not inspect file.");
+    }
+  }
+
+  useEffect(()=>{
+    setSelectedSheet("");
+    void loadInspect();
   },[selected]);
 
   async function loadProfile() {
@@ -123,6 +139,15 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
         action={inspect?<Button onClick={()=>onOpenQuery(`select * from ${inspect.source_sql} limit 100;`)}>Open in Query</Button>:undefined}
       />
       {error && <div className="errorText">{error}</div>}
+      {inspect && Array.isArray(inspect.metadata.sheets) && inspect.metadata.sheets.length>0 && <div className="sheetPicker">
+        <Text className="muted tiny">Worksheet</Text>
+        <select
+          value={selectedSheet}
+          onChange={event=>void loadInspect(event.target.value)}
+        >
+          {(inspect.metadata.sheets as unknown[]).map(sheet=><option key={String(sheet)} value={String(sheet)}>{String(sheet)}</option>)}
+        </select>
+      </div>}
       {inspect && <>
         <div className="tabStrip">
           {(["Data", ...(inspect.raw_text !== null ? ["Raw" as Tab] : []), "Profile", "Schema", "Metadata"] as Tab[]).map(name=><button className={tab===name?"selected":""} key={name} onClick={()=>selectTab(name)}>{name}</button>)}
