@@ -1,1 +1,106 @@
-:root{font-family:"Segoe UI",system-ui,sans-serif;color:#1f1f1f;background:#f7f7f8}*{box-sizing:border-box}body{margin:0;min-width:1000px}.shell{min-height:100vh}header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:white;border-bottom:1px solid #e2e2e5}header>div:first-child{display:flex;gap:14px;align-items:baseline}.muted{color:#666}.badges{display:flex;gap:8px}.layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 64px)}aside{padding:18px 12px;border-right:1px solid #e2e2e5;background:#fbfbfc}aside button{width:100%;border:0;background:transparent;display:flex;gap:10px;align-items:center;padding:10px;border-radius:7px;cursor:pointer}aside button:hover,aside button.active{background:#ececf0}main{padding:30px 34px}.pageTitle{display:flex;justify-content:space-between;align-items:end;margin-bottom:24px}.eyebrow{display:block;color:#777;letter-spacing:.08em;font-size:11px}.grid{display:grid;grid-template-columns:1.3fr .8fr;gap:18px}.controls{display:flex;gap:10px;margin-top:24px}.flow{margin-top:32px;padding:12px;border:1px solid #ddd;border-radius:7px;background:white}.scenario{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eee}.scenario>div{display:grid;gap:3px}.scenario span{font-size:12px;color:#666}
+:root{
+  font-family:"Segoe UI",system-ui,sans-serif;
+  color:#1f1f1f;
+  background:#f6f6f7;
+}
+*{box-sizing:border-box}
+body{margin:0;min-width:1040px}
+button,input,textarea{font:inherit}
+.shell{min-height:100vh}
+header{
+  height:64px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;background:#fff;border-bottom:1px solid #e1e1e3;
+}
+.brand{display:flex;gap:14px;align-items:baseline}
+.muted{color:#6a6a6a}
+.tiny{font-size:12px}
+.badges{display:flex;gap:8px}
+.layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 64px)}
+aside{padding:18px 12px;border-right:1px solid #e1e1e3;background:#fbfbfc}
+.navSection,.catalogLabel{
+  color:#777;font-size:10px;letter-spacing:.1em;font-weight:600;padding:5px 10px;
+}
+aside>button{
+  width:100%;border:0;background:transparent;display:flex;gap:10px;align-items:center;
+  padding:10px;border-radius:6px;cursor:pointer;color:#333;
+}
+aside>button:hover,aside>button.active{background:#e9e9ec}
+.pipelineMini{
+  margin:26px 8px 0;padding:12px 8px;border-top:1px solid #e4e4e6;
+  display:flex;gap:5px;align-items:center;font-size:10px;color:#777;
+}
+.pipelineMini i{font-style:normal;color:#aaa}
+main{padding:28px 32px;min-width:0}
+.pageTitle{display:flex;justify-content:space-between;align-items:end;margin-bottom:22px}
+.eyebrow{display:block;color:#777;letter-spacing:.09em;font-size:10px}
+.statusText{color:#666;max-width:480px;text-align:right}
+.grid{display:grid;grid-template-columns:1.25fr .8fr;gap:18px}
+.controls{display:flex;gap:10px;margin-top:24px}
+.flow{
+  margin-top:30px;padding:12px 14px;border:1px solid #dedee1;border-radius:6px;
+  background:#fafafa;font-family:Consolas,"Cascadia Code",monospace;font-size:12px;
+}
+.scenario{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eee}
+.scenario>div{display:grid;gap:3px}
+.scenario span{font-size:12px;color:#666}
+
+.workbench{display:grid;grid-template-columns:230px minmax(0,1fr);gap:14px;align-items:start}
+.editorStack{display:grid;gap:14px;min-width:0}
+.catalogPane,.filePane{min-height:600px}
+.catalogGroup{padding:6px 4px 12px}
+.catalogGroup button{
+  width:100%;text-align:left;background:transparent;border:0;border-radius:5px;
+  padding:7px 10px;cursor:pointer;font-family:Consolas,"Cascadia Code",monospace;font-size:12px;
+}
+.catalogGroup button:hover{background:#f0f0f2}
+.sqlEditor{
+  width:100%;min-height:210px;resize:vertical;border:1px solid #d6d6da;border-radius:6px;
+  background:#fcfcfd;padding:14px;font:13px/1.55 Consolas,"Cascadia Code",monospace;
+  outline:none;tab-size:2;
+}
+.sqlEditor:focus{border-color:#777}
+.errorText{
+  margin-top:10px;padding:9px 11px;border:1px solid #d8a6a6;background:#fff7f7;
+  color:#8b2020;border-radius:5px;font-size:12px;
+}
+.emptyState{padding:18px 10px;color:#777;font-size:12px}
+.tableScroller{overflow:auto;max-height:470px;border:1px solid #e2e2e4;border-radius:5px}
+.dataTable{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;background:white}
+.dataTable th{
+  position:sticky;top:0;z-index:1;background:#f5f5f6;text-align:left;font-weight:600;
+  border-bottom:1px solid #d9d9dc;padding:8px 10px;white-space:nowrap;
+}
+.dataTable td{border-bottom:1px solid #ededee;padding:7px 10px;white-space:nowrap;max-width:360px;overflow:hidden;text-overflow:ellipsis}
+.dataTable tr:hover td{background:#fafafa}
+.nullValue{color:#999;font-style:italic}
+
+.layerColumns{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px}
+.layer{border:1px solid #e1e1e4;border-radius:7px;min-height:260px;background:#fcfcfc;overflow:hidden}
+.layerTitle{
+  padding:12px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid #e5e5e7;font-size:11px;letter-spacing:.06em;
+}
+.tableItem{padding:9px 12px;border-bottom:1px solid #efeff0;display:flex;justify-content:space-between;gap:8px}
+.tableItem span{font:12px Consolas,"Cascadia Code",monospace}
+.tableItem small{color:#888;font-size:10px}
+
+.explorerWorkbench{grid-template-columns:300px minmax(0,1fr)}
+.fileList{margin-top:10px;display:grid;gap:4px}
+.fileList>button{
+  display:flex;justify-content:space-between;gap:8px;width:100%;border:1px solid transparent;
+  border-radius:6px;background:transparent;padding:9px;text-align:left;cursor:pointer;
+}
+.fileList>button:hover,.fileList>button.selected{background:#f0f0f2;border-color:#e2e2e5}
+.fileList>button>div:first-child{display:grid;gap:2px;min-width:0}
+.fileList b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fileList span{font-size:10px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fileList>button>div:last-child{display:grid;justify-items:end;gap:4px}
+.fileList small{color:#888;font-size:10px}
+.inspectPane{min-width:0;min-height:600px}
+.tabStrip{display:flex;gap:3px;border-bottom:1px solid #e1e1e3;margin:0 0 12px}
+.tabStrip button{
+  border:0;background:transparent;padding:8px 12px;cursor:pointer;border-bottom:2px solid transparent;
+}
+.tabStrip button:hover{background:#f6f6f7}
+.tabStrip button.selected{border-bottom-color:#333;font-weight:600}
+.metadataStack{display:grid;gap:18px}
