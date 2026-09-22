@@ -35,6 +35,122 @@ class DbtService:
             })
         return models
 
+    def _read_manifest(self) -> dict[str, Any] | None:
+        path = self.settings.dbt_path / "target" / "manifest.json"
+        if not path.exists():
+            return None
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+
+    @staticmethod
+    def _layer_for_dependency(
+        dependency_id: str,
+        manifest: dict[str, Any],
+    ) -> tuple[str, str]:
+        node = manifest.get("nodes", {}).get(dependency_id)
+        if node:
+            name = str(node.get("name") or dependency_id)
+            path = str(node.get("original_file_path") or "")
+            parts = Path(path).parts
+            for layer in ("bronze", "silver", "gold"):
+                if layer in parts:
+                    return layer, name
+            return str(node.get("schema") or "model"), name
+
+        source = manifest.get("sources", {}).get(dependency_id)
+        if source:
+            return "bronze", str(source.get("name") or dependency_id)
+
+        return "unknown", dependency_id
+
+    def quality(self) -> dict[str, Any]:
+        run_results_path = self.settings.dbt_path / "target" / "run_results.json"
+        manifest = self._read_manifest()
+        if not run_results_path.exists() or manifest is None:
+            return {
+                "generated_at": None,
+                "summary": {"total": 0, "pass": 0, "fail": 0, "warn": 0, "error": 0, "skip": 0},
+                "by_layer": {},
+                "tests": [],
+            }
+
+        try:
+            run_payload = json.loads(run_results_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {
+                "generated_at": None,
+                "summary": {"total": 0, "pass": 0, "fail": 0, "warn": 0, "error": 0, "skip": 0},
+                "by_layer": {},
+                "tests": [],
+            }
+
+        tests: list[dict[str, Any]] = []
+        summary = {"total": 0, "pass": 0, "fail": 0, "warn": 0, "error": 0, "skip": 0}
+        by_layer: dict[str, dict[str, int]] = {}
+
+        for result in run_payload.get("results", []):
+            unique_id = str(result.get("unique_id") or "")
+            if not unique_id.startswith("test."):
+                continue
+
+            node = manifest.get("nodes", {}).get(unique_id, {})
+            dependencies = node.get("depends_on", {}).get("nodes", [])
+            dependency_id = next(
+                (
+                    item for item in dependencies
+                    if str(item).startswith(("model.", "source."))
+                ),
+                dependencies[0] if dependencies else "",
+            )
+            layer, model_name = self._layer_for_dependency(str(dependency_id), manifest)
+            raw_status = str(result.get("status") or "error").lower()
+            status = {
+                "success": "pass",
+                "passed": "pass",
+                "skipped": "skip",
+            }.get(raw_status, raw_status)
+            if status not in {"pass", "fail", "warn", "error", "skip"}:
+                status = "error"
+
+            summary["total"] += 1
+            summary[status] += 1
+            layer_summary = by_layer.setdefault(
+                layer,
+                {"total": 0, "pass": 0, "fail": 0, "warn": 0, "error": 0, "skip": 0},
+            )
+            layer_summary["total"] += 1
+            layer_summary[status] += 1
+
+            metadata = node.get("test_metadata") or {}
+            tests.append({
+                "unique_id": unique_id,
+                "name": str(node.get("name") or unique_id),
+                "test_type": str(metadata.get("name") or "test"),
+                "column_name": node.get("column_name"),
+                "layer": layer,
+                "model": model_name,
+                "status": status,
+                "failures": result.get("failures"),
+                "execution_time": result.get("execution_time"),
+                "message": result.get("message"),
+            })
+
+        tests.sort(key=lambda item: (
+            0 if item["status"] in {"fail", "error", "warn"} else 1,
+            str(item["layer"]),
+            str(item["model"]),
+            str(item["name"]),
+        ))
+
+        return {
+            "generated_at": run_payload.get("metadata", {}).get("generated_at"),
+            "summary": summary,
+            "by_layer": by_layer,
+            "tests": tests,
+        }
+
     def _read_run_results(self) -> dict[str, Any] | None:
         path = self.settings.dbt_path / "target" / "run_results.json"
         if not path.exists():
@@ -66,6 +182,7 @@ class DbtService:
             "project_dir": str(self.settings.dbt_path),
             "models": self._models(),
             "latest_run": self._read_run_results(),
+            "quality": self.quality(),
         }
 
     def run(self, command: str) -> dict[str, Any]:
