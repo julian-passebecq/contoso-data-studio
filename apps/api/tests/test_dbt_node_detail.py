@@ -136,3 +136,31 @@ def test_node_detail_rejects_unknown_node(tmp_path: Path, monkeypatch):
 
     with pytest.raises(ValueError, match="Unknown dbt node"):
         service.node_detail("model.contoso_data_studio.missing")
+
+
+def test_node_detail_falls_back_to_target_compiled_sql(tmp_path: Path, monkeypatch):
+    service = _project(tmp_path, monkeypatch)
+    manifest_path = tmp_path / "dbt" / "target" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["nodes"]["model.contoso_data_studio.stg_sales"].pop("compiled_code")
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    compiled_path = (
+        tmp_path
+        / "dbt"
+        / "target"
+        / "compiled"
+        / "contoso_data_studio"
+        / "models"
+        / "silver"
+        / "stg_sales.sql"
+    )
+    compiled_path.parent.mkdir(parents=True)
+    compiled_path.write_text(
+        "select sales_key from contoso.bronze.sales",
+        encoding="utf-8",
+    )
+
+    detail = service.node_detail("model.contoso_data_studio.stg_sales")
+
+    assert detail["compiled_code"] == "select sales_key from contoso.bronze.sales"
