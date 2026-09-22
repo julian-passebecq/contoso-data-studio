@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree
+from zipfile import BadZipFile, ZipFile
 
 import duckdb
 
@@ -106,7 +108,22 @@ class ExplorerService:
                 })
         return sorted(files, key=lambda item: item["modified_at"], reverse=True)
 
-    def _source_sql(self, path: Path) -> str:
+    @staticmethod
+    def _excel_sheets(path: Path) -> list[str]:
+        try:
+            with ZipFile(path) as workbook:
+                root = ElementTree.fromstring(workbook.read("xl/workbook.xml"))
+        except (BadZipFile, KeyError, ElementTree.ParseError) as exc:
+            raise ValueError("Invalid XLSX workbook") from exc
+
+        namespace = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+        return [
+            sheet.attrib["name"]
+            for sheet in root.findall(f".//{namespace}sheet")
+            if sheet.attrib.get("name")
+        ]
+
+    def _source_sql(self, path: Path, sheet: str | None = None) -> str:
         quoted = self._quote(path)
         suffix = path.suffix.lower()
         if suffix == ".parquet":
@@ -116,7 +133,9 @@ class ExplorerService:
         if suffix in {".json", ".jsonl", ".ndjson"}:
             return f"read_json_auto('{quoted}')"
         if suffix == ".xlsx":
-            return f"read_xlsx('{quoted}')"
+            if sheet is None:
+                return f"read_xlsx('{quoted}')"
+            return f"read_xlsx('{quoted}', sheet = '{self._quote(sheet)}')"
         raise ValueError(f"Unsupported file type: {suffix}")
 
     def _connect(self, needs_excel: bool = False) -> duckdb.DuckDBPyConnection:
@@ -129,10 +148,26 @@ class ExplorerService:
                 con.execute("LOAD excel")
         return con
 
-    def inspect(self, relative_path: str, limit: int = 200) -> dict[str, Any]:
+    def inspect(
+        self,
+        relative_path: str,
+        limit: int = 200,
+        sheet: str | None = None,
+    ) -> dict[str, Any]:
         path = self._resolve(relative_path)
-        source = self._source_sql(path)
-        con = self._connect(path.suffix.lower() == ".xlsx")
+        suffix = path.suffix.lower()
+        sheets: list[str] = []
+        selected_sheet: str | None = None
+        if suffix == ".xlsx":
+            sheets = self._excel_sheets(path)
+            if not sheets:
+                raise ValueError("Workbook contains no worksheets")
+            selected_sheet = sheet or sheets[0]
+            if selected_sheet not in sheets:
+                raise ValueError(f"Unknown worksheet: {selected_sheet}")
+
+        source = self._source_sql(path, selected_sheet)
+        con = self._connect(suffix == ".xlsx")
         try:
             description = con.execute(f"DESCRIBE SELECT * FROM {source}").fetchall()
             schema = [{"name": row[0], "type": row[1], "nullable": row[2]} for row in description]
@@ -146,12 +181,16 @@ class ExplorerService:
 
             count = con.execute(f"SELECT count(*) FROM {source}").fetchone()[0]
             metadata: dict[str, Any] = {
-                "format": SUPPORTED_EXTENSIONS[path.suffix.lower()],
+                "format": SUPPORTED_EXTENSIONS[suffix],
                 "size_bytes": path.stat().st_size,
                 "row_count": count,
             }
 
-            if path.suffix.lower() == ".parquet":
+            if suffix == ".xlsx":
+                metadata["sheets"] = sheets
+                metadata["selected_sheet"] = selected_sheet
+
+            if suffix == ".parquet":
                 row = con.execute(
                     f"""SELECT created_by, num_rows, num_row_groups, format_version,
                                file_size_bytes, footer_size
@@ -183,9 +222,19 @@ class ExplorerService:
                     ).fetchall()
                 ]
 
+            raw_text = None
+            raw_truncated = False
+            if suffix in {".json", ".jsonl", ".ndjson"}:
+                max_raw_bytes = 200_000
+                payload = path.read_bytes()
+                raw_truncated = len(payload) > max_raw_bytes
+                raw_text = payload[:max_raw_bytes].decode("utf-8", errors="replace")
+
             return {
                 "path": relative_path,
                 "source_sql": source,
+                "raw_text": raw_text,
+                "raw_truncated": raw_truncated,
                 "schema": schema,
                 "columns": columns,
                 "rows": rows,
