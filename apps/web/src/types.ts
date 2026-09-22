@@ -152,3 +152,26 @@ export type SnapshotComparison = {
   added_columns: string[];
   removed_columns: string[];
 };
+
+
+export type DbtLineageNode = {
+  id: string;
+  name: string;
+  resource_type: "source" | "model";
+  layer: string;
+  path: string;
+  schema: string | null;
+  database: string | null;
+  materialized: string;
+};
+
+export type DbtLineageEdge = {
+  source: string;
+  target: string;
+};
+
+export type DbtLineage = {
+  generated_at: string | null;
+  nodes: DbtLineageNode[];
+  edges: DbtLineageEdge[];
+};
