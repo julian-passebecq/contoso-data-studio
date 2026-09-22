@@ -171,6 +171,8 @@ class GeneratorService:
             "scale": payload.get("scale"),
             "row_counts": payload.get("row_counts") or {},
             "bronze_loaded_at": payload.get("bronze_loaded_at"),
+            "last_snapshot_id": payload.get("last_snapshot_id"),
+            "load_history": payload.get("load_history") if isinstance(payload.get("load_history"), list) else [],
             "is_active": (
                 self.active_run_path.exists()
                 and self._active_run_id_only() == run_id
@@ -258,8 +260,8 @@ class GeneratorService:
             "all_hashes_available": all_hashes_available,
             "exact_files_equal": exact_files_equal if all_hashes_available else None,
             "files": file_comparison,
-            "base_snapshot_id": base.get("active_snapshot_id") if base.get("is_active") else None,
-            "target_snapshot_id": target.get("active_snapshot_id") if target.get("is_active") else None,
+            "base_snapshot_id": base.get("last_snapshot_id"),
+            "target_snapshot_id": target.get("last_snapshot_id"),
         }
 
     @property
@@ -309,6 +311,8 @@ class GeneratorService:
                 "scale": payload.get("scale"),
                 "sales_rows": row_counts.get("sales"),
                 "bronze_loaded_at": payload.get("bronze_loaded_at"),
+                "last_snapshot_id": payload.get("last_snapshot_id"),
+                "load_count": len(payload.get("load_history")) if isinstance(payload.get("load_history"), list) else 0,
                 "is_active": run_id == active_run_id,
                 "active_snapshot_id": active_snapshot_id if run_id == active_run_id else None,
             })
@@ -325,6 +329,14 @@ class GeneratorService:
         manifest_path = self._run_directory(run_id) / "manifest.json"
         loaded_at = datetime.now(timezone.utc).isoformat()
         payload["bronze_loaded_at"] = loaded_at
+        payload["last_snapshot_id"] = snapshot_id
+        history = payload.get("load_history")
+        load_history = history if isinstance(history, list) else []
+        load_history.append({
+            "loaded_at": loaded_at,
+            "snapshot_id": snapshot_id,
+        })
+        payload["load_history"] = load_history
         manifest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         self.active_run_path.write_text(
             json.dumps(
