@@ -19,12 +19,12 @@ React + Fluent UI 2 (Vite)
 FastAPI
   |------ GeneratorService ------> staging/<run-id>/*.parquet
   |------ ExplorerService -------> Parquet / JSON / CSV / XLSX
-  |------ DuckLakeService -------> workspace/contoso.ducklake
+  |------ DuckLakeService -------> workspace/contoso.ducklake.sqlite
   |------ DbtService ------------> dbt CLI / dbt-duckdb
   \------ ChartsService ---------> optional isolated dct CLI
 
 DuckDB is the local query/compute engine.
-DuckLake owns managed analytical table storage and metadata.
+DuckLake owns managed analytical table storage. SQLite stores the local DuckLake metadata catalog so separate API/dbt clients can reconnect to the same lakehouse; managed table data remains Parquet.
 ```
 
 ## Primary workbenches
@@ -85,7 +85,7 @@ contoso.gold.monthly_sales
 
 ### DuckLake
 
-Use the official DuckDB DuckLake extension. Do not fork DuckLake for application logic.
+Use the official DuckDB DuckLake extension. The local metadata catalog is SQLite because this app has multiple local clients (FastAPI and dbt); dbt runs DuckLake work with one thread to avoid concurrent staging-relation issues. Do not fork DuckLake for application logic.
 
 ### dbt
 
@@ -135,7 +135,7 @@ dbt Charts board
 1. run ledger + generator manifest history
 2. DuckLake snapshot/time-travel browser
 3. richer Silver/Gold dimensional model and referential-integrity tests
-4. upload/import flow into `workspace/imports`
+4. richer file-import controls and file lifecycle in `workspace/imports`
 5. additional business scenarios
 6. richer Canvas edges derived from dbt manifest lineage
 7. optional desktop packaging once the local web workflow is stable
