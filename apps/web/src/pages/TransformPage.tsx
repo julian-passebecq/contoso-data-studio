@@ -79,6 +79,22 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
       )
     : [];
 
+  function renderDagNode(layer:string,name:string,source=false) {
+    const tests=quality?.tests.filter(test=>test.layer===layer && test.model===name) ?? [];
+    const issues=tests.filter(test=>["fail","error","warn"].includes(test.status)).length;
+    const passed=tests.filter(test=>test.status==="pass").length;
+    const label=tests.length
+      ? (issues ? `${issues} issue${issues===1?"":"s"}` : `${passed}/${tests.length} checks`)
+      : "";
+    return <div
+      className={`dagNode${source?" source":""}${issues?" issue":""}`}
+      key={`${layer}.${name}`}
+    >
+      <span>{name}</span>
+      {label && <small>{label}</small>}
+    </div>;
+  }
+
   return <div className="transformGrid">
     <Card>
       <CardHeader
@@ -98,17 +114,17 @@ export default function TransformPage({onBuilt}:{onBuilt:()=>void}) {
       <div className="dag">
         <div className="dagColumn">
           <span className="dagLayer bronze">BRONZE</span>
-          {["sales","customer","product","store"].map(name=><div className="dagNode source" key={name}>{name}</div>)}
+          {["sales","customer","product","store","currency_exchange"].map(name=>renderDagNode("bronze",name,true))}
         </div>
         <div className="dagArrow">→</div>
         <div className="dagColumn">
           <span className="dagLayer silver">SILVER</span>
-          {grouped.silver.map(model=><div className="dagNode" key={model.path}>{model.name}</div>)}
+          {grouped.silver.map(model=>renderDagNode("silver",model.name))}
         </div>
         <div className="dagArrow">→</div>
         <div className="dagColumn">
           <span className="dagLayer gold">GOLD</span>
-          {grouped.gold.map(model=><div className="dagNode" key={model.path}>{model.name}</div>)}
+          {grouped.gold.map(model=>renderDagNode("gold",model.name))}
         </div>
       </div>
     </Card>
