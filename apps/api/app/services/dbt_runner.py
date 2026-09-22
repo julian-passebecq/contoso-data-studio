@@ -65,6 +65,76 @@ class DbtService:
 
         return "unknown", dependency_id
 
+    def lineage(self) -> dict[str, Any]:
+        manifest = self._read_manifest()
+        if manifest is None:
+            return {
+                "generated_at": None,
+                "nodes": [],
+                "edges": [],
+            }
+
+        nodes: list[dict[str, Any]] = []
+        known_ids: set[str] = set()
+
+        for unique_id, source in manifest.get("sources", {}).items():
+            if not str(unique_id).startswith("source."):
+                continue
+            node = {
+                "id": str(unique_id),
+                "name": str(source.get("name") or unique_id),
+                "resource_type": "source",
+                "layer": "bronze",
+                "path": str(source.get("original_file_path") or ""),
+                "schema": source.get("schema"),
+                "database": source.get("database"),
+                "materialized": "source",
+            }
+            nodes.append(node)
+            known_ids.add(str(unique_id))
+
+        for unique_id, model in manifest.get("nodes", {}).items():
+            if not str(unique_id).startswith("model."):
+                continue
+            layer, name = self._layer_for_dependency(str(unique_id), manifest)
+            config = model.get("config") or {}
+            node = {
+                "id": str(unique_id),
+                "name": name,
+                "resource_type": "model",
+                "layer": layer,
+                "path": str(model.get("original_file_path") or ""),
+                "schema": model.get("schema"),
+                "database": model.get("database"),
+                "materialized": str(config.get("materialized") or "model"),
+            }
+            nodes.append(node)
+            known_ids.add(str(unique_id))
+
+        edges: list[dict[str, str]] = []
+        for unique_id, model in manifest.get("nodes", {}).items():
+            target = str(unique_id)
+            if target not in known_ids or not target.startswith("model."):
+                continue
+            for dependency in model.get("depends_on", {}).get("nodes", []):
+                source = str(dependency)
+                if source not in known_ids:
+                    continue
+                edges.append({"source": source, "target": target})
+
+        order = {"bronze": 0, "silver": 1, "gold": 2}
+        nodes.sort(key=lambda item: (
+            order.get(str(item["layer"]), 99),
+            str(item["name"]),
+        ))
+        edges.sort(key=lambda item: (item["source"], item["target"]))
+
+        return {
+            "generated_at": manifest.get("metadata", {}).get("generated_at"),
+            "nodes": nodes,
+            "edges": edges,
+        }
+
     def quality(self) -> dict[str, Any]:
         run_results_path = self.settings.dbt_path / "target" / "run_results.json"
         manifest = self._read_manifest()
