@@ -137,9 +137,10 @@ async def import_file(request: Request, filename: str = Query(min_length=1, max_
 def inspect_file(
     path: str = Query(min_length=1),
     limit: int = Query(default=200, ge=1, le=2_000),
+    sheet: str | None = Query(default=None, max_length=200),
 ):
     try:
-        return explorer.inspect(path, limit)
+        return explorer.inspect(path, limit, sheet)
     except ValueError as exc:
         raise HTTPException(400, detail=str(exc)) from exc
     except Exception as exc:
