@@ -413,7 +413,7 @@ export default function GeneratePage({
           <span>{new Date(entry.loaded_at).toLocaleString()}</span>
           <code>{entry.snapshot_id==null ? "snapshot —" : `snapshot #${entry.snapshot_id}`}</code>
         </div>)}
-      </div>
+      </div>}
       {integrity && integrity.run_id===selectedRun.run_id && <div className="runIntegritySummary">
         <Badge appearance="outline" color={integrity.all_valid?"success":"danger"}>
           {integrity.all_valid ? "Integrity verified" : "Integrity issue"}
