@@ -97,7 +97,7 @@ def test_node_detail_returns_sql_dependencies_tests_and_relation(tmp_path: Path,
     assert detail["materialized"] == "table"
     assert detail["source_code"].startswith("select * from {{ source")
     assert detail["compiled_code"] == "select * from contoso.bronze.sales"
-    assert detail["physical_query"] == "select * from contoso.silver.stg_sales limit 100;"
+    assert detail["physical_query"] == 'select * from "contoso"."silver"."stg_sales" limit 100;'
     assert detail["upstream"] == [{
         "id": "source.contoso_data_studio.bronze.sales",
         "name": "sales",
