@@ -3,7 +3,7 @@ import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-c
 
 import { getJson } from "../api";
 import DataTable from "../components/DataTable";
-import type { CatalogTable, DuckLakeSnapshot, QueryResult } from "../types";
+import type { CatalogTable, DbtQuality, DuckLakeSnapshot, QueryResult } from "../types";
 
 function changeSummary(changes: Record<string, unknown> | null) {
   if (!changes) return "No catalog changes";
@@ -21,6 +21,7 @@ function changeSummary(changes: Record<string, unknown> | null) {
 export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
   const [tables,setTables] = useState<CatalogTable[]>([]);
   const [snapshots,setSnapshots] = useState<DuckLakeSnapshot[]>([]);
+  const [quality,setQuality] = useState<DbtQuality|null>(null);
   const [selectedTable,setSelectedTable] = useState<CatalogTable|null>(null);
   const [preview,setPreview] = useState<QueryResult|null>(null);
   const [previewSnapshot,setPreviewSnapshot] = useState<DuckLakeSnapshot|null>(null);
@@ -30,12 +31,14 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
 
   const load = useCallback(async () => {
     try {
-      const [catalogData,snapshotData] = await Promise.all([
+      const [catalogData,snapshotData,qualityData] = await Promise.all([
         getJson<{tables:CatalogTable[]}>("/api/lakehouse/catalog"),
         getJson<{snapshots:DuckLakeSnapshot[]}>("/api/lakehouse/snapshots?limit=40"),
+        getJson<DbtQuality>("/api/dbt/quality"),
       ]);
       setTables(catalogData.tables);
       setSnapshots(snapshotData.snapshots);
+      setQuality(qualityData);
       setSelectedTable(current=>{
         if (current && catalogData.tables.some(
           table=>table.schema===current.schema && table.name===current.name
@@ -57,6 +60,24 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
     silver:tables.filter(table=>table.schema==="silver"),
     gold:tables.filter(table=>table.schema==="gold"),
   }),[tables]);
+
+  function layerHealth(layer:string) {
+    const summary=quality?.by_layer[layer];
+    if (!summary || summary.total===0) return null;
+    const issues=summary.fail+summary.error+summary.warn;
+    return {
+      label: issues===0 ? `${summary.pass}/${summary.total} tests` : `${issues} issue${issues===1?"":"s"}`,
+      color: issues===0 ? "success" as const : "danger" as const,
+    };
+  }
+
+  function tableHealth(table:CatalogTable) {
+    const tests=quality?.tests.filter(test=>test.layer===table.schema && test.model===table.name) ?? [];
+    if (!tests.length) return null;
+    const issues=tests.filter(test=>["fail","error","warn"].includes(test.status)).length;
+    const passed=tests.filter(test=>test.status==="pass").length;
+    return issues===0 ? `${passed}/${tests.length} tests` : `${issues} issue${issues===1?"":"s"}`;
+  }
 
   async function inspectSnapshot(snapshot:DuckLakeSnapshot) {
     if (!selectedTable) return;
@@ -89,7 +110,10 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
         {(["bronze","silver","gold"] as const).map(layer=><section className="layer" key={layer}>
           <div className="layerTitle">
             <b>{layer.toUpperCase()}</b>
-            <Badge appearance="outline">{grouped[layer].length}</Badge>
+            <div className="layerTitleBadges">
+              {layerHealth(layer) && <Badge appearance="outline" color={layerHealth(layer)!.color}>{layerHealth(layer)!.label}</Badge>}
+              <Badge appearance="outline">{grouped[layer].length}</Badge>
+            </div>
           </div>
           {grouped[layer].map(table=><button
             className={
@@ -105,7 +129,7 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
               setPreviewError("");
             }}
           >
-            <span>{table.name}</span><small>{table.type}</small>
+            <span>{table.name}</span><small>{tableHealth(table) ?? table.type}</small>
           </button>)}
           {!grouped[layer].length && <div className="emptyState">No tables yet.</div>}
         </section>)}
