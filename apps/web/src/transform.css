@@ -145,3 +145,7 @@
   .lineageFocus{width:max-content}
   .modelColumns>div{grid-template-columns:160px 120px minmax(0,1fr)}
 }
+
+.codeWorkbenchToolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px
+}
