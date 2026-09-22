@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Badge, Card, CardHeader, Text, Title2, Title3 } from "@fluentui/react-components";
+import { Badge, Text, Title2 } from "@fluentui/react-components";
 import {
   ArrowSync24Regular,
   Board24Regular,
@@ -11,6 +11,7 @@ import {
 } from "@fluentui/react-icons";
 
 import { getJson } from "./api";
+import CanvasPage from "./pages/CanvasPage";
 import ChartsPage from "./pages/ChartsPage";
 import ExplorePage from "./pages/ExplorePage";
 import GeneratePage from "./pages/GeneratePage";
@@ -57,10 +58,7 @@ export default function App() {
     if (page==="Query") return <QueryPage initialSql={querySeed}/>;
     if (page==="Explore") return <ExplorePage onOpenQuery={openQuery}/>;
     if (page==="Charts") return <ChartsPage/>;
-    return <Card>
-      <CardHeader header={<Title3>{page}</Title3>}/>
-      <Text>This module is next in the build sequence. It will use the same local DuckLake workspace and run history.</Text>
-    </Card>;
+    return <CanvasPage onOpenQuery={openQuery}/>;
   }
 
   return <div className="shell">
