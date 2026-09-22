@@ -266,6 +266,16 @@ def dbt_status():
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/dbt/node")
+def dbt_node(unique_id: str = Query(min_length=1, max_length=500)):
+    try:
+        return dbt.node_detail(unique_id)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.get("/api/dbt/lineage")
 def dbt_lineage():
     try:
