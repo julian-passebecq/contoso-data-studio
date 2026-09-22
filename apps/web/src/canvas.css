@@ -25,3 +25,13 @@
 }
 .canvasNoteCard textarea:focus{border-color:#888}
 .canvasNoteActions{display:flex;align-items:center;gap:10px;margin-top:10px}
+
+.canvasNode em{
+  font-size:9px;color:#888;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.manifestEdges{display:grid;gap:8px;border-top:1px solid #e5e5e7;padding-top:12px}
+.manifestEdges>div{display:flex;gap:6px;flex-wrap:wrap}
+.manifestEdges code{
+  padding:4px 7px;border:1px solid #e1e1e4;border-radius:5px;background:#fafafa;
+  font:10px Consolas,"Cascadia Code",monospace;color:#555
+}
