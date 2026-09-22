@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
@@ -82,15 +83,23 @@ class DuckLakeService:
 
     def catalog(self) -> list[dict[str, object]]:
         self.bootstrap()
-        with self.connection() as con:
-            rows = con.execute("SHOW ALL TABLES").fetchall()
+        with sqlite3.connect(self.settings.catalog_path) as metadata:
+            rows = metadata.execute(
+                """
+                SELECT s.schema_name, t.table_name
+                FROM ducklake_table AS t
+                JOIN ducklake_schema AS s ON s.schema_id = t.schema_id
+                WHERE t.end_snapshot IS NULL
+                  AND s.end_snapshot IS NULL
+                  AND s.schema_name IN ('bronze', 'silver', 'gold')
+                ORDER BY s.schema_name, t.table_name
+                """
+            ).fetchall()
 
-        tables = [
-            {"schema": row[1], "name": row[2], "type": "BASE TABLE"}
-            for row in rows
-            if row[0] == "contoso" and row[1] in {"bronze", "silver", "gold"}
+        return [
+            {"schema": schema, "name": name, "type": "BASE TABLE"}
+            for schema, name in rows
         ]
-        return sorted(tables, key=lambda item: (str(item["schema"]), str(item["name"])))
 
     def query(self, sql: str, limit: int):
         statement = sql.strip()
