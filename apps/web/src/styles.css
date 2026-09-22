@@ -151,3 +151,31 @@ main{padding:28px 32px;min-width:0}
 }
 
 .layerTitleBadges{display:flex;align-items:center;gap:6px}
+
+.snapshotCompareBar{
+  display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(180px,1fr) auto;
+  gap:10px;align-items:end;margin:4px 0 14px;padding:10px;border:1px solid #e4e4e6;
+  border-radius:6px;background:#fafafa
+}
+.snapshotCompareBar>div{display:grid;gap:4px}
+.snapshotCompareBar>span{align-self:center;color:#999;padding-bottom:7px}
+.snapshotCompareBar select{
+  width:100%;padding:6px 8px;border:1px solid #d6d6da;border-radius:5px;background:white;font-size:11px
+}
+.snapshotCompareResult{
+  display:grid;grid-template-columns:repeat(4,minmax(110px,1fr));gap:8px;margin:4px 0 14px
+}
+.snapshotCompareResult>div{
+  display:grid;gap:3px;padding:10px 12px;border:1px solid #e2e2e4;border-radius:6px;background:#fafafa
+}
+.snapshotCompareResult span,.schemaDelta>div>span{
+  font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#888
+}
+.snapshotCompareResult b{font-size:16px;font-weight:600}
+.schemaDelta{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.schemaDelta>div{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+@media(max-width:1150px){
+  .snapshotCompareBar{grid-template-columns:1fr 1fr}
+  .snapshotCompareBar>span{display:none}
+  .snapshotCompareResult{grid-template-columns:repeat(2,1fr)}
+}
