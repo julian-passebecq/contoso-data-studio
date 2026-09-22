@@ -52,6 +52,84 @@ class GeneratorService:
     def _sql_path(path: Path) -> str:
         return path.as_posix().replace("'", "''")
 
+    def _run_directory(self, run_id: str) -> Path:
+        if not run_id or run_id in {".", ".."} or Path(run_id).name != run_id:
+            raise ValueError("Invalid run id")
+        staging = self.settings.staging_path.resolve()
+        directory = (staging / run_id).resolve()
+        if not directory.is_relative_to(staging):
+            raise ValueError("Run must stay inside workspace/staging")
+        return directory
+
+    def _load_manifest(self, run_id: str) -> dict[str, object]:
+        manifest_path = self._run_directory(run_id) / "manifest.json"
+        if not manifest_path.exists() or not manifest_path.is_file():
+            raise ValueError(f"Run manifest not found: {run_id}")
+        try:
+            payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(f"Invalid run manifest: {run_id}") from exc
+        manifest_run_id = str(payload.get("run_id") or run_id)
+        if manifest_run_id != run_id:
+            raise ValueError("Run manifest id does not match its directory")
+        return payload
+
+    def run_files(self, run_id: str) -> dict[str, Path]:
+        directory = self._run_directory(run_id)
+        payload = self._load_manifest(run_id)
+        declared = payload.get("files")
+        if not isinstance(declared, dict):
+            raise ValueError("Run manifest does not contain files")
+
+        expected = {"customer", "product", "store", "currency_exchange", "sales"}
+        missing = expected - set(map(str, declared.keys()))
+        if missing:
+            raise ValueError(f"Run is missing files: {', '.join(sorted(missing))}")
+
+        resolved: dict[str, Path] = {}
+        for name in expected:
+            raw = declared.get(name)
+            if not isinstance(raw, str) or not raw:
+                raise ValueError(f"Invalid file entry for {name}")
+            candidate = Path(raw)
+            if not candidate.is_absolute():
+                candidate = directory / candidate
+            candidate = candidate.resolve()
+            if not candidate.is_relative_to(directory):
+                raise ValueError(f"Run file must stay inside its run directory: {name}")
+            if not candidate.exists() or not candidate.is_file():
+                raise ValueError(f"Run file does not exist: {name}")
+            if candidate.suffix.lower() != ".parquet":
+                raise ValueError(f"Run file must be Parquet: {name}")
+            resolved[name] = candidate
+        return resolved
+
+    def get_run(self, run_id: str) -> dict[str, object]:
+        payload = self._load_manifest(run_id)
+        files = self.run_files(run_id)
+        directory = self._run_directory(run_id)
+        public_files = {
+            name: {
+                "name": path.name,
+                "path": path.relative_to(self.settings.workspace.resolve()).as_posix(),
+                "size_bytes": path.stat().st_size,
+            }
+            for name, path in sorted(files.items())
+        }
+        return {
+            "run_id": run_id,
+            "scenario": payload.get("scenario"),
+            "scenario_name": payload.get("scenario_name"),
+            "business_focus": payload.get("business_focus"),
+            "created_at": payload.get("created_at"),
+            "seed": payload.get("seed"),
+            "scale": payload.get("scale"),
+            "row_counts": payload.get("row_counts") or {},
+            "bronze_loaded_at": payload.get("bronze_loaded_at"),
+            "files": public_files,
+            "run_path": directory.relative_to(self.settings.workspace.resolve()).as_posix(),
+        }
+
     def list_runs(self, limit: int = 20) -> list[dict[str, object]]:
         if not self.settings.staging_path.exists():
             return []
@@ -80,11 +158,8 @@ class GeneratorService:
         return runs[:max(1, min(limit, 100))]
 
     def mark_bronze_loaded(self, run_id: str) -> dict[str, object]:
-        manifest_path = self.settings.staging_path / run_id / "manifest.json"
-        if not manifest_path.exists():
-            raise ValueError(f"Run manifest not found: {run_id}")
-
-        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload = self._load_manifest(run_id)
+        manifest_path = self._run_directory(run_id) / "manifest.json"
         payload["bronze_loaded_at"] = datetime.now(timezone.utc).isoformat()
         manifest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return payload
