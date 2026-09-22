@@ -175,3 +175,25 @@ export type DbtLineage = {
   nodes: DbtLineageNode[];
   edges: DbtLineageEdge[];
 };
+
+
+export type RunComparisonFile = {
+  same_hash: boolean | null;
+  base_sha256: string | null;
+  target_sha256: string | null;
+  base_size_bytes: number | null;
+  target_size_bytes: number | null;
+};
+
+export type RunComparison = {
+  base_run_id: string;
+  target_run_id: string;
+  same_parameters: boolean;
+  parameter_changes: Record<string,{base:unknown;target:unknown}>;
+  row_count_changes: Record<string,{base:number|null;target:number|null;delta:number|null}>;
+  all_hashes_available: boolean;
+  exact_files_equal: boolean | null;
+  files: Record<string,RunComparisonFile>;
+  base_snapshot_id: number | null;
+  target_snapshot_id: number | null;
+};
