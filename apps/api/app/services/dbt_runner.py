@@ -354,7 +354,20 @@ class DbtService:
             "quality": self.quality(),
         }
 
-    def run(self, command: str) -> dict[str, Any]:
+    def _validate_model_selector(self, selector: str) -> str:
+        requested = selector.strip()
+        if not requested:
+            raise ValueError("dbt model selector is empty")
+        matches = [
+            model["name"]
+            for model in self._models()
+            if model["name"] == requested
+        ]
+        if len(matches) != 1:
+            raise ValueError(f"Unknown dbt model selector: {requested}")
+        return requested
+
+    def run(self, command: str, selector: str | None = None) -> dict[str, Any]:
         if command not in ALLOWED_COMMANDS:
             raise ValueError(f"Unsupported dbt command: {command}")
         executable = self.executable
@@ -372,6 +385,11 @@ class DbtService:
             str(self.settings.dbt_path),
             "--no-use-colors",
         ]
+        selected_model = None
+        if selector is not None:
+            selected_model = self._validate_model_selector(selector)
+            args.extend(["--select", selected_model])
+
         completed = subprocess.run(
             args,
             cwd=self.settings.dbt_path,
@@ -383,6 +401,7 @@ class DbtService:
         combined = "\n".join(part for part in (completed.stdout, completed.stderr) if part)
         return {
             "command": command,
+            "selector": selected_model,
             "exit_code": completed.returncode,
             "ok": completed.returncode == 0,
             "output": combined[-50_000:],
