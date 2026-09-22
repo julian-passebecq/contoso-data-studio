@@ -223,3 +223,11 @@ export type RunIntegrity = {
   all_valid: boolean;
   files: Record<string,RunIntegrityFile>;
 };
+
+
+export type RunReproduction = {
+  source_run_id: string;
+  reproduced_run: GenerationRunDetail;
+  comparison: RunComparison;
+  bronze_changed: boolean;
+};
