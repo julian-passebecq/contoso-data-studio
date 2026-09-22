@@ -1,0 +1,36 @@
+title: Contoso retail baseline
+source: db
+
+queries:
+  monthly: |
+    select order_month, channel, revenue, gross_margin, gross_margin_rate
+    from contoso.gold.monthly_sales
+    order by order_month, channel
+  totals: |
+    select round(sum(revenue),2) revenue,
+           round(sum(gross_margin),2) gross_margin,
+           round(sum(gross_margin)/nullif(sum(revenue),0),4) gross_margin_rate
+    from contoso.gold.monthly_sales
+
+charts:
+  revenue_kpi:
+    label: Revenue
+    query: totals
+    type: kpi
+    value: revenue
+  margin_kpi:
+    label: Gross margin
+    query: totals
+    type: kpi
+    value: gross_margin
+  revenue_trend:
+    title: Monthly revenue by channel
+    query: monthly
+    type: line
+    x: order_month
+    y: revenue
+    color: channel
+
+rows:
+  - cols: [revenue_kpi, margin_kpi]
+  - rows: [revenue_trend]
