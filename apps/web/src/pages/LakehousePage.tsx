@@ -3,7 +3,8 @@ import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-c
 
 import { getJson } from "../api";
 import DataTable from "../components/DataTable";
-import type { CatalogTable, DbtQuality, DuckLakeSnapshot, QueryResult, SnapshotComparison } from "../types";
+import type { CatalogTable, DbtQuality, DuckLakeSnapshot, GenerationRunDetail, QueryResult, SnapshotComparison } from "../types";
+import { completeTutorialStep } from "../tutorialProgress";
 
 function changeSummary(changes: Record<string, unknown> | null) {
   if (!changes) return "No catalog changes";
@@ -36,14 +37,24 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
 
   const load = useCallback(async () => {
     try {
-      const [catalogData,snapshotData,qualityData] = await Promise.all([
+      const [catalogData,snapshotData,qualityData,activeData] = await Promise.all([
         getJson<{tables:CatalogTable[]}>("/api/lakehouse/catalog"),
         getJson<{snapshots:DuckLakeSnapshot[]}>("/api/lakehouse/snapshots?limit=40"),
         getJson<DbtQuality>("/api/dbt/quality"),
+        getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run"),
       ]);
       setTables(catalogData.tables);
       setSnapshots(snapshotData.snapshots);
       setQuality(qualityData);
+      const layers=new Set(catalogData.tables.map(table=>table.schema));
+      if (
+        activeData.run?.scenario &&
+        layers.has("bronze") &&
+        layers.has("silver") &&
+        layers.has("gold")
+      ) {
+        completeTutorialStep("lakehouse",activeData.run.scenario);
+      }
       setCompareTarget(current=>{
         if (current && snapshotData.snapshots.some(item=>String(item.snapshot_id)===current)) return current;
         return snapshotData.snapshots[0] ? String(snapshotData.snapshots[0].snapshot_id) : "";

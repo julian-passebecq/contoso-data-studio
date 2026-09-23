@@ -316,6 +316,7 @@ export default function ProjectsPage({
           <Text className="eyebrow">ACTIVE GUIDE</Text>
           <Title3>{selected.title}</Title3>
           <Text className="muted">{selectedScenarioInfo?.focus ?? selected.mission}</Text>
+          <Text className="muted tiny">Progress completes automatically from real workspace activity; manual controls remain available.</Text>
         </div>
         <div className="guideProgress">
           <b>{done} / {tutorialSteps.length}</b>

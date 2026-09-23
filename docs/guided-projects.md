@@ -40,6 +40,17 @@ Every project uses the same seven-step learning structure:
 
 Tutorial progress is stored locally in the browser and can be reset without deleting generated project data.
 
+Progress is completed from real workspace state and interactions:
+
+- **Explore** completes after inspecting the active run's `sales.parquet`.
+- **Lakehouse** completes when Bronze, Silver and Gold are present for the active project.
+- **Transform** completes when dbt lineage and quality artifacts are available.
+- **Query** completes after a successful query against a `contoso.gold.*` mart.
+- **Charts** completes when current-scenario Gold KPIs load successfully.
+- **Canvas** completes when the active project architecture has catalog or lineage state.
+
+Automatic completion is scoped to the currently selected guided project. Manual **Mark done** controls remain as a fallback.
+
 ## Manual mode
 
 The original **Generate** workbench remains available for ad-hoc datasets, different row counts and custom seeds. Guided projects are an onboarding layer over the same generator, DuckLake catalog and dbt project; they do not create a parallel data system.
