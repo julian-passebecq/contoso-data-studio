@@ -3,6 +3,7 @@ import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-c
 
 import { getJson, postJson } from "../api";
 import type { GenerationRunDetail, QueryResult } from "../types";
+import { completeTutorialStep } from "../tutorialProgress";
 import "../charts.css";
 
 type ChartsStatus = {
@@ -150,6 +151,7 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
       if (scenarios.length!==1 || currentGold!==active.run.scenario) return;
 
       await loadScenarioDashboard(active.run.scenario);
+      completeTutorialStep("charts",active.run.scenario);
     } catch (err) {
       setDashboardError(err instanceof Error ? err.message : "Gold KPI query failed.");
     }
