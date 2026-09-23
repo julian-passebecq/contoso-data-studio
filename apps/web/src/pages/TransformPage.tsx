@@ -7,7 +7,7 @@ import type {
   DbtLineageNode,
   DbtNodeDetail,
   DbtQuality,
-  GenerationRunDetail,
+  WorkspaceProjectState,
 } from "../types";
 import { completeTutorialStep } from "../tutorialProgress";
 import "../transform.css";
@@ -80,20 +80,21 @@ export default function TransformPage({
 
   async function refresh() {
     try {
-      const [nextStatus,nextLineage,activeData]=await Promise.all([
+      const [nextStatus,nextLineage,projectState]=await Promise.all([
         getJson<DbtStatus>("/api/dbt/status"),
         getJson<DbtLineage>("/api/dbt/lineage"),
-        getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run"),
+        getJson<WorkspaceProjectState>("/api/workspace/project-state"),
       ]);
       setStatus(nextStatus);
       setLineage(nextLineage);
       setError("");
       if (
-        activeData.run?.scenario &&
+        projectState.active_scenario &&
+        projectState.gold_current &&
         nextLineage.nodes.length>0 &&
         nextStatus.quality.summary.total>0
       ) {
-        completeTutorialStep("transform",activeData.run.scenario);
+        completeTutorialStep("transform",projectState.active_scenario);
       }
       if (selectedNodeId && !selectedNodeId.startsWith("fallback.")) {
         try {
