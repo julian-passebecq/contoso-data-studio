@@ -44,8 +44,9 @@ export function setTutorialStep(
   scenario?:string|null,
 ) {
   const selected=getSelectedProjectScenario();
+  if (!selected) return false;
+  if (scenario && scenario!==selected) return false;
   const target=scenario || selected;
-  if (!target || (scenario && selected && scenario!==selected)) return false;
 
   const current=readTutorialProgress(target);
   if (Boolean(current[step])===complete) return false;
