@@ -8,6 +8,7 @@ import type {
   DbtLineageNode,
   DbtQuality,
   GenerationRunDetail,
+  WorkspaceProjectState,
 } from "../types";
 import "../canvas.css";
 import { completeTutorialStep } from "../tutorialProgress";
@@ -38,23 +39,26 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
 
   useEffect(()=>{
     void (async()=>{
-      const [catalogResult,lineageResult,qualityResult,activeResult]=await Promise.allSettled([
+      const [catalogResult,lineageResult,qualityResult,projectStateResult]=await Promise.allSettled([
         getJson<{tables:CatalogTable[]}>("/api/lakehouse/catalog"),
         getJson<DbtLineage>("/api/dbt/lineage"),
         getJson<DbtQuality>("/api/dbt/quality"),
-        getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run"),
+        getJson<WorkspaceProjectState>("/api/workspace/project-state"),
       ]);
       if (catalogResult.status==="fulfilled") setCatalog(catalogResult.value.tables);
       if (lineageResult.status==="fulfilled") setLineage(lineageResult.value);
       if (qualityResult.status==="fulfilled") setQuality(qualityResult.value);
-      if (activeResult.status==="fulfilled") setActiveRun(activeResult.value.run);
+      if (projectStateResult.status==="fulfilled") {
+        setActiveRun(projectStateResult.value.active_run);
+      }
       if (
-        activeResult.status==="fulfilled" &&
-        activeResult.value.run?.scenario &&
+        projectStateResult.status==="fulfilled" &&
+        projectStateResult.value.active_scenario &&
+        projectStateResult.value.gold_current &&
         ((catalogResult.status==="fulfilled" && catalogResult.value.tables.length>0) ||
           (lineageResult.status==="fulfilled" && lineageResult.value.nodes.length>0))
       ) {
-        completeTutorialStep("canvas",activeResult.value.run.scenario);
+        completeTutorialStep("canvas",projectStateResult.value.active_scenario);
       }
     })();
   },[]);

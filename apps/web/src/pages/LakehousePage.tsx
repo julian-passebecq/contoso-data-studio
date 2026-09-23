@@ -3,7 +3,7 @@ import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-c
 
 import { getJson } from "../api";
 import DataTable from "../components/DataTable";
-import type { CatalogTable, DbtQuality, DuckLakeSnapshot, GenerationRunDetail, QueryResult, SnapshotComparison } from "../types";
+import type { CatalogTable, DbtQuality, DuckLakeSnapshot, QueryResult, SnapshotComparison, WorkspaceProjectState } from "../types";
 import { completeTutorialStep } from "../tutorialProgress";
 
 function changeSummary(changes: Record<string, unknown> | null) {
@@ -37,23 +37,23 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
 
   const load = useCallback(async () => {
     try {
-      const [catalogData,snapshotData,qualityData,activeData] = await Promise.all([
+      const [catalogData,snapshotData,qualityData,projectState] = await Promise.all([
         getJson<{tables:CatalogTable[]}>("/api/lakehouse/catalog"),
         getJson<{snapshots:DuckLakeSnapshot[]}>("/api/lakehouse/snapshots?limit=40"),
         getJson<DbtQuality>("/api/dbt/quality"),
-        getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run"),
+        getJson<WorkspaceProjectState>("/api/workspace/project-state"),
       ]);
       setTables(catalogData.tables);
       setSnapshots(snapshotData.snapshots);
       setQuality(qualityData);
-      const layers=new Set(catalogData.tables.map(table=>table.schema));
       if (
-        activeData.run?.scenario &&
-        layers.has("bronze") &&
-        layers.has("silver") &&
-        layers.has("gold")
+        projectState.active_scenario &&
+        projectState.gold_current &&
+        projectState.layers.bronze>0 &&
+        projectState.layers.silver>0 &&
+        projectState.layers.gold>0
       ) {
-        completeTutorialStep("lakehouse",activeData.run.scenario);
+        completeTutorialStep("lakehouse",projectState.active_scenario);
       }
       setCompareTarget(current=>{
         if (current && snapshotData.snapshots.some(item=>String(item.snapshot_id)===current)) return current;

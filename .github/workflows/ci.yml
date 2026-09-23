@@ -185,5 +185,7 @@ jobs:
           cache-dependency-path: apps/web/package.json
       - name: Install web
         run: npm install
+      - name: Frontend unit tests
+        run: npm test
       - name: Typecheck and build
         run: npm run build

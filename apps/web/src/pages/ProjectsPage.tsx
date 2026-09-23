@@ -3,6 +3,12 @@ import { Badge, Button, Card, CardHeader, Spinner, Text, Title2, Title3 } from "
 
 import { postJson } from "../api";
 import type { Page, Scenario } from "../types";
+import {
+  readTutorialProgress,
+  resetTutorialProgress,
+  setSelectedProjectScenario,
+  writeTutorialProgress,
+} from "../tutorialProgress";
 import "../projects.css";
 
 type ProjectPreset = {
@@ -154,19 +160,6 @@ function stepsFor(project: ProjectPreset): TutorialStep[] {
   ];
 }
 
-function progressKey(scenario: string) {
-  return `contoso-project-progress:${scenario}`;
-}
-
-function loadProgress(scenario: string): Record<string, boolean> {
-  try {
-    const raw = localStorage.getItem(progressKey(scenario));
-    return raw ? JSON.parse(raw) as Record<string, boolean> : {};
-  } catch {
-    return {};
-  }
-}
-
 export default function ProjectsPage({
   scenarios,
   onStatus,
@@ -184,7 +177,7 @@ export default function ProjectsPage({
     ()=>localStorage.getItem("contoso-selected-project") || ""
   );
   const [progress,setProgress] = useState<Record<string,boolean>>(
-    ()=>selectedScenario ? loadProgress(selectedScenario) : {}
+    ()=>selectedScenario ? readTutorialProgress(selectedScenario) : {}
   );
   const [preparing,setPreparing] = useState("");
   const [error,setError] = useState("");
@@ -196,14 +189,14 @@ export default function ProjectsPage({
 
   useEffect(()=>{
     if (!selectedScenario) return;
-    localStorage.setItem("contoso-selected-project", selectedScenario);
-    setProgress(loadProgress(selectedScenario));
+    setSelectedProjectScenario(selectedScenario);
+    setProgress(readTutorialProgress(selectedScenario));
   },[selectedScenario]);
 
   function updateProgress(next:Record<string,boolean>) {
     setProgress(next);
     if (selectedScenario) {
-      localStorage.setItem(progressKey(selectedScenario), JSON.stringify(next));
+      writeTutorialProgress(selectedScenario,next);
     }
   }
 
@@ -213,6 +206,7 @@ export default function ProjectsPage({
 
   async function prepareProject(project:ProjectPreset) {
     setSelectedScenario(project.scenario);
+    setSelectedProjectScenario(project.scenario);
     setPreparing(project.scenario);
     setError("");
     onStatus(`Preparing ${project.title}: generating sample data...`);
@@ -224,8 +218,8 @@ export default function ProjectsPage({
       });
       onStatus(`Preparing ${project.title}: building dbt Silver and Gold...`);
       await postJson<Record<string,unknown>>("/api/dbt/build", {});
-      const next={...loadProgress(project.scenario),prepare:true};
-      localStorage.setItem(progressKey(project.scenario),JSON.stringify(next));
+      const next={...readTutorialProgress(project.scenario),prepare:true};
+      writeTutorialProgress(project.scenario,next);
       setProgress(next);
       onPrepared();
       onStatus(`${project.title} is ready: sample Parquet, DuckLake Bronze, dbt Silver and Gold are populated.`);
@@ -248,7 +242,7 @@ export default function ProjectsPage({
 
   function resetGuide() {
     if (!selectedScenario) return;
-    localStorage.removeItem(progressKey(selectedScenario));
+    resetTutorialProgress(selectedScenario);
     setProgress({});
     onStatus("Tutorial progress reset. Generated project data was kept.");
   }
