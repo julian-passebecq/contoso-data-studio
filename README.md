@@ -18,7 +18,7 @@ Generate -> Inspect -> Bronze (DuckLake) -> dbt Silver -> dbt Gold -> SQL / KPI 
 - starter Silver and Gold models with dbt data tests
 - dbt Charts 0.8 project + validated Executive Sales board
 - Gold KPI preview and dbt Charts validation status in the Charts tab
-- React + Fluent UI shell for Generate, Lakehouse, Transform, Query, Explore, Charts and Canvas
+- React + Fluent UI shell for Projects, Generate, Lakehouse, Transform, Query, Explore, Charts and Canvas
 
 ## Scope
 
