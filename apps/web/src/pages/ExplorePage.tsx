@@ -73,6 +73,16 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
     void loadInspect();
   },[selected]);
 
+  useEffect(()=>{
+    if (!inspect || !activeRun?.scenario || !activeRun.run_path) return;
+    if (
+      inspect.path.endsWith("/sales.parquet") &&
+      inspect.path.startsWith(`${activeRun.run_path}/`)
+    ) {
+      completeTutorialStep("explore",activeRun.scenario);
+    }
+  },[inspect,activeRun]);
+
   async function loadProfile() {
     if (!inspect || profiling) return;
     setProfiling(true); setError("");
