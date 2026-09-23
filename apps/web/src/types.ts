@@ -264,3 +264,19 @@ export type DbtNodeDetail = {
   tests: DbtQualityTest[];
   columns: DbtNodeColumn[];
 };
+
+
+export type WorkspaceProjectState = {
+  active_run: GenerationRunDetail | null;
+  active_scenario: string | null;
+  gold_scenarios: string[];
+  gold_current: boolean;
+  layers: {
+    bronze: number;
+    silver: number;
+    gold: number;
+  };
+  quality_total: number;
+  lineage_nodes: number;
+  ready: boolean;
+};
