@@ -10,6 +10,7 @@ import type {
   GenerationRunDetail,
 } from "../types";
 import "../canvas.css";
+import { completeTutorialStep } from "../tutorialProgress";
 
 type CanvasNode = {
   id:string;
@@ -47,6 +48,14 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
       if (lineageResult.status==="fulfilled") setLineage(lineageResult.value);
       if (qualityResult.status==="fulfilled") setQuality(qualityResult.value);
       if (activeResult.status==="fulfilled") setActiveRun(activeResult.value.run);
+      if (
+        activeResult.status==="fulfilled" &&
+        activeResult.value.run?.scenario &&
+        ((catalogResult.status==="fulfilled" && catalogResult.value.tables.length>0) ||
+          (lineageResult.status==="fulfilled" && lineageResult.value.nodes.length>0))
+      ) {
+        completeTutorialStep("canvas",activeResult.value.run.scenario);
+      }
     })();
   },[]);
 
