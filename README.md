@@ -87,7 +87,7 @@ The app detects `dct` on PATH and exposes board validation in **Charts**. The li
 
 1. **Generate** → create the Retail Baseline dataset.
 2. **Explore** → inspect generated Parquet, schema and statistics.
-3. **Lakehouse** → confirm the four Bronze tables.
+3. **Lakehouse** → confirm the five Bronze tables.
 4. **Transform** → run `dbt build`.
 5. **Lakehouse** → confirm Silver/Gold models.
 6. **Query** → query `contoso.gold.monthly_sales`.
