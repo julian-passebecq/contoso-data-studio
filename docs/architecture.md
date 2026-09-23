@@ -31,7 +31,7 @@ DuckLake owns managed analytical table storage. SQLite stores the local DuckLake
 
 | Page | Current responsibility |
 | --- | --- |
-| Generate | deterministic Retail Baseline generation; future scenario presets |
+| Projects | guided case-study launcher; prepares deterministic sample data through dbt Gold |\n| Generate | manual scenario generation with custom row count and seed |
 | Lakehouse | browse Bronze / Silver / Gold catalog state |
 | Transform | inspect dbt DAG, run `build` / `test`, inspect `run_results.json` |
 | Query | read-only DuckDB SQL against the attached DuckLake catalog |
@@ -109,16 +109,17 @@ The repository owns auditable YAML boards; `dct serve` remains the canonical liv
 - Generated/imported files are local; no cloud service is required.
 - GPL DuckSQL/ParquetViewer source is not vendored. Their useful UX is recreated through DuckDB APIs.
 
-## Scenario roadmap
+## Scenario library
 
-1. **Retail baseline** — implemented
-2. Online migration
-3. Margin pressure
-4. Logistics delays
-5. Currency exposure
-6. Demand shock / recovery
+The v1 project library exposes five implemented deterministic scenarios:
 
-A scenario should provide:
+1. **Retail baseline** — general revenue, margin, channel and country analysis
+2. **Online migration** — channel-share shift and store cannibalization
+3. **Margin pressure** — discounting and cost inflation
+4. **Logistics delays** — fulfilment time and service-level degradation
+5. **Currency exposure** — FX volatility and normalized revenue
+
+A guided scenario provides:
 
 ```text
 generator preset
@@ -132,10 +133,9 @@ dbt Charts board
 
 ## Next engineering slices
 
-1. run ledger + generator manifest history
-2. DuckLake snapshot/time-travel browser
-3. richer Silver/Gold dimensional model and referential-integrity tests
-4. richer file-import controls and file lifecycle in `workspace/imports`
-5. additional business scenarios
-6. richer Canvas edges derived from dbt manifest lineage
-7. optional desktop packaging once the local web workflow is stable
+1. richer Silver/Gold dimensional model and referential-integrity tests
+2. richer file-import controls and file lifecycle in `workspace/imports`
+3. additional business scenarios such as demand shock / recovery
+4. automatic tutorial progress signals from workspace state
+5. richer Canvas edges derived from dbt manifest lineage
+6. optional desktop packaging once the local web workflow is stable

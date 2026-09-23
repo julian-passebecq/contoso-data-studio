@@ -8,6 +8,7 @@ import {
   Database24Regular,
   DataUsage24Regular,
   DocumentTable24Regular,
+  Home24Regular,
 } from "@fluentui/react-icons";
 
 import { getJson } from "./api";
@@ -16,11 +17,13 @@ import ChartsPage from "./pages/ChartsPage";
 import ExplorePage from "./pages/ExplorePage";
 import GeneratePage from "./pages/GeneratePage";
 import LakehousePage from "./pages/LakehousePage";
+import ProjectsPage from "./pages/ProjectsPage";
 import QueryPage from "./pages/QueryPage";
 import TransformPage from "./pages/TransformPage";
 import type { Page, Scenario } from "./types";
 
 const pages: Array<[Page, ReactNode]> = [
+  ["Projects", <Home24Regular/>],
   ["Generate", <ArrowSync24Regular/>],
   ["Lakehouse", <Database24Regular/>],
   ["Transform", <DataUsage24Regular/>],
@@ -31,9 +34,9 @@ const pages: Array<[Page, ReactNode]> = [
 ];
 
 export default function App() {
-  const [page,setPage] = useState<Page>("Generate");
+  const [page,setPage] = useState<Page>("Projects");
   const [scenarios,setScenarios] = useState<Scenario[]>([]);
-  const [message,setMessage] = useState("Ready.");
+  const [message,setMessage] = useState("Choose a guided project or open the manual workspace.");
   const [querySeed,setQuerySeed] = useState("");
   const [refreshToken,setRefreshToken] = useState(0);
 
@@ -51,7 +54,18 @@ export default function App() {
     setMessage("dbt completed. Silver and Gold catalog state refreshed.");
   }
 
+  function onProjectPrepared() {
+    setRefreshToken(value=>value+1);
+  }
+
   function renderPage() {
+    if (page==="Projects") return <ProjectsPage
+      scenarios={scenarios}
+      onStatus={setMessage}
+      onPrepared={onProjectPrepared}
+      onNavigate={setPage}
+      onOpenQuery={openQuery}
+    />;
     if (page==="Generate") return <GeneratePage scenarios={scenarios} onStatus={setMessage} onGenerated={()=>setRefreshToken(v=>v+1)}/>;
     if (page==="Lakehouse") return <LakehousePage refreshToken={refreshToken}/>;
     if (page==="Transform") return <TransformPage onBuilt={onDbtBuilt} onOpenQuery={openQuery}/>;

@@ -1,0 +1,37 @@
+.projectsStack{display:grid;gap:20px}
+.projectHero{display:flex;justify-content:space-between;gap:24px;align-items:end;padding:4px 0 2px}
+.projectHero>div{display:grid;gap:6px;max-width:760px}
+.projectLead{color:#555;line-height:1.5}
+.projectGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.projectCard{display:grid;align-content:start;gap:12px;min-height:300px}
+.projectCard.selected{outline:2px solid #c8c8ce;outline-offset:1px}
+.projectOutcome{padding:9px 10px;border:1px solid #e2e2e5;border-radius:6px;background:#fafafa;font:11px/1.5 Consolas,"Cascadia Code",monospace;color:#555}
+.projectQuestion{display:grid;gap:5px;padding-top:4px}
+.projectQuestion span{font-size:9px;letter-spacing:.08em;color:#777;font-weight:600}
+.projectQuestion b{font-size:13px;line-height:1.4}
+.projectActions{display:flex;gap:8px;margin-top:auto;padding-top:4px}
+.prepareCard{display:flex;flex-direction:row;align-items:center;gap:12px}
+.prepareCard>div{display:grid;gap:2px}
+.guidePanel{display:grid;gap:14px;margin-top:4px}
+.guideHeader{display:flex;justify-content:space-between;gap:20px;align-items:end}
+.guideHeader>div:first-child{display:grid;gap:4px}
+.guideProgress{display:grid;justify-items:end;gap:2px}
+.guideProgress b{font-size:18px}
+.guideProgress span{font-size:10px;color:#777;text-transform:uppercase;letter-spacing:.06em}
+.guideProgressBar{height:5px;background:#e7e7ea;border-radius:999px;overflow:hidden}
+.guideProgressBar i{display:block;height:100%;background:#555;transition:width .2s ease}
+.tutorialSteps{display:grid;border:1px solid #e0e0e3;border-radius:8px;background:#fff;overflow:hidden}
+.tutorialStep{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px 14px;border-bottom:1px solid #ededee}
+.tutorialStep:last-child{border-bottom:0}
+.tutorialStep.done{background:#fafafa}
+.stepCheck{width:30px;height:30px;border-radius:50%;border:1px solid #cfcfd4;background:#fff;cursor:pointer;font-weight:600}
+.tutorialStep.done .stepCheck{background:#efefef}
+.stepCopy{display:grid;gap:3px;min-width:0}
+.stepCopy b{font-size:13px}
+.stepCopy span{font-size:12px;color:#666;line-height:1.4}
+.stepCopy code{font:10px Consolas,"Cascadia Code",monospace;color:#777}
+.stepActions{display:flex;gap:6px;white-space:nowrap}
+.missionCard{display:grid;gap:12px}
+.missionCard pre{margin:0;max-height:300px;overflow:auto;padding:14px;border:1px solid #e0e0e3;border-radius:6px;background:#fafafa;font:12px/1.55 Consolas,"Cascadia Code",monospace;white-space:pre-wrap}
+@media(max-width:1280px){.projectGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1100px){.tutorialStep{grid-template-columns:36px 1fr}.stepActions{grid-column:2;justify-content:flex-start}}

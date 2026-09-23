@@ -1,4 +1,4 @@
-export type Page = "Generate"|"Lakehouse"|"Transform"|"Query"|"Explore"|"Charts"|"Canvas";
+export type Page = "Projects"|"Generate"|"Lakehouse"|"Transform"|"Query"|"Explore"|"Charts"|"Canvas";
 
 export type Scenario = {
   id: string;
