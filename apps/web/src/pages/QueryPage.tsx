@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 import { getJson, postJson } from "../api";
 import DataTable from "../components/DataTable";
-import type { CatalogTable, GenerationRunDetail, QueryResult } from "../types";
+import type { CatalogTable, QueryResult, WorkspaceProjectState } from "../types";
 import { completeTutorialStep, isGoldQuery } from "../tutorialProgress";
 
 const DEFAULT_SQL = "select *\nfrom contoso.bronze.sales\nlimit 100;";
@@ -36,7 +36,7 @@ export default function QueryPage({initialSql}:{initialSql?:string}) {
   const [result,setResult] = useState<QueryResult|null>(null);
   const [error,setError] = useState("");
   const [running,setRunning] = useState(false);
-  const [activeRun,setActiveRun] = useState<GenerationRunDetail|null>(null);
+  const [projectState,setProjectState] = useState<WorkspaceProjectState|null>(null);
   const [history,setHistory] = useState<HistoryItem[]>(()=>{
     try { return JSON.parse(localStorage.getItem("contoso-query-history") ?? "[]"); }
     catch { return []; }
@@ -45,9 +45,9 @@ export default function QueryPage({initialSql}:{initialSql?:string}) {
   useEffect(()=>{ if (initialSql) setSql(initialSql); },[initialSql]);
   useEffect(()=>{ getJson<{tables:CatalogTable[]}>("/api/lakehouse/catalog").then(d=>setCatalog(d.tables)).catch(()=>{}); },[]);
   useEffect(()=>{
-    getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run")
-      .then(data=>setActiveRun(data.run))
-      .catch(()=>setActiveRun(null));
+    getJson<WorkspaceProjectState>("/api/workspace/project-state")
+      .then(setProjectState)
+      .catch(()=>setProjectState(null));
   },[]);
 
   const grouped = useMemo(()=>({
@@ -61,8 +61,12 @@ export default function QueryPage({initialSql}:{initialSql?:string}) {
     try {
       const next = await postJson<QueryResult>("/api/query",{sql,limit:500});
       setResult(next);
-      if (activeRun?.scenario && isGoldQuery(sql)) {
-        completeTutorialStep("query",activeRun.scenario);
+      if (
+        projectState?.active_scenario &&
+        projectState.gold_current &&
+        isGoldQuery(sql)
+      ) {
+        completeTutorialStep("query",projectState.active_scenario);
       }
       const item:HistoryItem = {sql,ranAt:new Date().toISOString(),rows:next.row_count};
       setHistory(previous=>{
