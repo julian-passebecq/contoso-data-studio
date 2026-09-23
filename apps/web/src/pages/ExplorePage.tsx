@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 import { getJson, postBinary } from "../api";
 import DataTable from "../components/DataTable";
-import type { FileProfile, InspectResult, WorkspaceFile } from "../types";
+import type { FileProfile, GenerationRunDetail, InspectResult, WorkspaceFile } from "../types";
+import { completeTutorialStep } from "../tutorialProgress";
 
 type Tab = "Data"|"Raw"|"Profile"|"Schema"|"Row groups"|"Metadata";
 
@@ -22,6 +23,7 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
   const [tab,setTab] = useState<Tab>("Data");
   const [error,setError] = useState("");
   const [importing,setImporting] = useState(false);
+  const [activeRun,setActiveRun] = useState<GenerationRunDetail|null>(null);
 
   async function loadFiles() {
     try {
@@ -33,7 +35,12 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
     }
   }
 
-  useEffect(()=>{ void loadFiles(); },[]);
+  useEffect(()=>{
+    void loadFiles();
+    getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run")
+      .then(data=>setActiveRun(data.run))
+      .catch(()=>setActiveRun(null));
+  },[]);
   async function loadInspect(sheet="") {
     if (!selected) { setInspect(null); setProfile(null); return; }
     setInspect(null); setProfile(null); setTab("Data"); setError("");
@@ -43,6 +50,15 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
         `/api/explore/inspect?path=${encodeURIComponent(selected)}&limit=200${sheetParam}`
       );
       setInspect(data);
+      const activeRunPath=activeRun?.run_path ? `${activeRun.run_path}/` : "";
+      if (
+        data.path.endsWith("/sales.parquet") &&
+        activeRun?.scenario &&
+        activeRunPath &&
+        data.path.startsWith(activeRunPath)
+      ) {
+        completeTutorialStep("explore",activeRun.scenario);
+      }
       const activeSheet = typeof data.metadata.selected_sheet === "string"
         ? data.metadata.selected_sheet
         : "";
