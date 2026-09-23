@@ -1,0 +1,189 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    env:
+      CONTOSO_DUCKLAKE_CATALOG: ${{ github.workspace }}/workspace/contoso.ducklake.sqlite
+      CONTOSO_DUCKLAKE_DATA_PATH: ${{ github.workspace }}/workspace/contoso.ducklake.files
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install API
+        run: pip install -e "apps/api[dev,dbt]"
+      - name: Compile Python
+        run: python -m compileall -q apps/api/app
+      - name: Unit and scenario tests
+        run: pytest -q apps/api/tests
+      - name: Parse dbt project
+        run: dbt parse --project-dir dbt --profiles-dir dbt --no-use-colors
+      - name: Bootstrap integration DuckLake
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from app.config import Settings
+          from app.services.ducklake import DuckLakeService
+          from app.services.generator import GeneratorService
+
+          settings = Settings.load()
+          manifest = GeneratorService(settings).generate("margin-pressure", 2500, 42)
+          files = {name: Path(path) for name, path in manifest["files"].items()}
+          DuckLakeService(settings).load_parquet_to_bronze(files)
+          print(manifest["run_id"])
+          PY
+      - name: Inspect persisted DuckLake metadata
+        run: |
+          python - <<'PY'
+          import sqlite3
+          from app.config import Settings
+
+          settings = Settings.load()
+          assert settings.catalog_path.exists(), f"Missing metadata file: {settings.catalog_path}"
+          print("catalog", settings.catalog_path, settings.catalog_path.stat().st_size, "bytes")
+          with sqlite3.connect(settings.catalog_path) as con:
+              names = [row[0] for row in con.execute(
+                  "select name from sqlite_master where type='table' order by name"
+              )]
+              print("metadata tables", names)
+              assert "ducklake_table" in names
+              count = con.execute("select count(*) from ducklake_table").fetchone()[0]
+              print("ducklake_table rows", count)
+              assert count >= 5
+          PY
+      - name: Verify Bronze persists across processes
+        run: |
+          python - <<'PY'
+          from app.config import Settings
+          from app.services.ducklake import DuckLakeService
+
+          tables = DuckLakeService(Settings.load()).catalog()
+          bronze = {row["name"] for row in tables if row["schema"] == "bronze"}
+          expected = {"customer", "product", "store", "currency_exchange", "sales"}
+          missing = expected - bronze
+          assert not missing, f"Bronze did not persist across clients: {sorted(missing)}"
+          print(sorted(bronze))
+          PY
+      - name: Build and test dbt models
+        working-directory: dbt
+        run: dbt build --project-dir . --profiles-dir . --no-use-colors
+      - name: Verify Gold marts
+        run: |
+          python - <<'PY'
+          from app.config import Settings
+          from app.services.ducklake import DuckLakeService
+
+          from app.services.dbt_runner import DbtService
+          from app.services.generator import GeneratorService
+
+          settings = Settings.load()
+          service = DuckLakeService(settings)
+          gold = {row["name"] for row in service.catalog() if row["schema"] == "gold"}
+          expected = {
+              "monthly_sales",
+              "channel_performance",
+              "delivery_metrics",
+              "currency_exposure",
+              "product_performance",
+              "store_performance",
+          }
+          missing = expected - gold
+          assert not missing, f"Missing Gold marts: {sorted(missing)}"
+
+          _, rows, _ = service.query(
+              "select count(*) from contoso.gold.monthly_sales",
+              10,
+          )
+          assert rows[0][0] > 0
+
+          snapshots = service.snapshots(20)
+          assert snapshots, "Expected DuckLake snapshot history"
+          latest = snapshots[0]
+          columns, historical_rows, _ = service.preview_at_snapshot(
+              "gold",
+              "monthly_sales",
+              int(latest["snapshot_id"]),
+              5,
+          )
+          assert columns
+          assert historical_rows
+
+          quality = DbtService(settings).quality()
+          assert quality["summary"]["total"] >= 30, quality
+          assert quality["summary"]["fail"] == 0, quality
+          assert quality["summary"]["error"] == 0, quality
+          assert quality["by_layer"]["bronze"]["pass"] > 0, quality
+          assert quality["by_layer"]["silver"]["pass"] > 0, quality
+          assert quality["by_layer"]["gold"]["pass"] > 0, quality
+
+          dashboard_queries = {
+              "gold_scenario": "select scenario from contoso.gold.monthly_sales group by 1 order by 1",
+              "online_migration": "select order_year, revenue_share, revenue from contoso.gold.channel_performance where channel='Online' order by order_year",
+              "margin_pressure": "select extract(year from order_month)::integer yr, sum(gross_margin)/nullif(sum(revenue),0) margin_rate, avg(avg_discount_rate) discount_rate, sum(revenue) revenue from contoso.gold.monthly_sales group by 1 order by 1",
+              "logistics_delays": "select channel, round(avg(avg_delivery_days),2) avg_days, round(avg(p90_delivery_days),2) p90_days, round(avg(over_7_day_rate),4) over_7_rate from contoso.gold.delivery_metrics group by 1 order by 1",
+              "currency_exposure": "select currency, min(avg_exchange_rate_to_usd) min_rate, max(avg_exchange_rate_to_usd) max_rate, max(avg_exchange_rate_to_usd)-min(avg_exchange_rate_to_usd) spread, sum(revenue_usd) revenue_usd from contoso.gold.currency_exposure group by 1 order by spread desc",
+          }
+          for name, sql in dashboard_queries.items():
+              columns, dashboard_rows, _ = service.query(sql, 100)
+              assert columns, (name, columns)
+              assert dashboard_rows, (name, dashboard_rows)
+
+          generator = GeneratorService(settings)
+          run_id = str(generator.list_runs(1)[0]["run_id"])
+          before_reload = int(service.snapshots(1)[0]["snapshot_id"])
+          service.load_parquet_to_bronze(
+              generator.run_files(run_id, verify_hashes=True)
+          )
+          after_reload = int(service.snapshots(1)[0]["snapshot_id"])
+          comparison = service.compare_snapshots(
+              "bronze", "sales", before_reload, after_reload
+          )
+          assert comparison["base"]["row_count"] == 2500, comparison
+          assert comparison["target"]["row_count"] == 2500, comparison
+          assert comparison["row_delta"] == 0, comparison
+          assert comparison["added_columns"] == [], comparison
+          assert comparison["removed_columns"] == [], comparison
+
+          print("latest snapshot", latest["snapshot_id"])
+          print("reload snapshots", before_reload, after_reload)
+          print("reload comparison", comparison)
+          print("quality", quality["summary"])
+          print(sorted(gold))
+          PY
+
+  charts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dbt Charts
+        run: pip install dbt-charts==0.8.0 dbt-duckdb==1.11.0
+      - name: Validate board
+        run: dct validate charts/executive-sales.yml --project-dir . --dbt-project-dir dbt
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package.json
+      - name: Install web
+        run: npm install
+      - name: Typecheck and build
+        run: npm run build

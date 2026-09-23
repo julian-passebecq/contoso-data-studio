@@ -1,0 +1,98 @@
+version: 2
+
+models:
+  - name: stg_sales
+    description: Cleaned sales lines with scenario, delivery and FX fields retained from Bronze.
+    columns:
+      - name: scenario
+        data_tests: [not_null]
+      - name: sales_key
+        data_tests: [not_null, unique]
+      - name: order_date
+        data_tests: [not_null]
+      - name: delivery_date
+        data_tests: [not_null]
+      - name: delivery_days
+        data_tests: [not_null]
+      - name: customer_key
+        data_tests: [not_null]
+      - name: product_key
+        data_tests: [not_null]
+      - name: store_key
+        data_tests: [not_null]
+      - name: currency
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["NOK", "CHF", "EUR", "GBP"]
+      - name: exchange_rate_to_usd
+        data_tests: [not_null]
+      - name: net_revenue
+        data_tests: [not_null]
+      - name: gross_margin
+        data_tests: [not_null]
+
+  - name: monthly_sales
+    description: Monthly revenue, margin and discount KPIs by channel.
+    columns:
+      - name: scenario
+        data_tests: [not_null]
+      - name: order_month
+        data_tests: [not_null]
+      - name: channel
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Online", "Store"]
+
+  - name: channel_performance
+    description: Annual channel mix and revenue share, primarily for the online-migration scenario.
+    columns:
+      - name: order_year
+        data_tests: [not_null]
+      - name: channel
+        data_tests: [not_null]
+      - name: revenue_share
+        data_tests: [not_null]
+
+  - name: delivery_metrics
+    description: Monthly delivery service levels and late-delivery rates by channel.
+    columns:
+      - name: order_month
+        data_tests: [not_null]
+      - name: avg_delivery_days
+        data_tests: [not_null]
+      - name: p90_delivery_days
+        data_tests: [not_null]
+
+  - name: currency_exposure
+    description: Local-currency and USD-normalized revenue with observed exchange rates.
+    columns:
+      - name: currency
+        data_tests: [not_null]
+      - name: avg_exchange_rate_to_usd
+        data_tests: [not_null]
+      - name: revenue_usd
+        data_tests: [not_null]
+
+  - name: product_performance
+    description: Product/category revenue and margin performance.
+    columns:
+      - name: product_key
+        data_tests: [not_null]
+      - name: product_name
+        data_tests: [not_null]
+      - name: revenue
+        data_tests: [not_null]
+
+  - name: store_performance
+    description: Store revenue, margin and delivery performance.
+    columns:
+      - name: store_key
+        data_tests: [not_null, unique]
+      - name: store_name
+        data_tests: [not_null]
+      - name: revenue
+        data_tests: [not_null]

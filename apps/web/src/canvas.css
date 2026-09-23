@@ -1,0 +1,44 @@
+.canvasStack{display:grid;gap:14px}
+.canvasBoard{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:14px 2px 20px}
+.canvasStageWrap{display:flex;align-items:center}
+.canvasStage{
+  width:210px;min-height:360px;border:1px solid #dfdfe2;border-radius:8px;background:#fafafa;
+  display:flex;flex-direction:column;overflow:hidden
+}
+.canvasStageHeader{padding:12px;border-bottom:1px solid #e5e5e7;display:grid;gap:2px;background:#f6f6f7}
+.canvasStageHeader b{font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.canvasStageHeader span{font-size:10px;color:#777}
+.canvasNodes{padding:10px;display:grid;gap:8px;align-content:start}
+.canvasNode{
+  border:1px solid #d8d8dc;background:#fff;border-radius:6px;padding:10px;text-align:left;
+  display:grid;gap:3px;cursor:pointer
+}
+.canvasNode:disabled{cursor:default;color:#333}
+.canvasNode:not(:disabled):hover{border-color:#888;background:#fdfdfd}
+.canvasNode span{font:12px Consolas,"Cascadia Code",monospace;overflow:hidden;text-overflow:ellipsis}
+.canvasNode small{font-size:10px;color:#888}
+.canvasEmpty{padding:14px 8px;color:#999;font-size:11px;text-align:center;border:1px dashed #ddd;border-radius:6px}
+.canvasConnector{width:42px;text-align:center;font-size:22px;color:#aaa;flex:0 0 42px}
+.canvasNoteCard textarea{
+  width:100%;min-height:94px;resize:vertical;border:1px solid #d9d9dd;border-radius:6px;
+  padding:11px;font:12px/1.5 "Segoe UI",sans-serif;outline:none
+}
+.canvasNoteCard textarea:focus{border-color:#888}
+.canvasNoteActions{display:flex;align-items:center;gap:10px;margin-top:10px}
+
+.canvasNode em{
+  font-size:9px;color:#888;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.manifestEdges{display:grid;gap:8px;border-top:1px solid #e5e5e7;padding-top:12px}
+.manifestEdges>div{display:flex;gap:6px;flex-wrap:wrap}
+.manifestEdges code{
+  padding:4px 7px;border:1px solid #e1e1e4;border-radius:5px;background:#fafafa;
+  font:10px Consolas,"Cascadia Code",monospace;color:#555
+}
+
+.canvasNode.issue{border-color:#c46b6b;background:#fff8f8}
+.nodeQuality{
+  font:9px "Segoe UI",system-ui,sans-serif;color:#3f6b42;background:#f4faf4;
+  border:1px solid #d8ead8;border-radius:4px;padding:3px 5px;width:max-content;max-width:100%
+}
+.nodeQuality.issue{color:#8b2020;background:#fff4f4;border-color:#efd0d0}

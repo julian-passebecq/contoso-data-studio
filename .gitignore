@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+dist/
+workspace/*
+!workspace/.gitkeep
+*.duckdb
+*.ducklake
+*.parquet
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

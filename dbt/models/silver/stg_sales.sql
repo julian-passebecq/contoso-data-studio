@@ -1,0 +1,23 @@
+select
+  scenario,
+  sales_key,
+  cast(order_date as date) as order_date,
+  cast(delivery_date as date) as delivery_date,
+  delivery_days,
+  customer_key,
+  product_key,
+  store_key,
+  store_country,
+  currency,
+  channel,
+  quantity,
+  cast(unit_price as decimal(18,2)) as unit_price,
+  cast(unit_cost as decimal(18,2)) as unit_cost,
+  discount_rate,
+  exchange_rate_to_usd,
+  cast(net_revenue_local as decimal(18,2)) as net_revenue_local,
+  cast(total_cost_local as decimal(18,2)) as total_cost_local,
+  cast(net_revenue as decimal(18,2)) as net_revenue,
+  cast(total_cost as decimal(18,2)) as total_cost,
+  cast(net_revenue-total_cost as decimal(18,2)) as gross_margin
+from {{ source('bronze','sales') }}

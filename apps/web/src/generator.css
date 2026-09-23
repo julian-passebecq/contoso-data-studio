@@ -1,0 +1,118 @@
+.scenarioFocus{
+  margin:18px 0;padding:12px 14px;border:1px solid #e1e1e4;border-radius:7px;
+  background:#fafafa;display:grid;gap:4px
+}
+.scenarioFocus span{font-size:10px;letter-spacing:.09em;color:#777;font-weight:600}
+.scenarioFocus b{font-size:13px;font-weight:600}
+.generatorFields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.generatorFields label{display:grid;gap:5px}
+.generatorFields label>span{font-size:11px;color:#666}
+.generationReceipt{
+  margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  padding:10px;border:1px solid #e2e2e4;border-radius:7px;background:#fcfcfc
+}
+.generationReceipt>div{display:grid;gap:3px}
+.generationReceipt span{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#888}
+.generationReceipt b{font-size:12px}
+.scenarioLibrary{display:grid;gap:6px}
+.scenarioChoice{
+  width:100%;display:flex;justify-content:space-between;gap:12px;align-items:center;
+  border:1px solid transparent;background:transparent;border-radius:7px;padding:10px;text-align:left;cursor:pointer
+}
+.scenarioChoice:hover{background:#f7f7f8;border-color:#e4e4e6}
+.scenarioChoice.selected{background:#f1f1f3;border-color:#d5d5d9}
+.scenarioChoice>div{display:grid;gap:3px;min-width:0}
+.scenarioChoice b{font-size:12px}
+.scenarioChoice span{font-size:11px;color:#666;line-height:1.35}
+
+.generateStack{display:grid;gap:18px}
+.runLedger{display:grid}
+.runLedgerRow{
+  display:grid;grid-template-columns:minmax(220px,1fr) 110px 90px 170px auto;
+  gap:14px;align-items:center;padding:10px 4px;border-bottom:1px solid #ededee;font-size:11px
+}
+.runLedgerRow>div{display:grid;gap:2px;min-width:0}
+.runLedgerRow b{font-size:12px}
+.runLedgerRow code{font:10px Consolas,"Cascadia Code",monospace;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.runLedgerRow>span{color:#666;white-space:nowrap}
+
+.runLedgerRow{
+  grid-template-columns:minmax(210px,1fr) 100px 75px 150px 90px auto minmax(180px,auto)
+}
+.runLedgerActions{display:flex!important;gap:6px;justify-content:flex-end}
+.runDetailCard{display:grid;gap:14px}
+.runDetailFacts{
+  display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:8px
+}
+.runDetailFacts>div{
+  display:grid;gap:3px;padding:10px 12px;border:1px solid #e2e2e4;border-radius:6px;background:#fafafa
+}
+.runDetailFacts span{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#888}
+.runDetailFacts b{font-size:11px;font-weight:600}
+.runModeNote{
+  padding:10px 12px;border-left:3px solid #8a8a8f;background:#fafafa;font-size:11px;color:#555
+}
+.runFileGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.runFile{
+  display:grid;gap:5px;padding:10px 12px;border:1px solid #e2e2e4;border-radius:6px;background:#fcfcfc
+}
+.runFile>div{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.runFile b{font-size:11px}
+.runFile code{
+  font:10px Consolas,"Cascadia Code",monospace;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.runFile>span{font-size:10px;color:#777}
+@media(max-width:1250px){
+  .runLedgerRow{grid-template-columns:minmax(190px,1fr) 95px 75px 140px auto}
+  .runLedgerActions{grid-column:1/-1;justify-content:flex-start}
+  .runDetailFacts{grid-template-columns:repeat(2,1fr)}
+}
+
+.runCompareBar{
+  display:grid;grid-template-columns:minmax(180px,1fr) 24px minmax(180px,1fr) auto;
+  gap:10px;align-items:end;margin:0 0 12px;padding:10px 12px;border:1px solid #e2e2e4;
+  border-radius:7px;background:#fafafa
+}
+.runCompareBar>div{display:grid;gap:4px}
+.runCompareBar>span{align-self:center;justify-self:center;color:#888}
+.runCompareBar select{
+  min-width:0;padding:7px 8px;border:1px solid #d6d6da;border-radius:5px;background:#fff;font-size:11px
+}
+.runComparisonCard{display:grid;gap:14px}
+.runCompareSummary{
+  display:grid;grid-template-columns:repeat(4,minmax(110px,1fr));gap:8px
+}
+.runCompareSummary>div{
+  display:grid;gap:3px;padding:10px 12px;border:1px solid #e2e2e4;border-radius:6px;background:#fafafa
+}
+.runCompareSummary span{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#888}
+.runCompareSummary b{font-size:16px}
+.runCompareSection{display:grid;gap:4px;padding:10px 12px;border:1px solid #e4e4e6;border-radius:6px}
+.runCompareSection>b{font-size:11px;margin-bottom:3px}
+.runCompareSection>div{display:grid;grid-template-columns:140px 1fr;gap:10px;font-size:11px}
+.runCompareSection code{font:10px Consolas,"Cascadia Code",monospace}
+.runCompareSection span{color:#666}
+.runFileCompareGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.runFileCompare{display:grid;gap:6px;padding:9px 10px;border:1px solid #e2e2e4;border-radius:6px;background:#fcfcfc}
+.runFileCompare>div{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.runFileCompare b{font-size:10px}
+.runFileCompare span{font-size:9px;color:#777}
+@media(max-width:1250px){
+  .runCompareBar{grid-template-columns:1fr 24px 1fr}
+  .runCompareBar>button{grid-column:1/-1;justify-self:start}
+  .runCompareSummary{grid-template-columns:repeat(2,1fr)}
+  .runFileCompareGrid{grid-template-columns:repeat(2,1fr)}
+}
+
+.runLoadHistory{
+  display:grid;gap:5px;padding:10px 12px;border:1px solid #e4e4e6;border-radius:6px;background:#fcfcfc
+}
+.runLoadHistory>b{font-size:11px;margin-bottom:2px}
+.runLoadHistory>div{display:flex;justify-content:space-between;gap:12px;padding-top:5px;border-top:1px solid #eeeeef}
+.runLoadHistory span{font-size:10px;color:#666}
+.runLoadHistory code{font:10px Consolas,"Cascadia Code",monospace;color:#777}
+
+.runIntegritySummary{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e2e2e4;
+  border-radius:6px;background:#fafafa;font-size:10px;color:#666
+}

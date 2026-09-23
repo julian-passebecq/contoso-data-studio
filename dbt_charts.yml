@@ -1,0 +1,8 @@
+dbt_project_dir: dbt
+
+sources:
+  db:
+    type: dbt_profile
+    profile: contoso_data_studio
+    target: dev
+    profiles_dir: .

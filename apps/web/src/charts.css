@@ -1,0 +1,71 @@
+.chartsStack{display:grid;gap:14px}
+.kpiGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.kpiGrid [class*="fui-Card"]{min-height:112px;justify-content:center}
+.kpiLabel{color:#666;font-size:12px}
+.kpiValue{font-size:28px;font-weight:600;letter-spacing:-.03em}
+.chartGrid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,.7fr);gap:14px;align-items:start}
+.barChart{
+  height:330px;display:flex;align-items:end;gap:5px;padding:18px 8px 28px;
+  border:1px solid #e4e4e6;border-radius:7px;background:#fafafa;overflow:hidden
+}
+.barSlot{height:100%;flex:1;min-width:8px;display:flex;align-items:end;justify-content:center;position:relative}
+.bar{width:72%;min-width:5px;background:currentColor;opacity:.72;border-radius:3px 3px 0 0}
+.barSlot span{position:absolute;bottom:-21px;font-size:9px;color:#777;white-space:nowrap}
+.chartRuntime{display:grid;gap:12px;margin:8px 0 16px}
+.chartRuntime>div{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center}
+.chartRuntime span{font-size:11px;color:#777}
+.chartRuntime code,.installHint code,.serveHint code{font:11px Consolas,"Cascadia Code",monospace}
+.installHint,.serveHint{
+  display:grid;gap:6px;padding:11px;border:1px solid #e2e2e4;border-radius:6px;background:#fafafa;margin-top:12px
+}
+.validationOk{margin-top:12px;padding:9px 11px;border:1px solid #b9d6bf;background:#f5fbf6;border-radius:5px;font-size:12px}
+@media(max-width:1200px){.chartGrid{grid-template-columns:1fr}}
+
+.scenarioContextCard{display:grid;gap:8px}
+.staleGoldWarning{
+  padding:10px 12px;border:1px solid #e2c27a;border-radius:6px;background:#fffaf0;
+  font-size:12px;color:#6b5316
+}
+.chartFootnote{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:10px;color:#777
+}
+.chartFootnote span{padding:3px 6px;border:1px solid #e5e5e7;border-radius:4px;background:#fafafa}
+
+.boardInspectorCard{display:grid;gap:10px}
+.boardSelector{
+  min-width:190px;padding:6px 8px;border:1px solid #d6d6da;border-radius:5px;background:#fff;font-size:11px
+}
+.boardFacts{
+  display:grid;grid-template-columns:2fr 1fr 100px 100px;gap:8px
+}
+.boardFacts>div{
+  display:grid;gap:3px;padding:9px 10px;border:1px solid #e3e3e5;border-radius:6px;background:#fafafa;min-width:0
+}
+.boardFacts span{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#888}
+.boardFacts code{font:10px Consolas,"Cascadia Code",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.boardFacts b{font-size:16px}
+.boardSpecGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;align-items:start}
+.boardSpecGrid section{display:grid;gap:8px}
+.boardSpecGrid h4{margin:0;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#777}
+.boardQueries,.boardCharts{display:grid;gap:8px}
+.boardQuery,.boardChartSpec{
+  display:grid;gap:6px;padding:10px;border:1px solid #e2e2e4;border-radius:6px;background:#fcfcfc
+}
+.boardQuery>div,.boardChartSpec>div{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.boardQuery code,.boardChartSpec code{font:10px Consolas,"Cascadia Code",monospace}
+.boardQuery pre{
+  margin:0;max-height:220px;overflow:auto;padding:10px;border-radius:5px;background:#1f1f1f;color:#ededed;
+  font:10px/1.5 Consolas,"Cascadia Code",monospace;white-space:pre-wrap
+}
+.boardChartSpec b{font-size:11px}
+.boardChartSpec span,.boardChartSpec small{font-size:10px;color:#777}
+.boardLayout{border-top:1px solid #e5e5e7;padding-top:10px}
+.boardLayout summary{cursor:pointer;font-size:11px;color:#555}
+.boardLayout pre{
+  max-height:240px;overflow:auto;background:#fafafa;border:1px solid #e4e4e6;border-radius:5px;
+  padding:10px;font:10px/1.45 Consolas,"Cascadia Code",monospace
+}
+@media(max-width:1100px){
+  .boardFacts{grid-template-columns:1fr 1fr}
+  .boardSpecGrid{grid-template-columns:1fr}
+}

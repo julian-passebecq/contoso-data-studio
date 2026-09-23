@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contoso-data-studio-api"
+version = "0.2.0"
+requires-python = ">=3.11"
+dependencies = [
+  "duckdb>=1.4,<2",
+  "fastapi>=0.115,<1",
+  "pydantic>=2.10,<3",
+  "PyYAML>=6,<7",
+  "uvicorn[standard]>=0.34,<1",
+]
+
+[project.optional-dependencies]
+dbt = ["dbt-duckdb==1.11.0"]
+dev = ["httpx>=0.28,<1", "pytest>=8,<9"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
