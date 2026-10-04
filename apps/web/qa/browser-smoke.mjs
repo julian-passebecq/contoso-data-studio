@@ -18,7 +18,7 @@ try {
   const prepare = page.getByRole("button", { name: "Open + prepare demo" }).first();
   await prepare.click();
   await page.getByText("Retail Sales 101 is ready", { exact: false }).waitFor({ timeout: 180_000 });
-  await page.getByText("1 / 7").waitFor();
+  await page.getByText("steps complete", { exact: true }).waitFor();
   await snap("01-project-ready");
 
   for (const name of ["Explore", "Lakehouse", "Transform", "Query", "Charts", "Canvas"]) {
@@ -33,7 +33,7 @@ try {
   // Re-open the guided project and verify the product still reports the prepared state.
   await page.getByRole("button", { name: "View guide" }).first().click();
   await page.getByText("Retail Sales 101").last().waitFor();
-  await page.getByText("1 / 7").waitFor();
+  await page.getByText("steps complete", { exact: true }).waitFor();
 
   await snap("02-guided-navigation-complete");
   console.log("BROWSER_SMOKE_PASS");
