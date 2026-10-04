@@ -1,0 +1,55 @@
+name: QA Browser Smoke
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    env:
+      CONTOSO_WORKSPACE: ${{ github.workspace }}/workspace
+      CONTOSO_DUCKLAKE_CATALOG: ${{ github.workspace }}/workspace/contoso.ducklake.sqlite
+      CONTOSO_DUCKLAKE_DATA_PATH: ${{ github.workspace }}/workspace/contoso.ducklake.files
+      CONTOSO_PROJECT_ROOT: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install API and web dependencies
+        run: |
+          pip install -e "apps/api[dev,dbt]"
+          npm --prefix apps/web install
+          npm --prefix apps/web install --no-save playwright@1.56.1
+          npx --prefix apps/web playwright install --with-deps chromium
+
+      - name: Start API and web
+        run: |
+          uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000 > /tmp/contoso-api.log 2>&1 &
+          npm --prefix apps/web run dev -- --host 127.0.0.1 > /tmp/contoso-web.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:8000/api/health >/dev/null && curl -fsS http://127.0.0.1:5173 >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/contoso-api.log || true
+          cat /tmp/contoso-web.log || true
+          exit 1
+
+      - name: Run browser release smoke
+        working-directory: apps/web
+        run: node qa/browser-smoke.mjs
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contoso-v1-browser-smoke
+          path: apps/web/qa-artifacts
+          if-no-files-found: warn
