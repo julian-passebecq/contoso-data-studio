@@ -66,11 +66,11 @@ def test_v1_guided_project_release_smoke(monkeypatch, tmp_path: Path):
     assert inspected["metadata"]["num_row_groups"] >= 1
     assert len(inspected["rows"]) == 25
     assert {
-        "order_id",
+        "sales_key",
         "order_date",
-        "customer_id",
-        "product_id",
-        "store_id",
+        "customer_key",
+        "product_key",
+        "store_key",
         "scenario",
         "net_revenue",
     }.issubset(set(inspected["columns"]))
