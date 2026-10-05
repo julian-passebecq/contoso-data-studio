@@ -1,0 +1,42 @@
+title: FOIL Wind Decision Lab
+notes: Synthetic L0 screening in real EUR 2026. Energy P90 is the 10th percentile; D/N/F are not probability quantiles. Price is assumed, not a market quote.
+source: db
+queries:
+  cases:
+    sql: |
+      select case_id, aep_p50_mwh, aep_p90_mwh, lcoe_eur_mwh, npv_eur
+      from contoso.gold.foil_project_summary order by case_id
+  nominal_a:
+    sql: |
+      select aep_p50_mwh, aep_p90_mwh, lcoe_eur_mwh, npv_eur
+      from contoso.gold.foil_project_summary where case_id='FOIL-WIND-A-N-R0'
+charts:
+  aep_p50:
+    label: A nominal AEP P50 (MWh/year)
+    query: queries.nominal_a
+    type: kpi
+    value: aep_p50_mwh
+  aep_p90:
+    label: A nominal AEP P90 exceedance (MWh/year)
+    query: queries.nominal_a
+    type: kpi
+    value: aep_p90_mwh
+  lcoe:
+    label: A nominal LCOE (EUR2026/MWh)
+    query: queries.nominal_a
+    type: kpi
+    value: lcoe_eur_mwh
+  npv:
+    label: A nominal NPV (EUR2026)
+    query: queries.nominal_a
+    type: kpi
+    value: npv_eur
+  energy_cases:
+    title: Conditional AEP P50 across reference cases (MWh/year)
+    query: queries.cases
+    type: bar
+    x: case_id
+    y: aep_p50_mwh
+rows:
+  - cols: [aep_p50, aep_p90, lcoe, npv]
+  - energy_cases

@@ -12,6 +12,7 @@ from app.services.ducklake import DuckLakeService
 from app.services.explorer import ExplorerService
 from app.services.generator import GeneratorService, SCENARIOS
 from app.services.workspace_state import WorkspaceStateService
+from app.services.projects import ProjectService, ProjectBusyError
 
 settings = Settings.load()
 ducklake = DuckLakeService(settings)
@@ -20,6 +21,7 @@ generator = GeneratorService(settings)
 dbt = DbtService(settings)
 charts = ChartsService(settings)
 workspace_state = WorkspaceStateService(generator, ducklake, dbt)
+projects = ProjectService(generator, ducklake, dbt, workspace_state)
 
 app = FastAPI(title="Contoso Data Studio API", version="0.4.0")
 app.add_middleware(
@@ -39,6 +41,18 @@ def health():
 @app.get("/api/scenarios")
 def scenarios():
     return SCENARIOS
+
+
+@app.post("/api/projects/{scenario}/open")
+def open_project(scenario: str):
+    try:
+        return projects.open(scenario)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    except ProjectBusyError as exc:
+        raise HTTPException(409, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
 
 
 @app.get("/api/runs")

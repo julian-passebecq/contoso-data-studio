@@ -42,9 +42,11 @@ type DbtRun = {
 type WorkbenchTab = "Source"|"Compiled"|"Lineage"|"Tests"|"Columns";
 
 export default function TransformPage({
+  activeScenario,
   onBuilt,
   onOpenQuery,
 }:{
+  activeScenario?:string|null;
   onBuilt:()=>void;
   onOpenQuery:(sql:string)=>void;
 }) {
@@ -159,7 +161,9 @@ export default function TransformPage({
   const dagNodes = {
     bronze: lineageByLayer.bronze.length
       ? lineageByLayer.bronze
-      : ["sales","customer","product","store","currency_exchange"].map(name=>fallbackNode("bronze",name,"source")),
+      : status ? (activeScenario?.startsWith("foil-")
+          ? ["foil_cases","foil_trials","foil_sensitivity"]
+          : ["sales","customer","product","store","currency_exchange"]).map(name=>fallbackNode("bronze",name,"source")) : [],
     silver: lineageByLayer.silver.length
       ? lineageByLayer.silver
       : grouped.silver.map(model=>fallbackNode("silver",model.name,"model")),

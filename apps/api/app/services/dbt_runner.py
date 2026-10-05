@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from app.config import Settings
+from app.services.catalog_lock import catalog_lock
 
 
 ALLOWED_COMMANDS = {"build", "run", "test", "parse"}
@@ -20,13 +21,21 @@ class DbtService:
     def executable(self) -> str | None:
         return shutil.which("dbt")
 
+    def _foil_active(self) -> bool:
+        from app.services.generator import GeneratorService
+        run = GeneratorService(self.settings).active_run()
+        return bool(run and str(run.get("scenario", "")).startswith("foil-"))
+
     def _models(self) -> list[dict[str, str]]:
         models_root = self.settings.dbt_path / "models"
         if not models_root.exists():
             return []
         models: list[dict[str, str]] = []
+        foil_active = self._foil_active()
         for path in sorted(models_root.rglob("*.sql")):
             relative = path.relative_to(self.settings.dbt_path)
+            if ("foil" in relative.parts) != foil_active:
+                continue
             layer = path.parent.name
             models.append({
                 "name": path.stem,
@@ -76,8 +85,11 @@ class DbtService:
 
         nodes: list[dict[str, Any]] = []
         known_ids: set[str] = set()
+        foil_active = self._foil_active()
 
         for unique_id, source in manifest.get("sources", {}).items():
+            if (source.get("source_name") == "foil") != foil_active:
+                continue
             if not str(unique_id).startswith("source."):
                 continue
             node = {
@@ -94,6 +106,8 @@ class DbtService:
             known_ids.add(str(unique_id))
 
         for unique_id, model in manifest.get("nodes", {}).items():
+            if ("foil" in Path(str(model.get("original_file_path", ""))).parts) != foil_active:
+                continue
             if not str(unique_id).startswith("model."):
                 continue
             layer, name = self._layer_for_dependency(str(unique_id), manifest)
@@ -391,6 +405,10 @@ class DbtService:
         return requested
 
     def run(self, command: str, selector: str | None = None) -> dict[str, Any]:
+        with catalog_lock(self.settings.catalog_path):
+            return self._run(command, selector)
+
+    def _run(self, command: str, selector: str | None = None) -> dict[str, Any]:
         if command not in ALLOWED_COMMANDS:
             raise ValueError(f"Unsupported dbt command: {command}")
         executable = self.executable
@@ -409,6 +427,10 @@ class DbtService:
             "--no-use-colors",
         ]
         selected_model = None
+        if self._foil_active():
+            args.extend(["--vars", '{"foil_enabled": true}'])
+            if command != "parse" and selector is None:
+                args.extend(["--select", "path:models/foil"])
         if selector is not None:
             if command not in {"build", "run", "test"}:
                 raise ValueError(f"dbt {command} does not accept a model selector here")

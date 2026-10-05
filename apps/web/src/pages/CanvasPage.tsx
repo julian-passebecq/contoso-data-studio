@@ -130,7 +130,7 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
       nodes:activeRun ? [{
         id:activeRun.run_id,
         label:activeRun.scenario ?? activeRun.scenario_name ?? "scenario",
-        kind:`seed ${activeRun.seed ?? "—"} · ${(activeRun.scale ?? 0).toLocaleString()} sales`,
+        kind:`seed ${activeRun.seed ?? "—"} · ${(activeRun.scale ?? 0).toLocaleString()} ${activeRun.scenario?.startsWith("foil-") ? "draws" : "sales"}`,
       }] : [],
     },
     {
@@ -156,7 +156,7 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
       title:"Outputs",
       subtitle:"Query + dbt Charts",
       nodes:[
-        {id:"executive-sales",label:"executive-sales.yml",kind:"dbt Charts"},
+        {id:"executive-sales",label:activeRun?.scenario?.startsWith("foil-") ? "foil-decision.yml" : "executive-sales.yml",kind:"dbt Charts"},
         {id:"sql-workbench",label:"SQL workbench",kind:"DuckDB"},
       ],
     },

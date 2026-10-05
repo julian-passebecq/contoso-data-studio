@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 
 import { getJson, postJson } from "../api";
 import type { GenerationRunDetail, QueryResult } from "../types";
 import { completeTutorialStep } from "../tutorialProgress";
 import "../charts.css";
+const FoilDashboard = lazy(()=>import("../components/FoilDashboard"));
 
 type ChartsStatus = {
   available:boolean;
@@ -136,13 +137,14 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
     try {
       const active=await getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run");
       setActiveRun(active.run);
+      setSelectedBoard(active.run?.scenario?.startsWith("foil-") ? "foil-decision.yml" : "executive-sales.yml");
       if (!active.run?.scenario) {
         setGoldScenario(null);
         return;
       }
 
       const scenarioResult=await postJson<QueryResult>("/api/query",{
-        sql:"select scenario from contoso.gold.monthly_sales group by 1 order by 1",
+        sql:`select scenario from contoso.gold.${active.run.scenario.startsWith("foil-") ? "foil_project_summary" : "monthly_sales"} group by 1 order by 1`,
         limit:10,
       });
       const scenarios=scenarioResult.rows.map(row=>String(row[0]));
@@ -158,6 +160,7 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
   }
 
   async function loadScenarioDashboard(scenario:string) {
+    if (scenario.startsWith("foil-")) return;
     if (scenario==="online-migration") {
       const result=await postJson<QueryResult>("/api/query",{
         sql:"select order_year, revenue_share, revenue from contoso.gold.channel_performance where channel='Online' order by order_year",
@@ -335,7 +338,8 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
       {dashboardError && <div className="errorText">{dashboardError}</div>}
     </Card>
 
-    {goldCurrent && <>
+    {goldCurrent && activeRun?.scenario?.startsWith("foil-") && <Suspense fallback={<Text>Loading FOIL dashboard…</Text>}><FoilDashboard scenario={activeRun.scenario}/></Suspense>}
+    {goldCurrent && !activeRun?.scenario?.startsWith("foil-") && <>
       <div className="kpiGrid">
         {kpis.map(kpi=><Card key={kpi.label}>
           <Text className="kpiLabel">{kpi.label}</Text>

@@ -9,6 +9,9 @@ ScenarioId = Literal[
     "margin-pressure",
     "logistics-delays",
     "currency-exposure",
+    "foil-energy-risk",
+    "foil-investment",
+    "foil-sensitivity",
 ]
 
 

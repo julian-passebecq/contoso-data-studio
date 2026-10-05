@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from typing import Any
+from contextlib import nullcontext
+from app.services.catalog_lock import catalog_lock
 
 
 class WorkspaceStateService:
@@ -10,6 +12,11 @@ class WorkspaceStateService:
         self.dbt = dbt
 
     def state(self) -> dict[str, Any]:
+        settings = getattr(self.ducklake, "settings", None)
+        with catalog_lock(settings.catalog_path) if settings else nullcontext():
+            return self._state()
+
+    def _state(self) -> dict[str, Any]:
         active_run = self.generator.active_run()
         active_scenario = (
             str(active_run.get("scenario"))
@@ -24,9 +31,10 @@ class WorkspaceStateService:
         }
 
         gold_scenarios: list[str] = []
+        current_mart = "foil_project_summary" if (active_scenario or "").startswith("foil-") else "monthly_sales"
         try:
             _, rows, _ = self.ducklake.query(
-                "select scenario from contoso.gold.monthly_sales group by 1 order by 1",
+                f"select scenario from contoso.gold.{current_mart} group by 1 order by 1",
                 20,
             )
             gold_scenarios = [str(row[0]) for row in rows if row and row[0] is not None]
@@ -42,6 +50,7 @@ class WorkspaceStateService:
         quality = self.dbt.quality()
         lineage = self.dbt.lineage()
         quality_total = int((quality.get("summary") or {}).get("total") or 0)
+        quality_summary = quality.get("summary") or {}
         lineage_nodes = len(lineage.get("nodes") or [])
 
         ready = bool(
@@ -49,6 +58,7 @@ class WorkspaceStateService:
             and gold_current
             and all(layers[layer] > 0 for layer in ("bronze", "silver", "gold"))
             and quality_total > 0
+            and not any(quality_summary.get(status, 0) for status in ("fail", "error", "skip"))
             and lineage_nodes > 0
         )
 

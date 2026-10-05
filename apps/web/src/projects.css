@@ -1,4 +1,24 @@
 .projectsStack{display:grid;gap:20px}
+.workspaceProjectBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px;margin-bottom:20px;background:#fff;border:1px solid #dedee5;border-radius:10px}
+.workspaceProjectBar>div:first-child{display:grid;gap:4px;flex:1;min-width:200px}
+.workspaceProjectBar label{display:grid;gap:4px;font-size:11px;color:#555}
+.workspaceProjectBar select{max-width:300px;padding:7px 28px 7px 9px;border:1px solid #c5c5cf;border-radius:6px;background:#fff;color:#242424;font:inherit;font-size:13px}
+.projectOpening{display:grid;justify-items:center;gap:18px;padding:70px 24px;border:1px solid #dce4ed;border-radius:12px;background:#f7faff;text-align:center}
+.groupSwitcher{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.groupTile{display:grid;gap:7px;padding:18px 20px;text-align:left;border:1px solid #d9dde4;border-radius:10px;background:#fff;cursor:pointer;color:#242424}
+.groupTile b{font-size:21px}.groupTile span{font-size:13px}.groupTile small{color:#666}
+.groupTile.selected{border:2px solid #0f6cbd;padding:17px 19px;background:#f3f8fd}.groupTile.selected b{color:#0f6cbd}
+.groupTile:focus-visible{outline:3px solid #0f6cbd;outline-offset:3px}
+.portfolioOverview{display:grid;gap:16px}
+.portfolioHeading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.portfolioHeading>div{display:grid;gap:4px}
+.portfolioThemes{display:flex;flex-wrap:wrap;gap:8px}.portfolioThemes span{background:#f3f6fa;border:1px solid #e0e7ef;border-radius:6px;padding:8px 10px;font-size:12px}
+.portfolioArchitecture{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px}
+.portfolioStage{position:relative;display:grid;align-content:start;gap:8px;padding:13px;border:1px solid #dce4ec;border-radius:8px;background:#fafcfe;min-width:0}
+.stageNumber{color:#0f6cbd;font-size:11px;font-weight:700}.portfolioStage b{font-size:12px}.portfolioStage strong{font-size:11px;line-height:1.5;font-weight:500}.portfolioStage small{font-size:11px;color:#666;line-height:1.5;overflow-wrap:anywhere}.stageArrow{position:absolute;right:-17px;top:50%;color:#6187a5}
+.portfolioBrowseNote{padding:10px;background:#fff8e9;border-radius:6px}
+.projectSectionHeader{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:1000px){.portfolioArchitecture{grid-template-columns:1fr}.stageArrow{right:50%;top:auto;bottom:-20px;transform:rotate(90deg)}}
+@media(max-width:700px){.groupSwitcher,.projectGrid{grid-template-columns:1fr!important}.projectHero,.guideHeader{align-items:start;flex-direction:column}.workspaceProjectBar select{max-width:100%;width:100%}.workspaceProjectBar label{width:100%}.guideProgress{justify-items:start}}
 .projectHero{display:flex;justify-content:space-between;gap:24px;align-items:end;padding:4px 0 2px}
 .projectHero>div{display:grid;gap:6px;max-width:760px}
 .projectLead{color:#555;line-height:1.5}

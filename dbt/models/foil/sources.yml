@@ -1,0 +1,70 @@
+version: 2
+sources:
+  - name: foil
+    database: contoso
+    schema: bronze
+    config:
+      enabled: "{{ var('foil_enabled', false) }}"
+    tables:
+      - name: foil_cases
+        columns:
+          - name: case_id
+            data_tests: [not_null, unique]
+          - name: reference_aep_mwh
+            data_tests: [not_null]
+          - name: source_case_sha256
+            data_tests: [not_null]
+      - name: foil_trials
+        columns:
+          - name: trial_key
+            data_tests: [not_null, unique]
+          - name: case_id
+            data_tests:
+              - relationships:
+                  arguments:
+                    to: source('foil', 'foil_cases')
+                    field: case_id
+          - name: aep_year1_mwh
+            data_tests: [not_null]
+      - name: foil_sensitivity
+        columns:
+          - name: case_id
+            data_tests: [not_null]
+          - name: driver
+            data_tests: [not_null]
+models:
+  - name: foil_experiments
+    columns:
+      - name: experiment_id
+        data_tests: [not_null, unique]
+  - name: foil_cashflows
+    columns:
+      - name: energy_mwh
+        data_tests: [not_null]
+      - name: discount_factor
+        data_tests: [not_null]
+  - name: foil_experiment_metrics
+    columns:
+      - name: experiment_id
+        data_tests: [not_null, unique]
+      - name: lcoe_eur_mwh
+        data_tests: [not_null]
+  - name: foil_energy_risk
+    columns:
+      - name: case_id
+        data_tests: [not_null, unique]
+  - name: foil_project_summary
+    data_tests: [foil_summary_valid]
+    columns:
+      - name: case_id
+        data_tests: [not_null, unique]
+      - name: npv_eur
+        data_tests: [not_null]
+  - name: foil_sensitivity
+    columns:
+      - name: npv_delta_eur
+        data_tests: [not_null]
+  - name: foil_cashflow_schedule
+    columns:
+      - name: year
+        data_tests: [not_null]

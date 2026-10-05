@@ -170,6 +170,8 @@ jobs:
         run: pip install dbt-charts==0.8.0 dbt-duckdb==1.11.0
       - name: Validate board
         run: dct validate charts/executive-sales.yml --project-dir . --dbt-project-dir dbt
+      - name: Validate FOIL board
+        run: dct validate charts/foil-decision.yml --project-dir . --dbt-project-dir dbt
 
   web:
     runs-on: ubuntu-latest

@@ -9,6 +9,7 @@ from uuid import uuid4
 import duckdb
 
 from app.config import Settings
+from app.services.foil import FOIL_SCENARIOS, FOIL_FILES, generate_foil
 
 
 MANIFEST_VERSION = 2
@@ -42,6 +43,8 @@ SCENARIO_CONFIG = {
     },
 }
 
+SCENARIO_CONFIG.update(FOIL_SCENARIOS)
+
 SCENARIOS = [
     {"id": scenario_id, **config, "status": "ready"}
     for scenario_id, config in SCENARIO_CONFIG.items()
@@ -72,6 +75,15 @@ class GeneratorService:
             for chunk in iter(lambda: handle.read(1024 * 1024), b""):
                 digest.update(chunk)
         return digest.hexdigest()
+
+    def fingerprint(self, scenario: str) -> str:
+        if scenario not in FOIL_SCENARIOS:
+            return self._generator_sha256()
+        return hashlib.sha256(
+            (self.settings.project_root / "apps/api/app/services/foil.py").read_bytes()
+            + (self.settings.project_root / "data/foil/reference_cases.json").read_bytes()
+            + Path(__file__).read_bytes()
+        ).hexdigest()
 
     def _run_directory(self, run_id: str) -> Path:
         if not run_id or run_id in {".", ".."} or Path(run_id).name != run_id:
@@ -106,7 +118,7 @@ class GeneratorService:
         if not isinstance(declared, dict):
             raise ValueError("Run manifest does not contain files")
 
-        expected = ("customer", "product", "store", "currency_exchange", "sales")
+        expected = FOIL_FILES if str(payload.get("scenario", "")).startswith("foil-") else ("customer", "product", "store", "currency_exchange", "sales")
         missing = set(expected) - set(map(str, declared.keys()))
         if missing:
             raise ValueError(f"Run is missing files: {', '.join(sorted(missing))}")
@@ -181,6 +193,7 @@ class GeneratorService:
             "scenario": payload.get("scenario"),
             "scenario_name": payload.get("scenario_name"),
             "business_focus": payload.get("business_focus"),
+            "methodology": payload.get("methodology"),
             "created_at": payload.get("created_at"),
             "seed": payload.get("seed"),
             "scale": payload.get("scale"),
@@ -195,7 +208,7 @@ class GeneratorService:
             "active_snapshot_id": self._active_snapshot_id_only(run_id),
             "integrity_tracked": all(
                 isinstance(hashes.get(name), str) and bool(hashes.get(name))
-                for name in ("customer", "product", "store", "currency_exchange", "sales")
+                for name in files
             ),
             "files": public_files,
             "run_path": directory.relative_to(self.settings.workspace.resolve()).as_posix(),
@@ -443,6 +456,21 @@ class GeneratorService:
         run_id = f"{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}-{uuid4().hex[:8]}"
         output = self.settings.staging_path / run_id
         output.mkdir(parents=True, exist_ok=False)
+
+        if scenario in FOIL_SCENARIOS:
+            files, counts, methodology = generate_foil(self.settings.project_root, output, scenario, scale, seed)
+            manifest = {
+                "run_id": run_id, "manifest_version": MANIFEST_VERSION,
+                "generator_version": GENERATOR_VERSION,
+                "generator_sha256": self.fingerprint(scenario),
+                "scenario": scenario, "scenario_name": config["name"], "business_focus": config["focus"],
+                "seed": seed, "scale": scale, "created_at": datetime.now(timezone.utc).isoformat(),
+                "files": {name: str(path) for name, path in files.items()},
+                "file_sha256": {name: self._sha256(path) for name, path in files.items()},
+                "row_counts": counts, "methodology": methodology,
+            }
+            (output / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+            return manifest
 
         customers = max(100, min(25_000, scale // 5))
         products = max(50, min(2_000, scale // 20))

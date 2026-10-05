@@ -72,7 +72,7 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
           table=>table.schema===current.schema && table.name===current.name
         )) return current;
         return catalogData.tables.find(
-          table=>table.schema==="gold" && table.name==="monthly_sales"
+          table=>table.schema==="gold" && table.name===(projectState.active_scenario?.startsWith("foil-") ? "foil_project_summary" : "monthly_sales")
         ) ?? catalogData.tables[0] ?? null;
       });
       setError("");
