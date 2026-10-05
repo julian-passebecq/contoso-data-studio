@@ -14,14 +14,21 @@
  * new route has settled (`<html data-route-ready>` set by the app + no API request in flight), so
  * the first captured frame of a route starts its short content-area entrance from zero.
  *
- * Camera: an optional eased zoom (CSS transform on #root) framed on one card with safe margins;
- * the synthetic cursor and click ripple are mapped through the same transform.
+ * Camera: an optional eased zoom (CSS transform on <main>) framed on a focus group measured from
+ * its bounding boxes at capture time (or, with `content`, from what it actually paints). Scale and
+ * pan are solved so the whole focus stays inside the safe frame (right of the rail, below the
+ * header, above the caption, with margins) and the content still covers the viewport; when no
+ * scale >= MIN_ZOOM achieves both, there is no zoom. The synthetic cursor and click ripple are
+ * mapped through the same transform.
  *
  * Quality gate (status FAIL when violated, details in metadata.json `checks`):
  *   - DOM, every frame: at most one route title and one route content area visible, and the
  *     visible title matches the settled route.
  *   - Pixels, every navigation transition: consecutive-frame mean abs difference (grey, 160x90)
  *     above BLEND_DIFF for more than MAX_BLEND_FRAMES frames in a row means a long blend.
+ *   - DOM, every frame of every zoom (in, hold, out): no focus element outside the visible content
+ *     area (and outside the safe frame at the zoom's goal keyframe), and no group element cut by
+ *     an edge (fully in or fully out).
  *
  * Output: <out>/frames/*.jpg (30 fps, 1280x720), <out>/stills/*.png, <out>/metadata.json and,
  * when ffmpeg is available (--ffmpeg, $FFMPEG_PATH / $FFMPEG, PATH, or the optional ffmpeg-static package),
@@ -156,6 +163,70 @@ function tourRuntime() {
       content.style.transformOrigin = `${c.ox}px ${c.oy}px`;
       content.style.transform = `translate(${c.tx}px, ${c.ty}px) scale(${c.s})`;
     },
+    /**
+     * Screen box of an element. With `content`, the union of what it actually paints (non-blank
+     * text runs, plus descendants with a background, border or replaced content), so a wide,
+     * mostly empty layout box does not inflate the camera framing.
+     */
+    box(element, content) {
+      const rect = element.getBoundingClientRect();
+      if (!content) return rect.width > 0 && rect.height > 0 ? { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } : null;
+      const box = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
+      const add = r => {
+        if (r.width <= 0 || r.height <= 0) return;
+        box.left = Math.min(box.left, r.left); box.top = Math.min(box.top, r.top);
+        box.right = Math.max(box.right, r.right); box.bottom = Math.max(box.bottom, r.bottom);
+      };
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+      for (let node = walker.currentNode; node; node = walker.nextNode()) {
+        if (node.nodeType === 3) {
+          if (!node.textContent.trim()) continue;
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          add(range.getBoundingClientRect());
+          continue;
+        }
+        const style = getComputedStyle(node);
+        if (style.display === "none" || style.visibility === "hidden") continue;
+        const background = style.backgroundColor !== "transparent" && !/rgba\([^)]*,\s*0\)$/.test(style.backgroundColor);
+        const border = ["Top", "Right", "Bottom", "Left"].some(side => parseFloat(style[`border${side}Width`]) > 0 && !/rgba\([^)]*,\s*0\)$/.test(style[`border${side}Color`]));
+        if (node !== element && (background || border || /^(IMG|SVG|CANVAS|VIDEO|svg)$/.test(node.tagName))) add(node.getBoundingClientRect());
+      }
+      return Number.isFinite(box.left) ? box : null;
+    },
+    /** Where the content area is really visible: right of the rail, below the header. */
+    viewport() {
+      const rail = document.querySelector(".layout>aside")?.getBoundingClientRect();
+      const header = document.querySelector(".shell>header")?.getBoundingClientRect();
+      return { left: rail ? rail.right : 0, top: header ? header.bottom : 0, right: innerWidth, bottom: innerHeight };
+    },
+    /**
+     * Clipping check for the camera: every focus element must sit inside `frame` (or the visible
+     * content area when no frame is given); a group element may be fully in or fully out of the
+     * visible area, never cut by an edge.
+     */
+    clipped({ focus, group, content, frame }) {
+      const view = window.__tour.viewport();
+      const limit = frame ? { left: Math.max(frame.left, view.left), top: Math.max(frame.top, view.top), right: Math.min(frame.right, view.right), bottom: Math.min(frame.bottom, view.bottom) } : view;
+      const tol = .75;
+      const round = b => b && [b.left, b.top, b.right, b.bottom].map(Math.round);
+      const issues = [];
+      focus.forEach((element, index) => {
+        const b = window.__tour.box(element, content);
+        if (!b) return;
+        if (b.left < limit.left - tol || b.top < limit.top - tol || b.right > limit.right + tol || b.bottom > limit.bottom + tol) {
+          issues.push(`focus ${index} at ${round(b)} outside ${frame ? "safe frame" : "visible area"} ${round(limit)}`);
+        }
+      });
+      group.forEach((element, index) => {
+        const b = window.__tour.box(element, false);
+        if (!b) return;
+        const outside = b.right <= view.left + tol || b.left >= view.right - tol || b.bottom <= view.top + tol || b.top >= view.bottom - tol;
+        const inside = b.left >= view.left - tol && b.right <= view.right + tol && b.top >= view.top - tol && b.bottom <= view.bottom + tol;
+        if (!outside && !inside) issues.push(`group ${index} at ${round(b)} cut by the visible area ${round(view)}`);
+      });
+      return issues;
+    },
     /** What a viewer would see of routes: visible titles and content areas. */
     probe() {
       const titles = [...document.querySelectorAll("[data-route-title]")].filter(visible).map(node => node.getAttribute("data-route-title"));
@@ -218,6 +289,8 @@ class Tour {
     this.transitions = [];
     this.domViolations = [];
     this.zooms = [];
+    this.clipViolations = [];
+    this.focus = null; // active camera focus: element handles checked on every frame
   }
   get t() { return this.frame * FRAME_MS; }
 
@@ -238,17 +311,28 @@ class Tour {
       caption: this.caption && { ...this.caption, p: this.caption.out != null ? 1 - (t - this.caption.out) / 240 : (t - this.caption.t0) / 380 },
       card: this.card && { ...this.card, leaving: this.card.out != null, p: this.card.out != null ? 1 - (t - this.card.out) / 650 : this.card.instant ? 1 : (t - this.card.t0) / 650 },
     };
-    const probe = await this.page.evaluate(({ t, state, camera }) => new Promise(resolve => {
+    const focus = this.focus && { focus: this.focus.focus, group: this.focus.group, content: this.focus.content, frame: this.focus.keyframe === this.frame ? this.focus.frame : null };
+    const probe = await this.page.evaluate(({ t, state, camera, focus }) => new Promise(resolve => {
       window.__tour.camera(camera);
       window.__tour.step(t);
       window.__tour.render(state);
       // Two animation frames: React state from the count-up clock commits, then paint.
-      requestAnimationFrame(() => requestAnimationFrame(() => { window.__tour.step(t); resolve(window.__tour.probe()); }));
-    }), { t, state, camera: this.camera });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        window.__tour.step(t);
+        resolve({ ...window.__tour.probe(), clipped: focus ? window.__tour.clipped(focus) : [] });
+      }));
+    }), { t, state, camera: this.camera, focus });
     const file = path.join(FRAMES_DIR, `${String(this.frame).padStart(5, "0")}.jpg`);
     await this.page.screenshot({ path: file, type: "jpeg", quality: 92, animations: "allow", caret: "hide" });
     if (keepIf && !(await keepIf())) return false; // the next frame overwrites this file
     this.checkProbe(probe);
+    if (this.focus) {
+      this.focus.record.checked_frames += 1;
+      if (probe.clipped.length) {
+        this.focus.record.clipped_frames += 1;
+        this.clipViolations.push({ frame: this.frame, zoom: this.focus.record.name, issues: probe.clipped });
+      }
+    }
     if (this.ripple && t - this.ripple.t0 > 600) this.ripple = null;
     if (this.caption?.out != null && t - this.caption.out > 260) this.caption = null;
     if (this.card?.out != null && t - this.card.out > 680) this.card = null;
@@ -371,36 +455,72 @@ class Tour {
    * Eased camera zoom framed on the focus (one locator, or the union of several), inside the
    * safe area: right of the rail, below the header, above the lower third, with margins.
    */
-  async zoomTo(focus, { maxScale = 1.3, seconds = .9 } = {}) {
+  async zoomTo(focus, { name = "zoom", maxScale = 1.3, seconds = .9, group = null, content = false } = {}) {
     await this.zoomOut();
-    const boxes = (await Promise.all([focus].flat().map(locator => locator.boundingBox()))).filter(Boolean);
-    if (!boxes.length) return;
-    const left = Math.min(...boxes.map(b => b.x));
-    const top = Math.min(...boxes.map(b => b.y));
-    const right = Math.max(...boxes.map(b => b.x + b.width));
-    const bottom = Math.max(...boxes.map(b => b.y + b.height));
-    const box = { x: left, y: top, width: right - left, height: bottom - top };
-    const doc = await this.page.evaluate(() => {
+    // Bounding boxes measured now, at capture time, in screen space (the camera is at identity).
+    const focusHandles = (await Promise.all([focus].flat().map(locator => locator.elementHandles()))).flat();
+    const groupHandles = group ? await group.elementHandles() : [];
+    const geometry = await this.page.evaluate(({ elements, content }) => {
       const r = document.querySelector("main").getBoundingClientRect();
-      return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
-    });
-    // Safe frame for the focused card: inside the content area (right of the rail, below the
+      return {
+        boxes: elements.map(element => window.__tour.box(element, content)).filter(Boolean),
+        doc: { left: r.left, top: r.top, right: r.right, bottom: r.bottom },
+        view: window.__tour.viewport(),
+      };
+    }, { elements: focusHandles, content });
+    const { boxes, doc, view } = geometry;
+    if (!boxes.length) return;
+    const box = {
+      left: Math.min(...boxes.map(b => b.left)), top: Math.min(...boxes.map(b => b.top)),
+      right: Math.max(...boxes.map(b => b.right)), bottom: Math.max(...boxes.map(b => b.bottom)),
+    };
+    const width = box.right - box.left;
+    const height = box.bottom - box.top;
+    // Safe frame for the focus: inside the visible content area (right of the rail, below the
     // header), above the lower-third caption, with a margin on every side.
     const margin = 28;
-    const frame = { left: doc.left + margin, right: WIDTH - margin, top: SAFE.top + margin / 2, bottom: SAFE.bottom - margin / 2 };
-    const s = Math.min(maxScale, (frame.right - frame.left) / box.width, (frame.bottom - frame.top) / box.height);
-    this.zooms.push({ frame: this.frame, box: { w: Math.round(box.width), h: Math.round(box.height) }, scale: +s.toFixed(3), used: s >= MIN_ZOOM });
-    if (s < MIN_ZOOM) return; // too little to gain; never zoom out below 1
-    const cx = box.x + box.width / 2;
-    const cy = box.y + box.height / 2;
-    let tx = (frame.left + frame.right) / 2 - cx;
-    let ty = (frame.top + frame.bottom) / 2 - cy;
-    // Keep the zoomed content covering its whole area (no empty band at any edge).
-    const mapped = (edge, centre) => centre + s * (edge - centre);
-    tx = Math.min(doc.left - mapped(doc.left, cx), Math.max(WIDTH - mapped(Math.max(doc.right, WIDTH), cx), tx));
-    ty = Math.min(Math.max(doc.top, HEADER) - mapped(doc.top, cy), Math.max(HEIGHT - mapped(Math.max(doc.bottom, HEIGHT), cy), ty));
+    const frame = {
+      left: Math.max(doc.left, view.left) + margin, right: Math.min(WIDTH, view.right) - margin,
+      top: Math.max(SAFE.top, view.top) + margin / 2, bottom: SAFE.bottom - margin / 2,
+    };
+    const cx = (box.left + box.right) / 2;
+    const cy = (box.top + box.bottom) / 2;
+    const mapped = (edge, centre, s) => centre + s * (edge - centre);
+    // For scale s: the translations that keep the focus inside the frame, intersected with the
+    // ones that keep the zoomed content covering its whole area (no empty band at any edge).
+    const solve = s => {
+      const range = (lo1, hi1, lo2, hi2, ideal) => {
+        const lo = Math.max(lo1, lo2);
+        const hi = Math.min(hi1, hi2);
+        return lo > hi + 1e-6 ? null : Math.min(hi, Math.max(lo, ideal));
+      };
+      const tx = range(
+        frame.left - mapped(box.left, cx, s), frame.right - mapped(box.right, cx, s),
+        WIDTH - mapped(Math.max(doc.right, WIDTH), cx, s), doc.left - mapped(doc.left, cx, s),
+        (frame.left + frame.right) / 2 - cx);
+      const ty = range(
+        frame.top - mapped(box.top, cy, s), frame.bottom - mapped(box.bottom, cy, s),
+        HEIGHT - mapped(Math.max(doc.bottom, HEIGHT), cy, s), Math.max(doc.top, HEADER) - mapped(doc.top, cy, s),
+        (frame.top + frame.bottom) / 2 - cy);
+      return tx == null || ty == null ? null : { tx, ty };
+    };
+    let s = Math.min(maxScale, (frame.right - frame.left) / width, (frame.bottom - frame.top) / height);
+    let shift = null;
+    for (; s >= MIN_ZOOM; s -= .01) if ((shift = solve(s))) break;
+    const record = {
+      name, frame: this.frame, box: { w: Math.round(width), h: Math.round(height) },
+      fit_scale: +Math.min((frame.right - frame.left) / width, (frame.bottom - frame.top) / height).toFixed(3),
+      scale: shift ? +s.toFixed(3) : 1, used: Boolean(shift), checked_frames: 0, clipped_frames: 0,
+    };
+    this.zooms.push(record);
+    // Too little to gain (or no framing keeps the whole focus in view): no zoom, never below 1.
+    if (!shift) { record.reason = `focus ${record.box.w}x${record.box.h} fits the safe frame only at x${record.fit_scale} (< x${MIN_ZOOM})`; return; }
+    const { tx, ty } = shift;
     const goal = { s, tx, ty, cx, cy, ox: cx - doc.left, oy: cy - doc.top };
     const frames = Math.round(seconds * FPS);
+    // Every frame from here to the end of the zoom-out is checked for clipping; the goal keyframe
+    // is also checked against the safe frame (margins, caption).
+    this.focus = { focus: focusHandles, group: groupHandles, content, frame, keyframe: this.frame + frames - 1, record };
     for (let i = 1; i <= frames; i += 1) {
       const p = easeInOut(i / frames);
       this.camera = { ...goal, s: 1 + (s - 1) * p, tx: tx * p, ty: ty * p };
@@ -418,6 +538,7 @@ class Tour {
       await this.shoot();
     }
     this.camera = { ...IDENTITY };
+    this.focus = null;
     await this.page.evaluate(() => window.__tour.camera(null));
   }
 
@@ -520,9 +641,11 @@ async function storyboard(tour, page) {
   await tour.moveTo(WIDTH * .56, HEIGHT * .64, .6);
   await tour.hold(.9);
   const kpiCards = page.locator(".kpiGrid > *");
-  await tour.zoomTo([kpiCards.nth(0), kpiCards.nth(1)], { maxScale: 1.3 });
+  // The whole KPI row is the focus (and the group that must never be cut by an edge): the camera
+  // only zooms when all of it fits the safe frame, otherwise the row stays framed as laid out.
+  await tour.zoomTo(kpiCards, { name: "kpis", maxScale: 1.3, group: kpiCards });
   await tour.hold(1.3);
-  await tour.still("03-kpis", "Charts page: KPI cards after count-up (camera framed)");
+  await tour.still("03-kpis", "Charts page: KPI cards after count-up (whole row in frame)");
   await tour.zoomOut();
   const revenueCard = page.locator("[class*='fui-Card']").filter({ hasText: "Monthly revenue" }).first();
   if (await revenueCard.count()) {
@@ -559,8 +682,9 @@ async function storyboard(tour, page) {
     { after: async () => { await page.locator(".nodeLineage").waitFor({ timeout: 60_000 }); await tour.idle(); } });
   await tour.hold(.3);
   await tour.moveTo(WIDTH * .5, HEIGHT * .5, .5);
-  const lineage = page.locator(".nodeLineage > section");
-  await tour.zoomTo([lineage.nth(0), lineage.nth(1)], { maxScale: 1.4 });
+  // Frame what the lineage panel paints (labels, chips, focus node), not its wide empty columns.
+  const lineage = page.locator(".nodeLineage");
+  await tour.zoomTo(lineage, { name: "lineage", maxScale: 1.4, content: true, group: lineage.locator(".dependencyChip, .lineageFocus") });
   await tour.hold(1.3);
   await tour.still("05-lineage", "Transform: selected Gold model and its lineage (camera framed)");
   await tour.zoomOut();
@@ -703,10 +827,11 @@ if (ffmpeg) {
 }
 
 const longBlends = blends.filter(item => !item.ok);
-if (status === "PASS" && (tour.domViolations.length || longBlends.length)) {
+if (status === "PASS" && (tour.domViolations.length || longBlends.length || tour.clipViolations.length)) {
   status = "FAIL";
   for (const item of longBlends) problems.push(`long blend in transition "${item.name}": ${item.longest_motion_run} frames from ${item.run_start_frame} above ${BLEND_DIFF}`);
   for (const item of tour.domViolations.slice(0, 20)) problems.push(`frame ${item.frame}: ${item.issues.join("; ")}`);
+  for (const item of tour.clipViolations.slice(0, 20)) problems.push(`frame ${item.frame} (${item.zoom}): ${item.issues.join("; ")}`);
   process.exitCode = 1;
 }
 
@@ -724,6 +849,10 @@ const metadata = {
   checks: {
     blend: { threshold_diff: BLEND_DIFF, max_frames: MAX_BLEND_FRAMES, window_s: TRANSITION_WINDOW_S, transitions: blends },
     dom_violations: tour.domViolations.length,
+    camera_clipping: {
+      checked_frames: tour.zooms.reduce((sum, zoom) => sum + zoom.checked_frames, 0),
+      violations: tour.clipViolations.length,
+    },
   },
   camera: tour.zooms,
   problems,
@@ -731,4 +860,4 @@ const metadata = {
   generator: "tools/record_tour.mjs",
 };
 await writeFile(path.join(OUT, "metadata.json"), JSON.stringify(metadata, null, 2) + "\n");
-console.log(`TOUR_${status} frames=${tour.frame} duration=${metadata.duration_s}s transitions=${blends.length} long_blends=${longBlends.length} dom_violations=${tour.domViolations.length} video=${video ? `${video.file} ${video.bytes} bytes` : "none"}`);
+console.log(`TOUR_${status} frames=${tour.frame} duration=${metadata.duration_s}s transitions=${blends.length} long_blends=${longBlends.length} dom_violations=${tour.domViolations.length} clipped=${tour.clipViolations.length} zooms=${tour.zooms.filter(zoom => zoom.used).map(zoom => zoom.name).join(",") || "none"} video=${video ? `${video.file} ${video.bytes} bytes` : "none"}`);
