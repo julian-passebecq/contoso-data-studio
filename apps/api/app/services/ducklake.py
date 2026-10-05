@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import re
 import sqlite3
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from pathlib import Path
 from typing import Any, Iterator
 
 import duckdb
 
 from app.config import Settings
+from app.services.catalog_lock import catalog_lock
 
 
 FORBIDDEN_SQL = re.compile(
@@ -104,6 +105,12 @@ class DuckLakeService:
 
     @contextmanager
     def connection(self, read_only: bool = False) -> Iterator[duckdb.DuckDBPyConnection]:
+        with catalog_lock(self.settings.catalog_path):
+            with self._connection(read_only) as con:
+                yield con
+
+    @contextmanager
+    def _connection(self, read_only: bool = False) -> Iterator[duckdb.DuckDBPyConnection]:
         con = duckdb.connect(":memory:")
         attached = False
         try:
@@ -145,7 +152,7 @@ class DuckLakeService:
 
     def catalog(self) -> list[dict[str, object]]:
         self.bootstrap()
-        with sqlite3.connect(self.settings.catalog_path) as metadata:
+        with catalog_lock(self.settings.catalog_path), closing(sqlite3.connect(self.settings.catalog_path)) as metadata:
             rows = metadata.execute(
                 """
                 SELECT s.schema_name, t.table_name

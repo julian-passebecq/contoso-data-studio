@@ -15,10 +15,11 @@ try {
   await page.goto(baseURL, { waitUntil: "networkidle", timeout: 60_000 });
   await page.getByText("Contoso Data Studio").waitFor();
 
-  const prepare = page.getByRole("button", { name: "Open + prepare demo" }).first();
+  await page.locator('.groupTile').filter({hasText:'Samples'}).click();
+  const prepare = page.getByRole("button", { name: "Open project", exact:true }).first();
   await prepare.click();
   await page.getByText("Retail Sales 101 is ready", { exact: false }).waitFor({ timeout: 180_000 });
-  await page.getByText("steps complete", { exact: true }).waitFor();
+  await page.locator('.pageTitle').getByText('Charts',{exact:true}).waitFor();
   await snap("01-project-ready");
 
   for (const name of ["Explore", "Lakehouse", "Transform", "Query", "Charts", "Canvas"]) {

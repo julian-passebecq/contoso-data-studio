@@ -1,0 +1,14 @@
+.foilDashboard{display:flex;flex-direction:column;gap:16px}
+.foilCasePicker{display:flex;align-items:center;gap:12px;margin-top:12px}
+.foilCasePicker select{padding:7px;border:1px solid #ccc;border-radius:6px;background:white}
+.foilKpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.foilKpis b{font-size:24px;line-height:1.4}
+.foilEnergyChart,.foilTornado{display:grid;gap:12px;margin:12px 0}
+.foilEnergyRow{display:grid;grid-template-columns:180px minmax(0,1fr) 150px;gap:12px;align-items:center}
+.foilEnergyRow b,.foilEnergyRow span,.foilTornadoRow span{font-size:12px}
+.foilEnergyBar{height:12px;margin:3px 0;border-radius:2px;min-width:1px}
+.foilEnergyBar.p50{background:#0f6cbd}.foilEnergyBar.p90{background:#107c10}
+.foilTornadoRow{display:grid;grid-template-columns:200px minmax(0,1fr) 120px;gap:12px;align-items:center}
+.foilImpactTrack{position:relative;height:18px;background:linear-gradient(to right,transparent 49.8%,#777 49.8%,#777 50.2%,transparent 50.2%)}
+.foilImpactTrack div{position:absolute;height:14px;top:2px}.foilImpactTrack .positive{background:#107c10}.foilImpactTrack .negative{background:#c4314b}
+@media(max-width:900px){.foilKpis{grid-template-columns:1fr}.foilEnergyRow{grid-template-columns:150px minmax(0,1fr) 100px}.foilTornadoRow{grid-template-columns:160px minmax(0,1fr) 90px}}

@@ -7,6 +7,7 @@ on:
 jobs:
   browser-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       CONTOSO_WORKSPACE: ${{ github.workspace }}/workspace
       CONTOSO_DUCKLAKE_CATALOG: ${{ github.workspace }}/workspace/contoso.ducklake.sqlite
@@ -45,6 +46,14 @@ jobs:
       - name: Run browser release smoke
         working-directory: apps/web
         run: node qa/browser-smoke.mjs
+
+      - name: Verify project portfolio and switching
+        working-directory: apps/web
+        run: node qa/portfolio-smoke.mjs
+
+      - name: Verify project workbenches and recovery
+        working-directory: apps/web
+        run: node qa/project-workbenches.mjs
 
       - name: Upload browser evidence
         if: always()

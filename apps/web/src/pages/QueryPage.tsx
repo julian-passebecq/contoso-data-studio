@@ -22,6 +22,12 @@ const EXAMPLES = [
   },
 ];
 
+const FOIL_EXAMPLES = [
+  {name:"AEP P50/P90",sql:"select case_id, aep_p50_mwh, aep_p90_mwh from contoso.gold.foil_energy_risk order by case_id;"},
+  {name:"LCOE & NPV",sql:"select case_id, capex_eur, opex_eur_year, lcoe_eur_mwh, npv_eur from contoso.gold.foil_project_summary order by case_id;"},
+  {name:"Sensitivity drivers",sql:"select case_id, driver, relative_change, npv_delta_eur from contoso.gold.foil_sensitivity order by case_id, driver, relative_change;"},
+];
+
 type HistoryItem = {sql:string; ranAt:string; rows:number};
 
 function csvCell(value:unknown) {
@@ -30,13 +36,13 @@ function csvCell(value:unknown) {
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"','""')}"` : text;
 }
 
-export default function QueryPage({initialSql}:{initialSql?:string}) {
+export default function QueryPage({initialSql,initialProjectState}:{initialSql?:string;initialProjectState?:WorkspaceProjectState|null}) {
   const [sql,setSql] = useState(initialSql || DEFAULT_SQL);
   const [catalog,setCatalog] = useState<CatalogTable[]>([]);
   const [result,setResult] = useState<QueryResult|null>(null);
   const [error,setError] = useState("");
   const [running,setRunning] = useState(false);
-  const [projectState,setProjectState] = useState<WorkspaceProjectState|null>(null);
+  const [projectState,setProjectState] = useState<WorkspaceProjectState|null>(initialProjectState ?? null);
   const [history,setHistory] = useState<HistoryItem[]>(()=>{
     try { return JSON.parse(localStorage.getItem("contoso-query-history") ?? "[]"); }
     catch { return []; }
@@ -61,12 +67,13 @@ export default function QueryPage({initialSql}:{initialSql?:string}) {
     try {
       const next = await postJson<QueryResult>("/api/query",{sql,limit:500});
       setResult(next);
+      const current=projectState ?? await getJson<WorkspaceProjectState>("/api/workspace/project-state").catch(()=>null);
       if (
-        projectState?.active_scenario &&
-        projectState.gold_current &&
+        current?.active_scenario &&
+        current.gold_current &&
         isGoldQuery(sql)
       ) {
-        completeTutorialStep("query",projectState.active_scenario);
+        completeTutorialStep("query",current.active_scenario);
       }
       const item:HistoryItem = {sql,ranAt:new Date().toISOString(),rows:next.row_count};
       setHistory(previous=>{
@@ -110,7 +117,7 @@ export default function QueryPage({initialSql}:{initialSql?:string}) {
       </div>)}
       <div className="catalogGroup">
         <div className="catalogLabel">EXAMPLES</div>
-        {EXAMPLES.map(example=><button key={example.name} onClick={()=>setSql(example.sql)}>{example.name}</button>)}
+        {(projectState?.active_scenario?.startsWith("foil-") ? FOIL_EXAMPLES : EXAMPLES).map(example=><button key={example.name} onClick={()=>setSql(example.sql)}>{example.name}</button>)}
       </div>
     </Card>
 

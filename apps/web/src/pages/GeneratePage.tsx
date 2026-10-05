@@ -31,12 +31,13 @@ function prettyBytes(bytes:number) {
 
 export default function GeneratePage({
   scenarios,
+  activeRun,
   onStatus,
   onGenerated,
-}:{scenarios:Scenario[];onStatus:(message:string)=>void;onGenerated:()=>void}) {
-  const [scenarioId,setScenarioId] = useState("retail-baseline");
-  const [scale,setScale] = useState("10000");
-  const [seed,setSeed] = useState("42");
+}:{scenarios:Scenario[];activeRun?:GenerationRunDetail|null;onStatus:(message:string)=>void;onGenerated:()=>void}) {
+  const [scenarioId,setScenarioId] = useState(activeRun?.scenario ?? "retail-baseline");
+  const [scale,setScale] = useState(String(activeRun?.scale ?? 10000));
+  const [seed,setSeed] = useState(String(activeRun?.seed ?? 42));
   const [running,setRunning] = useState(false);
   const [lastRun,setLastRun] = useState<GenerateResult|null>(null);
   const [runs,setRuns] = useState<GenerationRun[]>([]);
@@ -82,7 +83,7 @@ export default function GeneratePage({
       });
       setLastRun(data);
       await loadRuns();
-      onStatus(`Loaded ${data.scale.toLocaleString()} ${data.scenario_name} sales rows into Bronze.`);
+      onStatus(`Loaded ${data.scale.toLocaleString()} ${data.scenario_name} ${data.scenario.startsWith("foil-") ? "simulation draws" : "sales rows"} into Bronze.`);
       onGenerated();
     } catch (error) {
       onStatus(error instanceof Error ? error.message : "Generation failed.");
@@ -209,7 +210,7 @@ export default function GeneratePage({
 
         <div className="generatorFields">
           <label>
-            <span>Sales rows</span>
+            <span>{scenarioId.startsWith("foil-") ? "Simulation draws" : "Sales rows"}</span>
             <Input
               type="number"
               value={scale}
@@ -236,7 +237,7 @@ export default function GeneratePage({
 
         {lastRun && <div className="generationReceipt">
           <div><span>Scenario</span><b>{lastRun.scenario_name}</b></div>
-          <div><span>Sales</span><b>{lastRun.row_counts.sales.toLocaleString()}</b></div>
+          <div><span>{lastRun.scenario.startsWith("foil-") ? "Draws" : "Sales"}</span><b>{(lastRun.row_counts.foil_trials ?? lastRun.row_counts.sales ?? 0).toLocaleString()}</b></div>
           <div><span>Run</span><b>{lastRun.run_id.slice(-8)}</b></div>
         </div>}
 
@@ -299,7 +300,7 @@ export default function GeneratePage({
             <b>{run.scenario_name ?? run.scenario ?? "Unknown scenario"}</b>
             <code>{run.run_id}</code>
           </div>
-          <span>{(run.sales_rows ?? run.scale ?? 0).toLocaleString()} sales</span>
+          <span>{(run.sales_rows ?? run.scale ?? 0).toLocaleString()} {run.scenario?.startsWith("foil-") ? "draws" : "sales"}</span>
           <span>seed {run.seed ?? "—"}</span>
           <span>{run.created_at ? new Date(run.created_at).toLocaleString() : "—"}</span>
           <span>{run.last_snapshot_id==null ? "no snapshot" : `snapshot #${run.last_snapshot_id}`}</span>

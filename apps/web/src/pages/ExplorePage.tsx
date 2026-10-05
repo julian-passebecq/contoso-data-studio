@@ -27,9 +27,16 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
 
   async function loadFiles() {
     try {
-      const data = await getJson<{files:WorkspaceFile[]}>("/api/explore/files");
+      const [data,active] = await Promise.all([
+        getJson<{files:WorkspaceFile[]}>("/api/explore/files"),
+        getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run"),
+      ]);
       setFiles(data.files);
-      if (!selected && data.files.length) setSelected(data.files[0].path);
+      setActiveRun(active.run);
+      if (!selected && data.files.length) {
+        const defaultFile=active.run?.files[active.run.scenario?.startsWith("foil-") ? "foil_trials" : "sales"]?.path;
+        setSelected(defaultFile && data.files.some(file=>file.path===defaultFile) ? defaultFile : data.files[0].path);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not list files.");
     }
@@ -37,9 +44,6 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
 
   useEffect(()=>{
     void loadFiles();
-    getJson<{run:GenerationRunDetail|null}>("/api/workspace/active-run")
-      .then(data=>setActiveRun(data.run))
-      .catch(()=>setActiveRun(null));
   },[]);
   async function loadInspect(sheet="") {
     if (!selected) { setInspect(null); setProfile(null); return; }
@@ -52,7 +56,7 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
       setInspect(data);
       const activeRunPath=activeRun?.run_path ? `${activeRun.run_path}/` : "";
       if (
-        data.path.endsWith("/sales.parquet") &&
+        data.path.endsWith(activeRun?.scenario?.startsWith("foil-") ? "/foil_trials.parquet" : "/sales.parquet") &&
         activeRun?.scenario &&
         activeRunPath &&
         data.path.startsWith(activeRunPath)
@@ -76,7 +80,7 @@ export default function ExplorePage({onOpenQuery}:{onOpenQuery:(sql:string)=>voi
   useEffect(()=>{
     if (!inspect || !activeRun?.scenario || !activeRun.run_path) return;
     if (
-      inspect.path.endsWith("/sales.parquet") &&
+      inspect.path.endsWith(activeRun.scenario.startsWith("foil-") ? "/foil_trials.parquet" : "/sales.parquet") &&
       inspect.path.startsWith(`${activeRun.run_path}/`)
     ) {
       completeTutorialStep("explore",activeRun.scenario);

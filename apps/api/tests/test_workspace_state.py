@@ -71,3 +71,13 @@ def test_project_state_handles_missing_gold_without_failing():
     assert state["gold_scenarios"] == []
     assert state["gold_current"] is False
     assert state["ready"] is False
+
+
+def test_project_state_is_not_ready_when_quality_fails():
+    class FailedDbt(FakeDbt):
+        def quality(self):
+            return {"summary": {"total": 12, "fail": 1}}
+
+    state = WorkspaceStateService(FakeGenerator("retail-baseline"), FakeDuckLake("retail-baseline"), FailedDbt()).state()
+    assert state["gold_current"] is True
+    assert state["ready"] is False
