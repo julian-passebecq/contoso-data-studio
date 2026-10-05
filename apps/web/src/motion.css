@@ -1,0 +1,72 @@
+/* Motion polish: short, purposeful transitions. Everything is disabled under prefers-reduced-motion. */
+:root{
+  --motion-ease-out:cubic-bezier(.16,1,.3,1);
+  --motion-ease-standard:cubic-bezier(.33,0,.1,1);
+  --motion-fast:160ms;
+  --motion-medium:280ms;
+  --motion-slow:520ms;
+  --skeleton-base:#ececef;
+  --skeleton-shine:#f7f7f9;
+}
+
+@keyframes motionFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes motionFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes motionPop{0%{transform:scale(.6)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes motionShimmer{from{background-position:-200% 0}to{background-position:200% 0}}
+@keyframes motionGrowUp{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes motionPulse{0%,100%{opacity:.55}50%{opacity:1}}
+
+/* Page and step transitions */
+.pageTransition{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both}
+.guidePanel{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both}
+.tutorialStep{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both;animation-delay:calc(var(--step-index,0) * 45ms);transition:background-color var(--motion-medium) var(--motion-ease-standard)}
+.tutorialStep.done .stepCheck{animation:motionPop var(--motion-medium) var(--motion-ease-out)}
+.stepCheck{transition:background-color var(--motion-medium) var(--motion-ease-standard),border-color var(--motion-medium) var(--motion-ease-standard),color var(--motion-medium)}
+.guideProgressBar i{transition:width var(--motion-slow) var(--motion-ease-out)!important}
+.projectCard{transition:box-shadow var(--motion-fast) var(--motion-ease-standard),border-color var(--motion-fast) var(--motion-ease-standard)}
+.projectGrid>*{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both}
+.projectGrid>*:nth-child(2){animation-delay:40ms}
+.projectGrid>*:nth-child(3){animation-delay:80ms}
+.projectGrid>*:nth-child(4){animation-delay:120ms}
+.projectGrid>*:nth-child(5){animation-delay:160ms}
+.kpiGrid>*{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both}
+.kpiGrid>*:nth-child(2){animation-delay:60ms}
+.kpiGrid>*:nth-child(3){animation-delay:120ms}
+.bar{transform-origin:bottom;animation:motionGrowUp var(--motion-slow) var(--motion-ease-out) both}
+.barSlot:nth-child(4n+1) .bar{animation-delay:20ms}
+.barSlot:nth-child(4n+2) .bar{animation-delay:60ms}
+.barSlot:nth-child(4n+3) .bar{animation-delay:100ms}
+.barSlot:nth-child(4n) .bar{animation-delay:140ms}
+.dataTable tbody tr{animation:motionFadeIn var(--motion-medium) var(--motion-ease-standard) both}
+.dagColumn{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both}
+.dagColumn:nth-of-type(2){animation-delay:60ms}
+.dagColumn:nth-of-type(3){animation-delay:120ms}
+.nodeLineage,.modelWorkbenchCard{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both}
+.canvasStageWrap{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both}
+.canvasStageWrap:nth-child(2){animation-delay:50ms}
+.canvasStageWrap:nth-child(3){animation-delay:100ms}
+.canvasStageWrap:nth-child(4){animation-delay:150ms}
+.canvasStageWrap:nth-child(5){animation-delay:200ms}
+.projectOpening{animation:motionFadeIn var(--motion-medium) var(--motion-ease-standard) both}
+aside>button{transition:background-color var(--motion-fast) var(--motion-ease-standard),color var(--motion-fast)}
+
+/* Skeleton / loading states */
+.skeleton{
+  display:block;max-width:100%;
+  background:linear-gradient(90deg,var(--skeleton-base) 25%,var(--skeleton-shine) 50%,var(--skeleton-base) 75%);
+  background-size:200% 100%;animation:motionShimmer 1.4s linear infinite
+}
+.skeletonCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.skeletonCard{display:grid;gap:10px;align-content:center;min-height:112px;padding:16px;border:1px solid #e4e4e7;border-radius:8px;background:#fff}
+.skeletonTable{display:grid;gap:10px;padding:6px 2px}
+.skeletonRow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.pageSkeleton{display:grid;gap:14px}
+.workspaceSkeleton{display:inline-block;width:240px;vertical-align:middle}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:1ms!important;animation-delay:0ms!important;animation-iteration-count:1!important;
+    transition-duration:1ms!important;transition-delay:0ms!important;scroll-behavior:auto!important
+  }
+  .skeleton{animation:none!important}
+}

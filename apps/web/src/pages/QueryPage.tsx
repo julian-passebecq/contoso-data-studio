@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 import { getJson, postJson } from "../api";
+import { SkeletonTable } from "../motion";
 import DataTable from "../components/DataTable";
 import type { CatalogTable, QueryResult, WorkspaceProjectState } from "../types";
 import { completeTutorialStep, isGoldQuery } from "../tutorialProgress";
@@ -151,7 +152,7 @@ export default function QueryPage({initialSql,initialProjectState}:{initialSql?:
             <Button onClick={exportCsv}>Export CSV</Button>
           </div>:undefined}
         />
-        {result ? <DataTable columns={result.columns} rows={result.rows}/> : <Text className="muted">Run a query to inspect the result.</Text>}
+        {running ? <SkeletonTable/> : result ? <DataTable columns={result.columns} rows={result.rows}/> : <Text className="muted">Run a query to inspect the result.</Text>}
       </Card>
 
       <Card>

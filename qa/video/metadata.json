@@ -1,0 +1,98 @@
+{
+  "status": "PASS",
+  "base_url": "http://127.0.0.1:5199",
+  "theme": "fabric",
+  "fps": 30,
+  "resolution": "1280x720",
+  "frames": 1367,
+  "duration_s": 45.57,
+  "video": {
+    "file": "contoso-tour.mp4",
+    "bytes": 7057220
+  },
+  "scenes": [
+    {
+      "num": "01",
+      "title": "Pick a guided project",
+      "sub": "Each project ships data, dbt models, quality checks and a dashboard.",
+      "start_s": 3.1
+    },
+    {
+      "num": "02",
+      "title": "One click activates the lakehouse",
+      "sub": "Generate Parquet → load DuckLake Bronze → dbt Silver and Gold → tests.",
+      "start_s": 5.5
+    },
+    {
+      "num": "03",
+      "title": "Gold KPIs, straight from dbt marts",
+      "sub": "Revenue, gross margin and units, computed locally in DuckDB.",
+      "start_s": 9.33
+    },
+    {
+      "num": "04",
+      "title": "Answer the business question in SQL",
+      "sub": "A read-only DuckDB workbench over Bronze, Silver and Gold.",
+      "start_s": 14.93
+    },
+    {
+      "num": "05",
+      "title": "Trace lineage from Bronze to Gold",
+      "sub": "Every Gold mart links back to its sources and its data tests.",
+      "start_s": 21.77
+    },
+    {
+      "num": "06",
+      "title": "Explore files, layers and architecture",
+      "sub": "Parquet metadata, DuckLake layers and a live lineage canvas.",
+      "start_s": 30.67
+    },
+    {
+      "num": "07",
+      "title": "Guided progress tracks itself",
+      "sub": "Seven steps, completed from real workspace activity.",
+      "start_s": 36.97
+    }
+  ],
+  "stills": [
+    {
+      "file": "stills/01-intro.png",
+      "frame": 78,
+      "time_s": 2.6,
+      "note": "Intro card"
+    },
+    {
+      "file": "stills/02-portfolio.png",
+      "frame": 165,
+      "time_s": 5.5,
+      "note": "Samples portfolio with project cards"
+    },
+    {
+      "file": "stills/03-kpis.png",
+      "frame": 355,
+      "time_s": 11.83,
+      "note": "Charts page: KPI cards after count-up and bar chart"
+    },
+    {
+      "file": "stills/04-query-results.png",
+      "frame": 632,
+      "time_s": 21.07,
+      "note": "Query results table"
+    },
+    {
+      "file": "stills/05-lineage.png",
+      "frame": 899,
+      "time_s": 29.97,
+      "note": "Transform: dbt DAG and selected Gold model lineage"
+    },
+    {
+      "file": "stills/06-guide-complete.png",
+      "frame": 1295,
+      "time_s": 43.17,
+      "note": "Guide panel with all steps complete"
+    }
+  ],
+  "problems": [],
+  "recorded_in_s": 257,
+  "generator": "tools/record_tour.mjs"
+}
