@@ -1,98 +1,191 @@
 {
   "status": "PASS",
-  "base_url": "http://127.0.0.1:5199",
+  "base_url": "http://127.0.0.1:5217",
   "theme": "fabric",
   "fps": 30,
   "resolution": "1280x720",
-  "frames": 1367,
-  "duration_s": 45.57,
+  "frames": 1332,
+  "duration_s": 44.4,
   "video": {
     "file": "contoso-tour.mp4",
-    "bytes": 7057220
+    "bytes": 6903136
   },
   "scenes": [
     {
       "num": "01",
       "title": "Pick a guided project",
       "sub": "Each project ships data, dbt models, quality checks and a dashboard.",
-      "start_s": 3.1
+      "start_s": 3.17
     },
     {
       "num": "02",
       "title": "One click activates the lakehouse",
       "sub": "Generate Parquet → load DuckLake Bronze → dbt Silver and Gold → tests.",
-      "start_s": 5.5
+      "start_s": 5.1
     },
     {
       "num": "03",
       "title": "Gold KPIs, straight from dbt marts",
       "sub": "Revenue, gross margin and units, computed locally in DuckDB.",
-      "start_s": 9.33
+      "start_s": 7.4
     },
     {
       "num": "04",
       "title": "Answer the business question in SQL",
       "sub": "A read-only DuckDB workbench over Bronze, Silver and Gold.",
-      "start_s": 14.93
+      "start_s": 14.97
     },
     {
       "num": "05",
       "title": "Trace lineage from Bronze to Gold",
       "sub": "Every Gold mart links back to its sources and its data tests.",
-      "start_s": 21.77
+      "start_s": 21.4
     },
     {
       "num": "06",
       "title": "Explore files, layers and architecture",
       "sub": "Parquet metadata, DuckLake layers and a live lineage canvas.",
-      "start_s": 30.67
+      "start_s": 29.87
     },
     {
       "num": "07",
       "title": "Guided progress tracks itself",
       "sub": "Seven steps, completed from real workspace activity.",
-      "start_s": 36.97
+      "start_s": 35.6
     }
   ],
   "stills": [
     {
       "file": "stills/01-intro.png",
-      "frame": 78,
-      "time_s": 2.6,
+      "frame": 72,
+      "time_s": 2.4,
       "note": "Intro card"
     },
     {
       "file": "stills/02-portfolio.png",
-      "frame": 165,
-      "time_s": 5.5,
+      "frame": 153,
+      "time_s": 5.1,
       "note": "Samples portfolio with project cards"
     },
     {
       "file": "stills/03-kpis.png",
-      "frame": 355,
-      "time_s": 11.83,
-      "note": "Charts page: KPI cards after count-up and bar chart"
+      "frame": 341,
+      "time_s": 11.37,
+      "note": "Charts page: KPI cards after count-up (camera framed)"
     },
     {
       "file": "stills/04-query-results.png",
-      "frame": 632,
-      "time_s": 21.07,
+      "frame": 621,
+      "time_s": 20.7,
       "note": "Query results table"
     },
     {
       "file": "stills/05-lineage.png",
-      "frame": 899,
-      "time_s": 29.97,
-      "note": "Transform: dbt DAG and selected Gold model lineage"
+      "frame": 875,
+      "time_s": 29.17,
+      "note": "Transform: selected Gold model and its lineage (camera framed)"
     },
     {
       "file": "stills/06-guide-complete.png",
-      "frame": 1295,
-      "time_s": 43.17,
+      "frame": 1245,
+      "time_s": 41.5,
       "note": "Guide panel with all steps complete"
     }
   ],
+  "checks": {
+    "blend": {
+      "threshold_diff": 2.5,
+      "max_frames": 10,
+      "window_s": 1.2,
+      "transitions": [
+        {
+          "name": "Charts (activation)",
+          "from_frame": 180,
+          "to_frame": 249,
+          "longest_motion_run": 2,
+          "run_start_frame": 213,
+          "peak_diff": 14.92,
+          "ok": true
+        },
+        {
+          "name": "Query",
+          "from_frame": 449,
+          "to_frame": 485,
+          "longest_motion_run": 2,
+          "run_start_frame": 471,
+          "peak_diff": 20.62,
+          "ok": true
+        },
+        {
+          "name": "Transform",
+          "from_frame": 642,
+          "to_frame": 678,
+          "longest_motion_run": 2,
+          "run_start_frame": 664,
+          "peak_diff": 8.79,
+          "ok": true
+        },
+        {
+          "name": "Explore",
+          "from_frame": 896,
+          "to_frame": 932,
+          "longest_motion_run": 3,
+          "run_start_frame": 917,
+          "peak_diff": 10.68,
+          "ok": true
+        },
+        {
+          "name": "Lakehouse",
+          "from_frame": 953,
+          "to_frame": 989,
+          "longest_motion_run": 2,
+          "run_start_frame": 966,
+          "peak_diff": 11.59,
+          "ok": true
+        },
+        {
+          "name": "Canvas",
+          "from_frame": 1002,
+          "to_frame": 1038,
+          "longest_motion_run": 2,
+          "run_start_frame": 1017,
+          "peak_diff": 7.35,
+          "ok": true
+        },
+        {
+          "name": "Projects",
+          "from_frame": 1068,
+          "to_frame": 1104,
+          "longest_motion_run": 9,
+          "run_start_frame": 1096,
+          "peak_diff": 14.4,
+          "ok": true
+        }
+      ]
+    },
+    "dom_violations": 0
+  },
+  "camera": [
+    {
+      "frame": 275,
+      "box": {
+        "w": 674,
+        "h": 112
+      },
+      "scale": 1.3,
+      "used": true
+    },
+    {
+      "frame": 836,
+      "box": {
+        "w": 964,
+        "h": 78
+      },
+      "scale": 1.052,
+      "used": false
+    }
+  ],
   "problems": [],
-  "recorded_in_s": 257,
+  "recorded_in_s": 151,
   "generator": "tools/record_tour.mjs"
 }

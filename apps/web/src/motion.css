@@ -16,8 +16,10 @@
 @keyframes motionGrowUp{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes motionPulse{0%,100%{opacity:.55}50%{opacity:1}}
 
-/* Page and step transitions */
-.pageTransition{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both}
+/* Page and step transitions. Only the content area moves (header, rail, title and project bar
+   stay), and the old page unmounts at once, so two pages are never superimposed. */
+@keyframes motionContentIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+.pageTransition{animation:motionContentIn 220ms var(--motion-ease-out) both}
 .guidePanel{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both}
 .tutorialStep{animation:motionFadeUp var(--motion-medium) var(--motion-ease-out) both;animation-delay:calc(var(--step-index,0) * 45ms);transition:background-color var(--motion-medium) var(--motion-ease-standard)}
 .tutorialStep.done .stepCheck{animation:motionPop var(--motion-medium) var(--motion-ease-out)}
