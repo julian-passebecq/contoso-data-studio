@@ -1,0 +1,14 @@
+{
+  "artifact": "concept-viewer standalone single-file HTML",
+  "vendored_path": "vendor/concept-viewer/concept-viewer.html",
+  "upstream_repo": "julian-passebecq/datapass-mosaicstudio",
+  "upstream_path": "dist-standalone/concept-viewer.html",
+  "upstream_tag": "studio-v0.8.0",
+  "upstream_sha": "ecd5e7166bd09a6c1cfc6f4f4f161b16b650f16d",
+  "upstream_date": "2026-10-06T19:03:52+02:00",
+  "vendored_on": "2026-10-06",
+  "bytes": 970185,
+  "sha256": "58abe97438644b46f8eafb40391bb927b6878d9d8335a4dc99c6b55f0dcfd85e",
+  "embed_api": "spec/concept/v1/README.md#embedding: parent posts {type: 'datapass.concept-spec/load', spec}; viewer replies {type: 'datapass.concept-spec/ready', specVersion, result?}",
+  "policy": "Unchanged copy (vendor/ is -text in .gitattributes). Do not patch; re-vendor from an upstream tag instead."
+}

@@ -1,10 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://datapass.local/contracts/concept-spec.schema.json",
+  "$id": "https://raw.githubusercontent.com/julian-passebecq/datapass-mosaicstudio/main/spec/concept/v1/concept-spec.schema.json",
   "title": "DataPass concept spec v1",
-  "description": "One renderer-free description of an app or a cloud project (format \"datapass.concept-spec\", version 1). Layers are listed bottom to top with strictly increasing heights (gap ≥ 0.6); every id is unique across the document; node.layer, node.domain, flow.from, flow.to and annotation.target must name declared ids; at most one lake, on the bottom layer; at most 3 nodes per (layer, domain) cell; side domains come after main domains; a documented spec cites a source for every node.",
+  "version": "1.0.0",
+  "description": "One renderer-free description of an app or a cloud project (format \"datapass.concept-spec\", version 1). Layers are listed bottom to top with strictly increasing heights (gap ≥ 0.6); every id is unique across the document; node.layer, node.domain, flow.from, flow.to and annotation.target must name declared ids; at most one lake, on the bottom layer; at most 3 nodes per (layer, domain) cell; side domains come after main domains; a documented spec cites a source or evidence ref for every node. Unknown fields are allowed by this schema; readers ignore them with a warning. See spec/concept/v1/README.md.",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "required": [
     "format",
     "version",
@@ -27,6 +28,10 @@
     },
     "version": {
       "const": 1
+    },
+    "specVersion": {
+      "type": "string",
+      "pattern": "^1\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
     },
     "id": {
       "type": "string",
@@ -57,7 +62,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "additionalProperties": false,
+        "additionalProperties": true,
         "required": [
           "id",
           "label",
@@ -103,7 +108,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "additionalProperties": false,
+        "additionalProperties": true,
         "required": [
           "id",
           "label"
@@ -138,7 +143,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "additionalProperties": false,
+        "additionalProperties": true,
         "required": [
           "id",
           "kind",
@@ -216,7 +221,7 @@
             "type": "array",
             "items": {
               "type": "object",
-              "additionalProperties": false,
+              "additionalProperties": true,
               "required": [
                 "path"
               ],
@@ -234,6 +239,34 @@
               }
             },
             "maxItems": 6
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "kind",
+                "ref"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]{0,31}$"
+                },
+                "ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                }
+              }
+            },
+            "maxItems": 12
           }
         }
       },
@@ -244,7 +277,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "additionalProperties": false,
+        "additionalProperties": true,
         "required": [
           "id",
           "from",
@@ -282,6 +315,34 @@
               "forward",
               "both"
             ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "kind",
+                "ref"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]{0,31}$"
+                },
+                "ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                }
+              }
+            },
+            "maxItems": 12
           }
         }
       },
@@ -291,7 +352,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "additionalProperties": false,
+        "additionalProperties": true,
         "required": [
           "id",
           "text"

@@ -1,12 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { createReadStream, existsSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { Plugin } from "vite";
 
 // Serves the vendored standalone concept viewer (repo vendor/concept-viewer/, never patched) at
 // /vendor/concept-viewer/*. Missing files are a 404 so the Architecture tab falls back to the SVG.
-// TODO(CONTOSO-CONCEPT): copy it into the production build too once the viewer is vendored.
+// `vite build` copies the same files into dist/vendor/concept-viewer/.
 const viewerDir = fileURLToPath(new URL("../../vendor/concept-viewer/", import.meta.url));
 function conceptViewer(): Plugin {
   return {
@@ -21,6 +21,12 @@ function conceptViewer(): Plugin {
         if (req.method === "HEAD") { res.end(); return; }
         createReadStream(file).pipe(res);
       });
+    },
+    generateBundle() {
+      if (!existsSync(viewerDir)) return;
+      for (const name of readdirSync(viewerDir).filter(n => n.endsWith(".html")).sort()) {
+        this.emitFile({ type: "asset", fileName: `vendor/concept-viewer/${name}`, source: readFileSync(viewerDir + name) });
+      }
     },
   };
 }

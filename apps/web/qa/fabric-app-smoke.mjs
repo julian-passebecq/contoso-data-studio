@@ -73,6 +73,10 @@ try {
 
   // Architecture tab, generated from the compiled Rayfin model.
   await page.getByRole("tab", { name: "Architecture" }).click();
+  // The concept viewer is on by default; the static SVG sits in the "Static diagram" disclosure.
+  await page.locator('.faConcept[data-viewer="ready"], .faConcept[data-viewer="missing"], .faConcept[data-viewer="off"]').waitFor({ timeout: 30_000 });
+  const staticToggle = page.locator(".faConceptFallback > summary");
+  if (await staticToggle.count()) await staticToggle.click();
   for (const layer of ["ui", "service", "model", "sqldb", "mirror", "lake", "endpoint", "gold", "chart", "auth"]) {
     await page.locator(`.faArch g[data-layer="${layer}"]`).waitFor();
   }

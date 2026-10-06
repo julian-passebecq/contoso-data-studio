@@ -4,24 +4,29 @@ import { ArrowDownloadRegular } from "@fluentui/react-icons";
 
 import {
   CONCEPT_DOWNLOAD_URL, CONCEPT_URL, CONCEPT_VIEWER_URL, LOAD_MESSAGE, READY_MESSAGE,
-  conceptViewerEnabled, summarizeConcept, type ConceptSpec,
+  conceptViewerEnabled, summarizeConcept, type ConceptSpec, type ViewerResult,
 } from "./conceptViewer";
 
-type ViewerState = "off" | "checking" | "missing" | "ready";
+// off: flag off · checking: probing the vendored file · loading: framed, waiting for "ready"
+// ready: viewer answered · missing: no viewer (404 or no "ready" in time) -> static SVG
+type ViewerState = "off" | "checking" | "loading" | "ready" | "missing";
+const READY_TIMEOUT_MS = 15_000;
 
 function flagFromEnv(): Record<string, string | undefined> {
   return (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
 }
 
 /**
- * Concept rendering for the Architecture tab. The embedded viewer is behind a feature flag; the
- * static SVG (`fallback`) is shown whenever the flag is off or the viewer is not vendored yet.
+ * Concept rendering for the Architecture tab: the vendored standalone viewer in a sandboxed
+ * iframe, fed through its postMessage embed API. The static SVG (`fallback`) is shown when the
+ * flag is off (`?conceptViewer=0`) or the viewer is unavailable, and stays reachable below it.
  */
 export default function ConceptPanel({ fallback }: { fallback: ReactNode }) {
   const [spec, setSpec] = useState<ConceptSpec | null>(null);
   const [error, setError] = useState<string | null>(null);
   const enabled = conceptViewerEnabled(window.location.search, flagFromEnv());
   const [viewer, setViewer] = useState<ViewerState>(enabled ? "checking" : "off");
+  const [result, setResult] = useState<ViewerResult | null>(null);
   const frame = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -36,27 +41,37 @@ export default function ConceptPanel({ fallback }: { fallback: ReactNode }) {
   useEffect(() => {
     if (!enabled) return;
     let live = true;
-    // The dev middleware marks the vendored file; anything else (SPA fallback, 404) means missing.
     fetch(CONCEPT_VIEWER_URL, { method: "HEAD" })
-      .then(res => { if (live) setViewer(res.ok && res.headers.get("x-concept-viewer") === "vendored" ? "ready" : "missing"); })
+      .then(res => { if (live) setViewer(res.ok && (res.headers.get("content-type") ?? "").includes("text/html") ? "loading" : "missing"); })
       .catch(() => { if (live) setViewer("missing"); });
     return () => { live = false; };
   }, [enabled]);
 
+  // Embed handshake: send the spec after the first bare "ready"; later "ready" messages carry the result.
+  const framed = viewer === "loading" || viewer === "ready";
   useEffect(() => {
-    if (viewer !== "ready" || !spec) return;
-    const post = () => frame.current?.contentWindow?.postMessage({ type: LOAD_MESSAGE, spec }, "*");
+    if (!framed) return;
     const onMessage = (event: MessageEvent) => {
-      if (event.source === frame.current?.contentWindow && event.data?.type === READY_MESSAGE) post();
+      if (event.source !== frame.current?.contentWindow || event.data?.type !== READY_MESSAGE) return;
+      if (event.data.result) setResult(event.data.result as ViewerResult);
+      else setViewer("ready");
     };
     window.addEventListener("message", onMessage);
-    const node = frame.current;
-    node?.addEventListener("load", post);
-    post();
-    return () => { window.removeEventListener("message", onMessage); node?.removeEventListener("load", post); };
+    return () => window.removeEventListener("message", onMessage);
+  }, [framed]);
+
+  useEffect(() => {
+    if (viewer === "ready" && spec) frame.current?.contentWindow?.postMessage({ type: LOAD_MESSAGE, spec }, "*");
   }, [viewer, spec]);
 
-  return <div className="faConcept" data-viewer={viewer}>
+  useEffect(() => {
+    if (viewer !== "loading") return;
+    const timer = window.setTimeout(() => setViewer(state => state === "loading" ? "missing" : state), READY_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [viewer]);
+
+  return <div className="faConcept" data-viewer={viewer} data-viewer-result={result ? (result.ok ? "ok" : "invalid") : undefined}
+    data-viewer-warnings={result ? (result.warnings ?? []).length : undefined}>
     <div className="faConceptBar">
       <Badge appearance="tint" color="warning">SYNTHETIC</Badge>
       <Text className="faConceptSummary">
@@ -66,11 +81,14 @@ export default function ConceptPanel({ fallback }: { fallback: ReactNode }) {
         icon={<ArrowDownloadRegular />} appearance="secondary" disabled={!spec}>Download concept file</Button>
     </div>
     {viewer === "missing" && <Text className="muted faConceptNote" role="note">
-      Concept viewer is not vendored yet (vendor/concept-viewer/concept-viewer.html); showing the static diagram.
+      Concept viewer unavailable (vendor/concept-viewer/concept-viewer.html); showing the static diagram.
     </Text>}
-    {viewer === "ready"
+    {result && !result.ok && <Text className="faConceptNote" role="alert">
+      The viewer rejected the concept file: {(result.issues ?? []).map(i => `${i.path}: ${i.message}`).join("; ")}
+    </Text>}
+    {framed
       ? <>
-        <iframe ref={frame} className="faConceptFrame" title="Concept viewer" src={CONCEPT_VIEWER_URL}
+        <iframe ref={frame} className="faConceptFrame" title="Concept viewer" src={`${CONCEPT_VIEWER_URL}?view=isometric`}
           sandbox="allow-scripts" referrerPolicy="no-referrer" />
         <details className="faConceptFallback"><summary>Static diagram</summary>{fallback}</details>
       </>
