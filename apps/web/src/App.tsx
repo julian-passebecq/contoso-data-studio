@@ -12,7 +12,7 @@ import {
 } from "@fluentui/react-icons";
 
 import { getJson, postJson } from "./api";
-import { PageSkeleton } from "./motion";
+import { PageSkeleton, RouteReady } from "./motion";
 import { THEME_OPTIONS, useThemeChoice, type ThemeChoice } from "./theme";
 import { PROJECTS, groupFor, groupName, type ProjectPreset } from "./projects";
 import { setSelectedProjectScenario, completeTutorialStep } from "./tutorialProgress";
@@ -160,7 +160,7 @@ export default function App() {
         <div className="pageTitle">
           <div>
             <Text className="eyebrow">CONTOSO / LOCAL WORKSPACE</Text>
-            <Title2>{page}</Title2>
+            <Title2 data-route-title={page}>{page}</Title2>
           </div>
           <Text className="statusText">{message}</Text>
         </div>
@@ -176,7 +176,7 @@ export default function App() {
         </div>
         {projectError && <div className="errorText" role="alert">{projectError} <Button size="small" onClick={()=>setPage("Transform")}>Inspect Transform</Button></div>}
         {opening ? <div className="projectOpening" role="status" aria-live="polite"><Spinner/><Title2>Opening {PROJECTS.find(p=>p.scenario===opening)?.title}</Title2><Text>Activating project data, rebuilding analytical layers and checking quality.</Text><Text className="muted">Your dashboard will open automatically when everything is ready.</Text></div>
-          : <div key={`${refreshToken}:${page}`} className="pageTransition"><Suspense fallback={<PageSkeleton label="Loading project portfolio…"/>}>{renderPage()}</Suspense></div>}
+          : <div key={`${refreshToken}:${page}`} className="pageTransition" data-route={page}><Suspense fallback={<PageSkeleton label="Loading project portfolio…"/>}>{renderPage()}<RouteReady route={page}/></Suspense></div>}
       </main>
     </div>
   </div>;

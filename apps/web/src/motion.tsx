@@ -100,3 +100,17 @@ export function PageSkeleton({ label = "Loading" }: { label?: string }) {
     <SkeletonCards count={3} label={label} />
   </div>;
 }
+
+/**
+ * Route-settled signal: rendered after the page inside its Suspense boundary, so it mounts only
+ * once the lazy page has resolved. It sets `<html data-route-ready="<route>">`, which tools
+ * (the recorded tour, browser smoke tests) wait for before capturing a route.
+ */
+export function RouteReady({ route }: { route: string }) {
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.routeReady = route;
+    return () => { if (root.dataset.routeReady === route) delete root.dataset.routeReady; };
+  }, [route]);
+  return null;
+}
