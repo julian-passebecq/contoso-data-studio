@@ -79,3 +79,7 @@ for Fabric Apps and a capacity workspace.
 
 ![Finance writeback travelling to the Gold chart](captures/fabric-app-01-finance-writeback.png)
 ![Executive read-only view, all departments](captures/fabric-app-02-executive-readonly.png)
+![Architecture tab, generated from the Rayfin model](captures/fabric-app-03-architecture.png)
+
+The Architecture tab (`src/fabricApps/architecture.ts` → `ArchitectureDiagram.tsx`) derives the layers,
+relations and policies from `/model`; the layer list is plain data so another renderer can restyle it.

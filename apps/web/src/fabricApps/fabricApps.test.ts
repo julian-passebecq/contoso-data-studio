@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { buildPlanRows, computeKpis, dataPathStages, monthlySeries, validateAmount, validateNote } from "./forecastLogic";
+import { buildArchitecture } from "./architecture";
 import { LocalRayfinClient, LocalRayfinError } from "./localRayfinClient";
 import type { Actual, Department, Forecast, LocalUser, Trace } from "./types";
 
@@ -86,6 +87,23 @@ describe("data path strip", () => {
     const stages = dataPathStages({ change, mirror: { seq: 7, mirrored_at: change.committed_at, latency_ms: 1, snapshot_id: 1, endpoint_at: change.committed_at, gold_at: change.committed_at, gold_snapshot_id: null, gold_ok: 0 } }, null);
     expect(stages[3].state).toBe("failed");
     expect(stages[4].state).toBe("pending");
+  });
+});
+
+describe("architecture", () => {
+  it("derives the layers, relations and policies from the model", () => {
+    const arch = buildArchitecture({
+      entities: [
+        { name: "Department", table: "Departments", plural: "departments", columns: [{ name: "id", db_type: "UNIQUEIDENTIFIER", references: null }], roles: [{ role: "authenticated", actions: ["read"], policy: null }] },
+        { name: "Forecast", table: "Forecasts", plural: "forecasts", columns: [{ name: "id", db_type: "UNIQUEIDENTIFIER", references: null }, { name: "department_id", db_type: "UNIQUEIDENTIFIER", references: { entity: "Department", field: "id" } }], roles: [{ role: "authenticated", actions: ["create", "update"], policy: "(@claims.role eq 'finance')" }] },
+      ],
+      bronze_tables: { Forecast: "contoso.bronze.sfapp_forecasts" },
+    });
+    expect(arch.layers.map(l => l.key)).toEqual(["ui", "service", "model", "sqldb", "mirror", "lake", "endpoint", "gold", "chart"]);
+    expect(arch.layers[2].items).toContain("Forecast.department_id → Department.id");
+    expect(arch.layers[3].items).toContain("Forecasts: id, department_id");
+    expect(arch.layers[5].items).toEqual(["contoso.bronze.sfapp_forecasts"]);
+    expect(arch.auth.items).toEqual(["Department read: any signed-in user", "Forecast create/update: (@claims.role eq 'finance')"]);
   });
 });
 

@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Badge, Button, Card, Spinner, Text, Title3 } from "@fluentui/react-components";
+import { Badge, Button, Card, Spinner, Tab, TabList, Text, Title3 } from "@fluentui/react-components";
+
+import ArchitectureDiagram from "../fabricApps/ArchitectureDiagram";
+import { buildArchitecture, type ModelInfo } from "../fabricApps/architecture";
 
 import MonthlyBarChart from "../fabricApps/MonthlyBarChart";
 import {
@@ -21,7 +24,6 @@ import "../fabricApps/fabricApps.css";
 const USER_KEY = "contoso-fabric-app-user";
 
 type Draft = { amount: string; note: string; error?: string; saving?: boolean };
-type ModelInfo = { entities: Array<{ name: string; roles: Array<{ role: string; actions: string[]; policy: string | null }> }> };
 type Version = { snapshot_id: number; snapshot_time: string; amount: number | null; updated_by: string | null; commit_message: string | null };
 
 // Lab endpoints (mirror status, trace, Gold read) are local only; in Fabric these are platform views.
@@ -37,6 +39,12 @@ async function labPost<T>(path: string): Promise<T> {
   const body = await response.json();
   if (!response.ok) throw new Error(body.detail ?? `Request failed: ${response.status}`);
   return body as T;
+}
+
+/** Integers with thousands separators on display; the raw value is kept while editing. */
+function displayAmount(raw: string) {
+  const parsed = validateAmount(raw);
+  return parsed.ok ? formatMoney(parsed.value) : raw;
 }
 
 function storedUser() {
@@ -63,6 +71,8 @@ export default function AppsPage({ onOpenQuery }: { onOpenQuery: (sql: string) =
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [rebuilding, setRebuilding] = useState(false);
+  const [view, setView] = useState<"app" | "architecture">("app");
+  const [focused, setFocused] = useState<string | null>(null);
   const traceTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -154,6 +164,7 @@ export default function AppsPage({ onOpenQuery }: { onOpenQuery: (sql: string) =
   const bars = useMemo(() => monthlySeries(gold), [gold]);
   const stages = useMemo(() => dataPathStages(trace, chartAt), [trace, chartAt]);
   const canWrite = user?.role === "finance";
+  const architecture = useMemo(() => model ? buildArchitecture(model) : null, [model]);
   const forecastPolicies = model?.entities.find(e => e.name === "Forecast")?.roles ?? [];
 
   function draftFor(row: PlanRow): Draft {
@@ -222,6 +233,15 @@ export default function AppsPage({ onOpenQuery }: { onOpenQuery: (sql: string) =
       </label>
     </Card>
 
+    <TabList selectedValue={view} onTabSelect={(_, data) => setView(data.value as "app" | "architecture")} aria-label="Apps area">
+      <Tab value="app">App</Tab>
+      <Tab value="architecture">Architecture</Tab>
+    </TabList>
+
+    {view === "architecture" ? <Card className="faArchCard">
+      <div className="faCardHead"><div><Title3>Architecture</Title3><Text className="muted">Generated from the compiled Rayfin model (<code>rayfin/generated/model.json</code>) and the local data path. Each layer shows its local stand-in and the Fabric piece it replaces.</Text></div></div>
+      {architecture ? <ArchitectureDiagram architecture={architecture} /> : <Spinner label="Loading model…" />}
+    </Card> : <>
     {user && <div className={`faRls ${canWrite ? "write" : "read"}`} role="note">
       <Badge appearance="filled" color={canWrite ? "brand" : "informative"}>{user.role}</Badge>
       <span>{canWrite
@@ -285,7 +305,14 @@ export default function AppsPage({ onOpenQuery }: { onOpenQuery: (sql: string) =
               <td>{row.departmentCode}</td>
               <td>{row.month}</td>
               <td className="num">{canWrite
-                ? <input aria-label={`Forecast ${row.departmentCode} ${row.month}`} inputMode="decimal" value={draft.amount}
+                ? <input aria-label={`Forecast ${row.departmentCode} ${row.month}`} inputMode="decimal"
+                    value={focused === row.forecastId ? draft.amount : displayAmount(draft.amount)}
+                    onFocus={event => {
+                      // Swap to the raw value synchronously so select-all/typing apply to it, not to the formatted text.
+                      event.currentTarget.value = draft.amount;
+                      event.currentTarget.select();
+                      setFocused(row.forecastId);
+                    }} onBlur={() => setFocused(current => current === row.forecastId ? null : current)}
                     onChange={event => edit(row, { amount: event.target.value })}
                     onKeyDown={event => { if (event.key === "Enter") void save(row); }} aria-invalid={Boolean(draft.error)} />
                 : formatMoney(row.forecast)}</td>
@@ -308,5 +335,6 @@ export default function AppsPage({ onOpenQuery }: { onOpenQuery: (sql: string) =
       </table></div>}
     </Card>
     {status?.last_error && <div className="errorText" role="alert">Mirror error: {status.last_error}</div>}
+    </>}
   </div>;
 }

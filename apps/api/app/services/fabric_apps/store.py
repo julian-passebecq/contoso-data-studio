@@ -145,14 +145,14 @@ class OperationalStore:
                 )
                 for index, month in enumerate(MONTHS):
                     season = 1 + 0.18 * (1 if index in (10, 11) else 0) - 0.06 * (1 if index in (0, 1) else 0)
-                    planned = round(base * season * (1 + 0.012 * index), 2)
+                    planned = float(round(base * season * (1 + 0.012 * index)))
                     con.execute(
                         f'INSERT INTO "{forecast.table}" (id, department_id, month, amount, note, owner_email, updated_by, updated_at) '
                         "VALUES (?,?,?,?,?,?,?,?)",
                         (stable_id("forecast", code, month), dept_id, month, planned, None, owner, "seed", "2026-01-01T00:00:00.000+00:00"),
                     )
                     if month in ACTUAL_MONTHS:
-                        booked = round(planned * rng.uniform(0.86, 1.12), 2)
+                        booked = float(round(planned * rng.uniform(0.86, 1.12)))
                         con.execute(
                             f'INSERT INTO "{actual.table}" (id, department_id, month, amount, owner_email) VALUES (?,?,?,?,?)',
                             (stable_id("actual", code, month), dept_id, month, booked, owner),

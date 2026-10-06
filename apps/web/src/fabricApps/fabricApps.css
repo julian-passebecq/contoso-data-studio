@@ -54,4 +54,18 @@
 .faTable input{width:100%;min-width:90px;padding:4px 6px;border:1px solid #cfcfd4;border-radius:4px;text-align:inherit;font-variant-numeric:tabular-nums}
 .faTable input[aria-invalid="true"]{border-color:#c42b1c}
 .faTable tr.edited td{background:#f3f8fd}
+.faArchCard{display:grid;gap:12px}
+.faArch{width:100%;height:auto;display:block}
+.faArchBox{fill:#fff;stroke:#c9c9ce;stroke-width:1}
+.faArchBox.model{fill:#f3f8fd;stroke:#2a78d6}
+.faArchBox.sqldb,.faArchBox.lake{fill:#f7f7f8}
+.faArchBox.gold{fill:#fff8e6;stroke:#c98500}
+.faArchBox.auth{fill:#fbfbfc;stroke:#6a6a6a;stroke-dasharray:4 3}
+.faArchTitle{font-size:14px;font-weight:600;fill:#1f1f1f}
+.faArchSub{font-size:11px;fill:#555}
+.faArchItem{font-size:11px;fill:#444;font-family:Consolas,"Cascadia Code",monospace}
+.faArchItem.strong{fill:#1f1f1f;font-weight:600}
+.faArchArrow{stroke:#9a9aa0;stroke-width:1.5}
+.faArchArrow.dashed{stroke-dasharray:4 3}
+.faArchArrowHead{fill:#9a9aa0}
 .faError{color:#b42318;font-size:11px;margin-top:3px;max-width:220px}

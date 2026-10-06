@@ -64,6 +64,21 @@ try {
   await page.locator('g[data-month="2026-03"]').hover();
   await page.screenshot({ path: "qa-artifacts/fabric-app-02-executive-readonly.png", fullPage: true });
 
+  // Formatted display, raw value while editing (back as finance).
+  await page.getByLabel("Role switcher").selectOption("u-ana");
+  const shown = await page.getByLabel("Forecast NORD 2026-03").inputValue();
+  if (shown !== "654,321") throw new Error(`Forecast input should show 654,321, got ${shown}`);
+  if (await page.locator(".pageTitle").innerText().then(t => t.includes("WORKSPACEApps"))) throw new Error("Breadcrumb glued to title");
+  if (await page.locator(".workspaceProjectBar").count()) throw new Error("Workspace bar should be hidden on Apps");
+
+  // Architecture tab, generated from the compiled Rayfin model.
+  await page.getByRole("tab", { name: "Architecture" }).click();
+  for (const layer of ["ui", "service", "model", "sqldb", "mirror", "lake", "endpoint", "gold", "chart", "auth"]) {
+    await page.locator(`.faArch g[data-layer="${layer}"]`).waitFor();
+  }
+  await page.locator(".faArch").getByText("Forecast.department_id → Department.id").waitFor();
+  await page.screenshot({ path: "qa-artifacts/fabric-app-03-architecture.png", fullPage: true });
+
   console.log("FABRIC_APP_SMOKE_PASS");
 } finally {
   await browser.close();
