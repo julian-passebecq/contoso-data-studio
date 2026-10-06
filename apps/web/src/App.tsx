@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "rea
 import { Badge, Button, Spinner, Text, Title2 } from "@fluentui/react-components";
 import {
   ArrowSync24Regular,
+  AppFolder24Regular,
   Board24Regular,
   ChartMultiple24Regular,
   Code24Regular,
@@ -27,6 +28,7 @@ import type { Page, Scenario, WorkspaceProjectState } from "./types";
 import "./projects.css";
 
 const ProjectsPage=lazy(()=>import("./pages/ProjectsPage"));
+const AppsPage=lazy(()=>import("./pages/AppsPage"));
 
 const pages: Array<[Page, ReactNode]> = [
   ["Projects", <Home24Regular/>],
@@ -37,6 +39,7 @@ const pages: Array<[Page, ReactNode]> = [
   ["Explore", <DocumentTable24Regular/>],
   ["Charts", <ChartMultiple24Regular/>],
   ["Canvas", <Board24Regular/>],
+  ["Apps", <AppFolder24Regular/>],
 ];
 
 export default function App() {
@@ -125,6 +128,7 @@ export default function App() {
     if (page==="Query") return <QueryPage initialSql={querySeed} initialProjectState={workspace}/>;
     if (page==="Explore") return <ExplorePage onOpenQuery={openQuery}/>;
     if (page==="Charts") return <ChartsPage onOpenQuery={openQuery}/>;
+    if (page==="Apps") return <AppsPage onOpenQuery={openQuery}/>;
     return <CanvasPage onOpenQuery={openQuery}/>;
   }
 
@@ -164,7 +168,7 @@ export default function App() {
           </div>
           <Text className="statusText">{message}</Text>
         </div>
-        <div className="workspaceProjectBar">
+        {page!=="Apps" && <div className="workspaceProjectBar">
           <div><Text className="eyebrow">ACTIVE WORKSPACE</Text><b>{workspaceLoading ? "Loading active workspace…" : workspace?.active_scenario ? `${groupName(groupFor(workspace.active_scenario))} / ${PROJECTS.find(p=>p.scenario===workspace.active_scenario)?.title ?? workspace.active_scenario}` : "Choose your first project"}</b></div>
           {workspace?.active_scenario && !workspaceLoading && <Badge appearance="outline" color={opening ? "informative" : workspace.ready ? "success" : "warning"}>{opening ? "Opening…" : workspace.ready ? "Ready" : "Needs preparation"}</Badge>}
           <label>Switch project <select aria-label="Switch project" disabled={Boolean(opening)||workspaceLoading} value={workspace?.active_scenario ?? ""}
@@ -173,7 +177,7 @@ export default function App() {
             {(["foil","samples"] as const).map(group=><optgroup label={groupName(group)} key={group}>{PROJECTS.filter(p=>groupFor(p.scenario)===group).map(project=><option value={project.scenario} key={project.scenario}>{project.title}</option>)}</optgroup>)}
           </select></label>
           <Button disabled={Boolean(opening)} onClick={()=>setPage("Projects")}>Portfolio & architecture</Button>
-        </div>
+        </div>}
         {projectError && <div className="errorText" role="alert">{projectError} <Button size="small" onClick={()=>setPage("Transform")}>Inspect Transform</Button></div>}
         {opening ? <div className="projectOpening" role="status" aria-live="polite"><Spinner/><Title2>Opening {PROJECTS.find(p=>p.scenario===opening)?.title}</Title2><Text>Activating project data, rebuilding analytical layers and checking quality.</Text><Text className="muted">Your dashboard will open automatically when everything is ready.</Text></div>
           : <div key={`${refreshToken}:${page}`} className="pageTransition" data-route={page}><Suspense fallback={<PageSkeleton label="Loading project portfolio…"/>}>{renderPage()}<RouteReady route={page}/></Suspense></div>}

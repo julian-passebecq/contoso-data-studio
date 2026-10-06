@@ -32,6 +32,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Fabric-style app lab (local stand-in for a Rayfin operational app). See docs/fabric-apps.
+from app.routers.fabric_apps import router as fabric_apps_router  # noqa: E402
+
+app.include_router(fabric_apps_router)
+
 
 @app.get("/api/health")
 def health():

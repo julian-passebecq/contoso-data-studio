@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: forecast_vs_actual
+    description: "Fabric-style Sales Forecasting app: forecast vs actual per department and month, with variance."
+    config:
+      enabled: "{{ var('fabric_apps_enabled', false) }}"
+    columns:
+      - name: month
+        data_tests: [not_null]
+      - name: department_code
+        data_tests: [not_null]
+      - name: forecast_amount
+        data_tests: [not_null]

@@ -173,6 +173,23 @@ jobs:
       - name: Validate FOIL board
         run: dct validate charts/foil-decision.yml --project-dir . --dbt-project-dir dbt
 
+  fabric-app-model:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/fabric-app-lab
+    env:
+      RAYFIN_TELEMETRY_OPTOUT: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Rayfin core (offline compiler only)
+        run: npm install --no-audit --no-fund
+      - name: Generated model is up to date
+        run: npm run check-model
+
   web:
     runs-on: ubuntu-latest
     defaults:

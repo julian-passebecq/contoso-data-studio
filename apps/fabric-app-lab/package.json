@@ -1,0 +1,19 @@
+{
+  "name": "contoso-fabric-app-lab",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Fabric-style Sales Forecasting app model (Rayfin decorators), compiled offline for the local lab.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "export-model": "tsc -p tsconfig.json && node dist/scripts/export-model.js",
+    "check-model": "tsc -p tsconfig.json && node dist/scripts/export-model.js --check"
+  },
+  "dependencies": {
+    "@microsoft/rayfin-core": "1.36.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.8.3"
+  }
+}
