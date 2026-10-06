@@ -3,8 +3,8 @@ import { Badge, Button, Text } from "@fluentui/react-components";
 import { ArrowDownloadRegular } from "@fluentui/react-icons";
 
 import {
-  CONCEPT_DOWNLOAD_URL, CONCEPT_URL, CONCEPT_VIEWER_URL, LOAD_MESSAGE, READY_MESSAGE,
-  conceptViewerEnabled, summarizeConcept, type ConceptSpec, type ViewerResult,
+  CONCEPT_DOWNLOAD_URL, CONCEPT_URL, CONCEPT_VIEWER_URL, READY_MESSAGE, VIEWER_OPTIONS,
+  conceptViewerEnabled, loadMessage, summarizeConcept, type ConceptSpec, type ViewerResult,
 } from "./conceptViewer";
 
 // off: flag off · checking: probing the vendored file · loading: framed, waiting for "ready"
@@ -61,7 +61,7 @@ export default function ConceptPanel({ fallback }: { fallback: ReactNode }) {
   }, [framed]);
 
   useEffect(() => {
-    if (viewer === "ready" && spec) frame.current?.contentWindow?.postMessage({ type: LOAD_MESSAGE, spec }, "*");
+    if (viewer === "ready" && spec) frame.current?.contentWindow?.postMessage(loadMessage(spec), "*");
   }, [viewer, spec]);
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function ConceptPanel({ fallback }: { fallback: ReactNode }) {
     </Text>}
     {framed
       ? <>
-        <iframe ref={frame} className="faConceptFrame" title="Concept viewer" src={`${CONCEPT_VIEWER_URL}?view=isometric`}
+        <iframe ref={frame} className="faConceptFrame" title="Concept viewer" src={`${CONCEPT_VIEWER_URL}?view=${VIEWER_OPTIONS.view}`}
           sandbox="allow-scripts" referrerPolicy="no-referrer" />
         <details className="faConceptFallback"><summary>Static diagram</summary>{fallback}</details>
       </>
