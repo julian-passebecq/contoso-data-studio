@@ -1,0 +1,340 @@
+/*
+ * "Fabric-like" theme (opt-in: ?theme=fabric or the header Theme setting).
+ * Fluent 2 component tokens come from src/theme.tsx; this sheet re-skins the app's own
+ * classes with a deep-slate dark palette and a teal accent. All values are our own;
+ * no Microsoft logos, product names or palette files are used.
+ */
+:root[data-theme="fabric"]{
+  --f-bg:#0f1216;
+  --f-chrome:#13171c;
+  --f-surface:#1c2027;
+  --f-surface-2:#20252d;
+  --f-surface-3:#272d37;
+  --f-inset:#161a20;
+  --f-stroke:#2c323c;
+  --f-stroke-strong:#3b4250;
+  --f-text:#eef1f5;
+  --f-text-2:#c4cad3;
+  --f-text-3:#8f99a6;
+  --f-accent:#1fb89c;
+  --f-accent-strong:#3fd8bb;
+  --f-accent-soft:rgba(31,184,156,.16);
+  --f-accent-line:rgba(63,216,187,.45);
+  --f-data-1:#2fd0b2;
+  --f-data-2:#8f7ff5;
+  --f-data-3:#eaa53f;
+  --f-data-4:#e66d80;
+  --f-data-5:#4f9fe9;
+  --f-success:#5cc28a;
+  --f-warning:#e9b04a;
+  --f-danger:#ef6f78;
+  --f-code-bg:#0b0e12;
+  --f-radius:8px;
+  --skeleton-base:#232831;
+  --skeleton-shine:#2f3642;
+  color:var(--f-text);
+  background:var(--f-bg);
+  font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+}
+:root[data-theme="fabric"] body{background:var(--f-bg)}
+:root[data-theme="fabric"] .themeRoot{background:var(--f-bg)}
+:root[data-theme="fabric"] ::selection{background:rgba(92,192,176,.35)}
+:root[data-theme="fabric"] *{scrollbar-color:#3a414d transparent}
+
+/* Chrome: header + navigation rail */
+:root[data-theme="fabric"] header{
+  background:linear-gradient(180deg,#171b21,#13171c);
+  border-bottom:1px solid var(--f-stroke);position:relative
+}
+:root[data-theme="fabric"] header::after{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--f-accent-line) 30%,rgba(143,127,245,.4) 70%,transparent)
+}
+:root[data-theme="fabric"] .brand{align-items:center}
+:root[data-theme="fabric"] .brand::before{
+  content:"";width:26px;height:26px;border-radius:7px;flex:0 0 26px;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.22),transparent 55%),
+    linear-gradient(135deg,var(--f-accent-strong),#2a7f73 55%,#6c5fd6);
+  box-shadow:0 0 0 1px rgba(255,255,255,.06),0 4px 14px rgba(56,163,147,.35)
+}
+:root[data-theme="fabric"] .muted,
+:root[data-theme="fabric"] .statusText,
+:root[data-theme="fabric"] .projectLead{color:var(--f-text-3)}
+:root[data-theme="fabric"] .eyebrow,
+:root[data-theme="fabric"] .navSection,
+:root[data-theme="fabric"] .catalogLabel{color:var(--f-accent-strong);opacity:.85}
+:root[data-theme="fabric"] aside{background:var(--f-chrome);border-right:1px solid var(--f-stroke)}
+:root[data-theme="fabric"] aside>button{color:var(--f-text-2);position:relative}
+:root[data-theme="fabric"] aside>button:hover{background:var(--f-surface-2);color:var(--f-text)}
+:root[data-theme="fabric"] aside>button.active{background:var(--f-accent-soft);color:var(--f-text);font-weight:600}
+:root[data-theme="fabric"] aside>button.active::before{
+  content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:3px;background:var(--f-accent-strong)
+}
+:root[data-theme="fabric"] aside>button.active svg{color:var(--f-accent-strong)}
+:root[data-theme="fabric"] .pipelineMini{border-top-color:var(--f-stroke);color:var(--f-text-3)}
+:root[data-theme="fabric"] .pipelineMini span{padding:3px 6px;border-radius:5px;background:var(--f-surface-2)}
+:root[data-theme="fabric"] .pipelineMini span:nth-of-type(1){color:#d9a066}
+:root[data-theme="fabric"] .pipelineMini span:nth-of-type(2){color:#b8c3d1}
+:root[data-theme="fabric"] .pipelineMini span:nth-of-type(3){color:#f0c85a}
+:root[data-theme="fabric"] .pipelineMini i{color:#56606e}
+:root[data-theme="fabric"] main{background:radial-gradient(1200px 500px at 85% -10%,rgba(56,163,147,.08),transparent 60%),radial-gradient(900px 400px at 10% 110%,rgba(143,127,245,.06),transparent 60%)}
+
+/* Form controls */
+:root[data-theme="fabric"] select,
+:root[data-theme="fabric"] .workspaceProjectBar select,
+:root[data-theme="fabric"] .sheetPicker select,
+:root[data-theme="fabric"] .boardSelector,
+:root[data-theme="fabric"] .foilCasePicker select,
+:root[data-theme="fabric"] .snapshotCompareBar select,
+:root[data-theme="fabric"] .runCompareBar select{
+  background:var(--f-inset);color:var(--f-text);border:1px solid var(--f-stroke-strong)
+}
+:root[data-theme="fabric"] .sqlEditor,
+:root[data-theme="fabric"] .canvasNoteCard textarea{
+  background:var(--f-code-bg);color:#dfe6ee;border-color:var(--f-stroke-strong)
+}
+:root[data-theme="fabric"] .sqlEditor:focus,
+:root[data-theme="fabric"] .canvasNoteCard textarea:focus{border-color:var(--f-accent);box-shadow:0 0 0 3px var(--f-accent-soft)}
+:root[data-theme="fabric"] .themePicker{color:var(--f-text-3)}
+
+/* Surfaces that used hard-coded light backgrounds */
+:root[data-theme="fabric"] .workspaceProjectBar,
+:root[data-theme="fabric"] .groupTile,
+:root[data-theme="fabric"] .tutorialSteps,
+:root[data-theme="fabric"] .skeletonCard,
+:root[data-theme="fabric"] .dataTable,
+:root[data-theme="fabric"] .dagNode,
+:root[data-theme="fabric"] .canvasNode,
+:root[data-theme="fabric"] .lineageFocus,
+:root[data-theme="fabric"] .dependencyChip,
+:root[data-theme="fabric"] .fileImportButton,
+:root[data-theme="fabric"] .stepCheck{
+  background:var(--f-surface);color:var(--f-text);border-color:var(--f-stroke)
+}
+:root[data-theme="fabric"] .workspaceProjectBar{border-radius:var(--f-radius);box-shadow:0 1px 0 rgba(255,255,255,.03) inset}
+:root[data-theme="fabric"] .workspaceProjectBar label{color:var(--f-text-3)}
+:root[data-theme="fabric"] .flow,
+:root[data-theme="fabric"] .layer,
+:root[data-theme="fabric"] .projectOutcome,
+:root[data-theme="fabric"] .portfolioStage,
+:root[data-theme="fabric"] .portfolioThemes span,
+:root[data-theme="fabric"] .snapshotCompareBar,
+:root[data-theme="fabric"] .snapshotCompareResult>div,
+:root[data-theme="fabric"] .rawPreview,
+:root[data-theme="fabric"] .barChart,
+:root[data-theme="fabric"] .installHint,
+:root[data-theme="fabric"] .serveHint,
+:root[data-theme="fabric"] .chartFootnote span,
+:root[data-theme="fabric"] .boardFacts>div,
+:root[data-theme="fabric"] .boardQuery,
+:root[data-theme="fabric"] .boardChartSpec,
+:root[data-theme="fabric"] .boardLayout pre,
+:root[data-theme="fabric"] .dag,
+:root[data-theme="fabric"] .qualitySummary>div,
+:root[data-theme="fabric"] .modelFacts>div,
+:root[data-theme="fabric"] .nodeLineage,
+:root[data-theme="fabric"] .canvasStage,
+:root[data-theme="fabric"] .manifestEdges code,
+:root[data-theme="fabric"] .scenarioFocus,
+:root[data-theme="fabric"] .generationReceipt,
+:root[data-theme="fabric"] .runDetailFacts>div,
+:root[data-theme="fabric"] .runModeNote,
+:root[data-theme="fabric"] .runFile,
+:root[data-theme="fabric"] .runCompareBar,
+:root[data-theme="fabric"] .runCompareSummary>div,
+:root[data-theme="fabric"] .runFileCompare,
+:root[data-theme="fabric"] .runLoadHistory,
+:root[data-theme="fabric"] .runIntegritySummary,
+:root[data-theme="fabric"] .missionCard pre,
+:root[data-theme="fabric"] .tutorialStep.done{
+  background:var(--f-inset);color:var(--f-text-2);border-color:var(--f-stroke)
+}
+:root[data-theme="fabric"] .canvasStageHeader{background:var(--f-surface-2);border-bottom-color:var(--f-stroke)}
+:root[data-theme="fabric"] .layerTitle,
+:root[data-theme="fabric"] .tableItem,
+:root[data-theme="fabric"] .scenario,
+:root[data-theme="fabric"] .tutorialStep,
+:root[data-theme="fabric"] .snapshotRow,
+:root[data-theme="fabric"] .runResult,
+:root[data-theme="fabric"] .qualityTests,
+:root[data-theme="fabric"] .qualityTest,
+:root[data-theme="fabric"] .modelTests,
+:root[data-theme="fabric"] .modelTest,
+:root[data-theme="fabric"] .modelColumns,
+:root[data-theme="fabric"] .modelColumns>div,
+:root[data-theme="fabric"] .queryHistory>button,
+:root[data-theme="fabric"] .runLedgerRow,
+:root[data-theme="fabric"] .runLoadHistory>div,
+:root[data-theme="fabric"] .consoleDetails,
+:root[data-theme="fabric"] .boardLayout,
+:root[data-theme="fabric"] .manifestEdges,
+:root[data-theme="fabric"] .tabStrip,
+:root[data-theme="fabric"] .workbenchTabs{border-color:var(--f-stroke)}
+
+/* Secondary text that used fixed greys */
+:root[data-theme="fabric"] .scenario span,
+:root[data-theme="fabric"] .tableItem small,
+:root[data-theme="fabric"] .fileList span,
+:root[data-theme="fabric"] .fileList small,
+:root[data-theme="fabric"] .queryHistory span,
+:root[data-theme="fabric"] .snapshotId span,
+:root[data-theme="fabric"] .snapshotWhen span,
+:root[data-theme="fabric"] .snapshotCompareResult span,
+:root[data-theme="fabric"] .schemaDelta>div>span,
+:root[data-theme="fabric"] .groupTile small,
+:root[data-theme="fabric"] .portfolioStage small,
+:root[data-theme="fabric"] .projectQuestion span,
+:root[data-theme="fabric"] .stepCopy span,
+:root[data-theme="fabric"] .stepCopy code,
+:root[data-theme="fabric"] .guideProgress span,
+:root[data-theme="fabric"] .kpiLabel,
+:root[data-theme="fabric"] .barSlot span,
+:root[data-theme="fabric"] .chartRuntime span,
+:root[data-theme="fabric"] .chartFootnote,
+:root[data-theme="fabric"] .boardFacts span,
+:root[data-theme="fabric"] .boardSpecGrid h4,
+:root[data-theme="fabric"] .boardChartSpec span,
+:root[data-theme="fabric"] .boardChartSpec small,
+:root[data-theme="fabric"] .boardLayout summary,
+:root[data-theme="fabric"] .dagLayer,
+:root[data-theme="fabric"] .dagNode small,
+:root[data-theme="fabric"] .dagNodeCopy>em,
+:root[data-theme="fabric"] .runResult small,
+:root[data-theme="fabric"] .consoleDetails summary,
+:root[data-theme="fabric"] .qualitySummary span,
+:root[data-theme="fabric"] .qualityLayer,
+:root[data-theme="fabric"] .qualityTestName span,
+:root[data-theme="fabric"] .qualityTestName small,
+:root[data-theme="fabric"] .qualityTest>small,
+:root[data-theme="fabric"] .qualityEmpty,
+:root[data-theme="fabric"] .modelFacts span,
+:root[data-theme="fabric"] .workbenchTabs button,
+:root[data-theme="fabric"] .workbenchEmpty,
+:root[data-theme="fabric"] .workbenchEmpty small,
+:root[data-theme="fabric"] .nodeLineage section>b,
+:root[data-theme="fabric"] .dependencyChip small,
+:root[data-theme="fabric"] .modelTest span,
+:root[data-theme="fabric"] .modelTest small,
+:root[data-theme="fabric"] .modelColumns span,
+:root[data-theme="fabric"] .modelColumns small,
+:root[data-theme="fabric"] .canvasStageHeader span,
+:root[data-theme="fabric"] .canvasNode small,
+:root[data-theme="fabric"] .canvasNode em,
+:root[data-theme="fabric"] .canvasEmpty,
+:root[data-theme="fabric"] .manifestEdges code,
+:root[data-theme="fabric"] .scenarioFocus span,
+:root[data-theme="fabric"] .generatorFields label>span,
+:root[data-theme="fabric"] .generationReceipt span,
+:root[data-theme="fabric"] .scenarioChoice span,
+:root[data-theme="fabric"] .runLedgerRow code,
+:root[data-theme="fabric"] .runLedgerRow>span,
+:root[data-theme="fabric"] .emptyState{color:var(--f-text-3)}
+
+/* Tables */
+:root[data-theme="fabric"] .tableScroller{border-color:var(--f-stroke);border-radius:8px}
+:root[data-theme="fabric"] .dataTable th{background:var(--f-surface-2);color:var(--f-text-2);border-bottom-color:var(--f-stroke-strong);font-weight:600}
+:root[data-theme="fabric"] .dataTable td{border-bottom-color:var(--f-stroke);color:var(--f-text)}
+:root[data-theme="fabric"] .dataTable tr:hover td{background:var(--f-surface-3)}
+:root[data-theme="fabric"] .dataTable tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+:root[data-theme="fabric"] .nullValue{color:#6c7684}
+
+/* Interactive rows and tiles */
+:root[data-theme="fabric"] .catalogGroup button,
+:root[data-theme="fabric"] .fileList>button,
+:root[data-theme="fabric"] .queryHistory>button,
+:root[data-theme="fabric"] .tableItemButton,
+:root[data-theme="fabric"] .scenarioChoice,
+:root[data-theme="fabric"] .tabStrip button,
+:root[data-theme="fabric"] .canvasNode:disabled{color:var(--f-text-2)}
+:root[data-theme="fabric"] .catalogGroup button:hover,
+:root[data-theme="fabric"] .fileList>button:hover,
+:root[data-theme="fabric"] .queryHistory>button:hover,
+:root[data-theme="fabric"] .tableItemButton:hover,
+:root[data-theme="fabric"] .scenarioChoice:hover,
+:root[data-theme="fabric"] .tabStrip button:hover,
+:root[data-theme="fabric"] .fileImportButton:hover{background:var(--f-surface-2);border-color:var(--f-stroke)}
+:root[data-theme="fabric"] .fileList>button.selected,
+:root[data-theme="fabric"] .tableItemButton.selected,
+:root[data-theme="fabric"] .scenarioChoice.selected{background:var(--f-accent-soft);border-color:var(--f-accent-line);color:var(--f-text)}
+:root[data-theme="fabric"] .tabStrip button.selected,
+:root[data-theme="fabric"] .workbenchTabs button.selected{border-bottom-color:var(--f-accent-strong);color:var(--f-text)}
+
+/* Projects / guided flow */
+:root[data-theme="fabric"] .groupTile{color:var(--f-text);border-radius:12px}
+:root[data-theme="fabric"] .groupTile:hover{border-color:var(--f-stroke-strong);background:var(--f-surface-2)}
+:root[data-theme="fabric"] .groupTile.selected{border-color:var(--f-accent);background:linear-gradient(135deg,rgba(56,163,147,.18),rgba(143,127,245,.08) 70%),var(--f-surface)}
+:root[data-theme="fabric"] .groupTile.selected b{color:var(--f-accent-strong)}
+:root[data-theme="fabric"] .groupTile:focus-visible{outline-color:var(--f-accent-strong)}
+:root[data-theme="fabric"] .projectCard{border:1px solid var(--f-stroke)}
+:root[data-theme="fabric"] .projectCard:hover{border-color:var(--f-stroke-strong);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+:root[data-theme="fabric"] .projectCard.selected{outline:2px solid var(--f-accent);outline-offset:1px}
+:root[data-theme="fabric"] .projectOutcome{color:#a7d9cf}
+:root[data-theme="fabric"] .stageNumber{color:var(--f-accent-strong)}
+:root[data-theme="fabric"] .stageArrow{color:var(--f-accent)}
+:root[data-theme="fabric"] .portfolioBrowseNote{background:rgba(233,176,74,.12);color:#f1d29a}
+:root[data-theme="fabric"] .projectOpening{
+  background:radial-gradient(600px 220px at 50% 0,rgba(56,163,147,.18),transparent 70%),var(--f-surface);
+  border-color:var(--f-stroke);color:var(--f-text)
+}
+:root[data-theme="fabric"] .guideProgressBar{background:var(--f-surface-3);height:6px}
+:root[data-theme="fabric"] .guideProgressBar i{background:linear-gradient(90deg,var(--f-accent),var(--f-accent-strong) 70%,#9be0d3);box-shadow:0 0 12px rgba(92,192,176,.55)}
+:root[data-theme="fabric"] .guideProgress b{color:var(--f-accent-strong)}
+:root[data-theme="fabric"] .stepCheck{border-color:var(--f-stroke-strong);color:var(--f-text-2)}
+:root[data-theme="fabric"] .tutorialStep.done .stepCheck{background:var(--f-accent);border-color:var(--f-accent);color:#04201c}
+:root[data-theme="fabric"] .tutorialStep.done .stepCopy b{color:var(--f-text)}
+
+/* Charts / KPIs */
+:root[data-theme="fabric"] .kpiGrid [class*="fui-Card"]{position:relative;overflow:hidden;border:1px solid var(--f-stroke)}
+:root[data-theme="fabric"] .kpiGrid [class*="fui-Card"]::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--f-data-1)}
+:root[data-theme="fabric"] .kpiGrid [class*="fui-Card"]:nth-child(3n+2)::before{background:var(--f-data-2)}
+:root[data-theme="fabric"] .kpiGrid [class*="fui-Card"]:nth-child(3n)::before{background:var(--f-data-3)}
+:root[data-theme="fabric"] .kpiValue{font-size:32px;font-weight:700;color:var(--f-accent-strong);font-variant-numeric:tabular-nums}
+:root[data-theme="fabric"] .barChart{color:var(--f-data-1);background:linear-gradient(180deg,var(--f-inset),#12151a);
+  background-image:linear-gradient(180deg,var(--f-inset),#12151a),repeating-linear-gradient(0deg,transparent 0 65px,rgba(255,255,255,.04) 65px 66px)}
+:root[data-theme="fabric"] .bar{background:linear-gradient(180deg,#4fe3c6,#16917b);opacity:1;border-radius:4px 4px 0 0;box-shadow:0 0 10px rgba(79,184,169,.18)}
+:root[data-theme="fabric"] .validationOk{background:rgba(92,194,138,.12);border-color:rgba(92,194,138,.4);color:#b9ebcd}
+:root[data-theme="fabric"] .staleGoldWarning{background:rgba(233,176,74,.12);border-color:rgba(233,176,74,.45);color:#f1d29a}
+:root[data-theme="fabric"] .foilEnergyBar.p50{background:var(--f-data-1)}
+:root[data-theme="fabric"] .foilEnergyBar.p90{background:var(--f-data-2)}
+:root[data-theme="fabric"] .foilImpactTrack{background:linear-gradient(to right,transparent 49.8%,#5a6372 49.8%,#5a6372 50.2%,transparent 50.2%)}
+:root[data-theme="fabric"] .foilImpactTrack .positive{background:var(--f-data-1)}
+:root[data-theme="fabric"] .foilImpactTrack .negative{background:var(--f-data-4)}
+
+/* Lineage / transform / canvas */
+:root[data-theme="fabric"] .dag{background:var(--f-inset);background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:18px 18px}
+:root[data-theme="fabric"] .dagNode{border-left:3px solid var(--f-data-5)}
+:root[data-theme="fabric"] .dagNode.source{border-left-color:#d9a066;background:var(--f-surface)}
+:root[data-theme="fabric"] .dagColumn:last-child .dagNode{border-left-color:#f0c85a}
+:root[data-theme="fabric"] .dagNode:not(:disabled):hover,
+:root[data-theme="fabric"] .canvasNode:not(:disabled):hover,
+:root[data-theme="fabric"] .dependencyChip:hover{border-color:var(--f-accent-line);background:var(--f-surface-2)}
+:root[data-theme="fabric"] .dagNode.selected{outline:2px solid var(--f-accent-strong)}
+:root[data-theme="fabric"] .dagArrow,
+:root[data-theme="fabric"] .canvasConnector{color:var(--f-accent)}
+:root[data-theme="fabric"] .lineageFocus{border-color:var(--f-accent);box-shadow:0 0 0 3px var(--f-accent-soft)}
+:root[data-theme="fabric"] .canvasStage{border-color:var(--f-stroke)}
+:root[data-theme="fabric"] .canvasEmpty{border-color:var(--f-stroke)}
+:root[data-theme="fabric"] .nodeQuality{color:#a9e6c3;background:rgba(92,194,138,.12);border-color:rgba(92,194,138,.35)}
+:root[data-theme="fabric"] .nodeQuality.issue,
+:root[data-theme="fabric"] .dagNode.issue,
+:root[data-theme="fabric"] .canvasNode.issue{color:#ffc2c7;background:rgba(239,111,120,.12);border-color:rgba(239,111,120,.45)}
+:root[data-theme="fabric"] .workbenchEmpty{border-color:var(--f-stroke)}
+
+/* Code panes */
+:root[data-theme="fabric"] .boardQuery pre,
+:root[data-theme="fabric"] .consoleDetails pre,
+:root[data-theme="fabric"] .codeWorkbench pre{background:var(--f-code-bg);color:#dbe3ec;border:1px solid var(--f-stroke)}
+
+/* Messages */
+:root[data-theme="fabric"] .errorText{background:rgba(239,111,120,.1);border-color:rgba(239,111,120,.45);color:#ffc2c7}
+:root[data-theme="fabric"] .skeletonCard{border-color:var(--f-stroke)}
+
+/* Dense, telemetry-style panels */
+:root[data-theme="fabric"] main{padding:22px 26px}
+:root[data-theme="fabric"] .pageTitle{margin-bottom:16px}
+:root[data-theme="fabric"] .workspaceProjectBar{padding:10px 14px;margin-bottom:14px}
+:root[data-theme="fabric"] .fui-Card{border-radius:8px}
+:root[data-theme="fabric"] .kpiLabel{text-transform:uppercase;letter-spacing:.08em;font-size:10px;font-weight:600}
+:root[data-theme="fabric"] .pageTitle>div:first-child{display:grid;gap:2px}
+:root[data-theme="fabric"] .fui-Badge{white-space:nowrap}

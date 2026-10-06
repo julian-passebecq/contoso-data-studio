@@ -15,3 +15,8 @@ dbt/dbt_packages/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Product tour recordings (tools/record_tour.mjs): keep stills + metadata, not video/frames
+qa/video/*.mp4
+qa/video/frames/
+qa/video/failure.png

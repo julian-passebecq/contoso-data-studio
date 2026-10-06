@@ -94,3 +94,16 @@ The app detects `dct` on PATH and exposes board validation in **Charts**. The li
 7. **Charts** → inspect Gold KPIs and validate/open the dbt Charts board.
 
 See `docs/architecture.md`.
+
+## Themes and recorded product tour (prototype)
+
+- **Theme**: the header *Theme* setting switches between *Default* (unchanged light workbench) and *Fabric-like* (Fluent 2 dark tokens with our own slate/teal palette; no third-party branding). `?theme=fabric` or `?theme=default` in the URL sets and remembers it.
+- **Motion**: page and guided-step transitions, skeleton loading states and KPI count-up. All motion is disabled under `prefers-reduced-motion`.
+- **Recorded tour**: with the API and web dev server running,
+
+  ```bash
+  npm --prefix apps/web install --no-save playwright@1.56.1 ffmpeg-static
+  node tools/record_tour.mjs --base http://127.0.0.1:5173 --theme fabric
+  ```
+
+  The tour opens Retail Sales 101, shows KPIs, runs the SQL step, inspects lineage and finishes the guide, with a synthetic cursor and lower-third captions. Frames are captured on a virtual clock at 30 fps / 1280x720 (`qa/video/frames/`, ignored), encoded to `qa/video/contoso-tour.mp4` (ignored) when ffmpeg is found (`--ffmpeg <path>`, `$FFMPEG_PATH`/`$FFMPEG`, PATH, or the `ffmpeg-static` package). Stills and `metadata.json` in `qa/video/` are committed. If the dev proxy must reach a non-default API port, start Vite with `CONTOSO_API_URL=http://127.0.0.1:<port>`.

@@ -228,7 +228,7 @@ export default function ProjectsPage({
       </div>
 
       <div className="tutorialSteps">
-        {tutorialSteps.map((step,index)=><div className={progress[step.id] ? "tutorialStep done" : "tutorialStep"} key={step.id}>
+        {tutorialSteps.map((step,index)=><div className={progress[step.id] ? "tutorialStep done" : "tutorialStep"} key={step.id} style={{["--step-index" as string]:index}}>
           <button className="stepCheck" type="button" onClick={()=>toggleStep(step.id)} aria-label={progress[step.id] ? "Mark incomplete" : "Mark complete"}>
             {progress[step.id] ? "✓" : index+1}
           </button>

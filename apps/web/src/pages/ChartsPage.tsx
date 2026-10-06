@@ -4,6 +4,7 @@ import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-c
 import { getJson, postJson } from "../api";
 import type { GenerationRunDetail, QueryResult } from "../types";
 import { completeTutorialStep } from "../tutorialProgress";
+import { CountUp, SkeletonCards } from "../motion";
 import "../charts.css";
 const FoilDashboard = lazy(()=>import("../components/FoilDashboard"));
 
@@ -341,9 +342,10 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
     {goldCurrent && activeRun?.scenario?.startsWith("foil-") && <Suspense fallback={<Text>Loading FOIL dashboard…</Text>}><FoilDashboard scenario={activeRun.scenario}/></Suspense>}
     {goldCurrent && !activeRun?.scenario?.startsWith("foil-") && <>
       <div className="kpiGrid">
+        {!kpis.length && !dashboardError && <SkeletonCards count={3} label="Loading KPIs"/>}
         {kpis.map(kpi=><Card key={kpi.label}>
           <Text className="kpiLabel">{kpi.label}</Text>
-          <div className="kpiValue">{kpi.value}</div>
+          <div className="kpiValue"><CountUp value={kpi.value}/></div>
           {kpi.detail && <Text className="muted tiny">{kpi.detail}</Text>}
         </Card>)}
       </div>

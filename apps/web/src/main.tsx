@@ -1,11 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 import App from "./App";
+import { ThemeRoot } from "./theme";
 import "./styles.css";
+import "./motion.css";
+import "./theme-fabric.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <FluentProvider theme={webLightTheme}><App /></FluentProvider>
+    <ThemeRoot><App /></ThemeRoot>
   </React.StrictMode>
 );

@@ -179,3 +179,5 @@ main{padding:28px 32px;min-width:0}
   .snapshotCompareBar>span{display:none}
   .snapshotCompareResult{grid-template-columns:repeat(2,1fr)}
 }
+.themePicker{display:flex;align-items:center;gap:6px;margin-left:8px;font-size:11px;color:#666}
+.themePicker select{padding:3px 6px;border:1px solid #d1d1d5;border-radius:5px;background:#fff;color:inherit;font:inherit;font-size:12px}

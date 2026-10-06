@@ -12,6 +12,8 @@ import {
 } from "@fluentui/react-icons";
 
 import { getJson, postJson } from "./api";
+import { PageSkeleton } from "./motion";
+import { THEME_OPTIONS, useThemeChoice, type ThemeChoice } from "./theme";
 import { PROJECTS, groupFor, groupName, type ProjectPreset } from "./projects";
 import { setSelectedProjectScenario, completeTutorialStep } from "./tutorialProgress";
 import CanvasPage from "./pages/CanvasPage";
@@ -48,6 +50,7 @@ export default function App() {
   const [opening,setOpening] = useState("");
   const [projectError,setProjectError] = useState("");
   const openingRef=useRef(false);
+  const {theme,setTheme}=useThemeChoice();
 
   useEffect(() => {
     getJson<Scenario[]>("/api/scenarios").then(setScenarios).catch(()=>setScenarios([]));
@@ -136,6 +139,9 @@ export default function App() {
         <Badge appearance="outline">DuckDB</Badge>
         <Badge appearance="outline">DuckLake</Badge>
         <Badge appearance="outline">dbt</Badge>
+        <label className="themePicker">Theme <select aria-label="Theme" value={theme} onChange={event=>setTheme(event.target.value as ThemeChoice)}>
+          {THEME_OPTIONS.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
+        </select></label>
       </div>
     </header>
     <div className="layout">
@@ -170,7 +176,7 @@ export default function App() {
         </div>
         {projectError && <div className="errorText" role="alert">{projectError} <Button size="small" onClick={()=>setPage("Transform")}>Inspect Transform</Button></div>}
         {opening ? <div className="projectOpening" role="status" aria-live="polite"><Spinner/><Title2>Opening {PROJECTS.find(p=>p.scenario===opening)?.title}</Title2><Text>Activating project data, rebuilding analytical layers and checking quality.</Text><Text className="muted">Your dashboard will open automatically when everything is ready.</Text></div>
-          : <div key={refreshToken}><Suspense fallback={<Spinner label="Loading project portfolio…"/>}>{renderPage()}</Suspense></div>}
+          : <div key={`${refreshToken}:${page}`} className="pageTransition"><Suspense fallback={<PageSkeleton label="Loading project portfolio…"/>}>{renderPage()}</Suspense></div>}
       </main>
     </div>
   </div>;
