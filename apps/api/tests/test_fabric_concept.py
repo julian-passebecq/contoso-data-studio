@@ -1,6 +1,7 @@
 """Concept spec v1 document for the Sales Forecasting app: determinism, schema, semantics, API."""
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -44,10 +45,21 @@ def test_model_change_changes_document(tmp_path):
 def test_document_validates_against_vendored_schema():
     schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
     jsonschema.Draft202012Validator.check_schema(schema)
-    jsonschema.Draft202012Validator(schema).validate(build_concept(load_model(ROOT)))
+    doc = build_concept(load_model(ROOT))
+    jsonschema.Draft202012Validator(schema).validate(doc)
+    assert doc["$schema"] == schema["$id"]
+    assert doc["specVersion"] == "1.0.0"
     provenance = json.loads(PROVENANCE.read_text(encoding="utf-8"))
     assert provenance["upstream_repo"] == "julian-passebecq/datapass-mosaicstudio"
     assert len(provenance["upstream_sha"]) == 40
+
+
+@pytest.mark.parametrize("record", ["vendor/concept-spec/PROVENANCE.json", "vendor/concept-viewer/PROVENANCE.json"])
+def test_vendored_files_are_unchanged(record):
+    provenance = json.loads((ROOT / record).read_text(encoding="utf-8"))
+    data = (ROOT / provenance["vendored_path"]).read_bytes()
+    assert hashlib.sha256(data).hexdigest() == provenance["sha256"], f"{provenance['vendored_path']} was modified; re-vendor it"
+    assert provenance["upstream_tag"] and len(provenance["upstream_sha"]) == 40
 
 
 def test_document_semantics():

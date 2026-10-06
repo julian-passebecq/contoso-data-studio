@@ -18,6 +18,9 @@ from app.services.fabric_apps.model import MODEL_RELATIVE_PATH, AppModel
 
 CONCEPT_ID = "contoso-sales-forecasting"
 CONCEPT_FILENAME = f"{CONCEPT_ID}.concept.json"
+# spec/concept/v1/README.md: exporters always write "$schema" (the schema $id) and "specVersion".
+SCHEMA_ID = "https://raw.githubusercontent.com/julian-passebecq/datapass-mosaicstudio/main/spec/concept/v1/concept-spec.schema.json"
+SPEC_VERSION = "1.0.0"
 
 # Evidence: repository paths (POSIX) the nodes cite.
 MODEL_FILE = MODEL_RELATIVE_PATH.as_posix()
@@ -147,8 +150,10 @@ def build_concept(model: AppModel) -> dict[str, Any]:
         {"id": "f-id-endpoint", "from": "identity", "to": "sql-endpoint", "kind": "auth", "label": "Department scope"},
     ]
     return {
+        "$schema": SCHEMA_ID,
         "format": "datapass.concept-spec",
         "version": 1,
+        "specVersion": SPEC_VERSION,
         "id": CONCEPT_ID,
         "title": "Sales Forecasting app (Contoso lab)",
         "subtitle": "Generated from the compiled Rayfin model and the local data path: SQL DB, mirror, DuckLake, dbt Gold.",
