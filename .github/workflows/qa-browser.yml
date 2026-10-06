@@ -59,6 +59,10 @@ jobs:
         working-directory: apps/web
         run: node qa/fabric-app-smoke.mjs
 
+      - name: Verify Architecture concept file and fallback
+        working-directory: apps/web
+        run: node qa/concept-smoke.mjs
+
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4

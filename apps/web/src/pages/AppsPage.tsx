@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, Card, Spinner, Tab, TabList, Text, Title3 } from "@fluentui/react-components";
 
 import ArchitectureDiagram from "../fabricApps/ArchitectureDiagram";
+import ConceptPanel from "../fabricApps/ConceptPanel";
 import { buildArchitecture, type ModelInfo } from "../fabricApps/architecture";
 
 import MonthlyBarChart from "../fabricApps/MonthlyBarChart";
@@ -240,7 +241,7 @@ export default function AppsPage({ onOpenQuery }: { onOpenQuery: (sql: string) =
 
     {view === "architecture" ? <Card className="faArchCard">
       <div className="faCardHead"><div><Title3>Architecture</Title3><Text className="muted">Generated from the compiled Rayfin model (<code>rayfin/generated/model.json</code>) and the local data path. Each layer shows its local stand-in and the Fabric piece it replaces.</Text></div></div>
-      {architecture ? <ArchitectureDiagram architecture={architecture} /> : <Spinner label="Loading model…" />}
+      <ConceptPanel fallback={architecture ? <ArchitectureDiagram architecture={architecture} /> : <Spinner label="Loading model…" />} />
     </Card> : <>
     {user && <div className={`faRls ${canWrite ? "write" : "read"}`} role="note">
       <Badge appearance="filled" color={canWrite ? "brand" : "informative"}>{user.role}</Badge>

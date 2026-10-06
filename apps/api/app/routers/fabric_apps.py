@@ -8,15 +8,30 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 
+from app.config import Settings
 from app.services.fabric_apps import APP_SLUG, get_lab
+from app.services.fabric_apps.concept import CONCEPT_FILENAME, concept_bytes
 from app.services.fabric_apps.mirror import GOLD_MODEL, bronze_table
+from app.services.fabric_apps.model import load_model
 from app.services.fabric_apps.policy import LocalUser, PolicyDenied
 from app.services.fabric_apps.store import USERS, NotFound, ValidationError, user_by_id
 
 router = APIRouter(prefix=f"/api/fabric-apps/{APP_SLUG}", tags=["fabric-apps"])
+concept_router = APIRouter(prefix="/api/fabric-apps", tags=["fabric-apps"])
+
+
+@concept_router.get("/concept")
+def concept(download: bool = Query(default=False)):
+    """Concept spec v1 document (SYNTHETIC) generated from the compiled model; same model, same bytes.
+
+    Reads model.json directly so it never starts the lab's mirror worker.
+    """
+    body = concept_bytes(load_model(Settings.load().project_root))
+    headers = {"Content-Disposition": f'attachment; filename="{CONCEPT_FILENAME}"'} if download else {}
+    return Response(content=body, media_type="application/json", headers=headers)
 
 
 class QueryBody(BaseModel):
