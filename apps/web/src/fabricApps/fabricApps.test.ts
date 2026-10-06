@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { buildPlanRows, computeKpis, dataPathStages, monthlySeries, validateAmount, validateNote } from "./forecastLogic";
 import { buildArchitecture } from "./architecture";
-import { conceptViewerEnabled, summarizeConcept } from "./conceptViewer";
+import { LOAD_MESSAGE, conceptViewerEnabled, loadMessage, summarizeConcept, type ConceptSpec } from "./conceptViewer";
 
 describe("concept viewer flag", () => {
   it("is on by default and follows the query string over the build env", () => {
@@ -18,6 +18,10 @@ describe("concept viewer flag", () => {
       nodes: [{ id: "a", kind: "app", layer: "l", domain: "d", label: "A" }],
       flows: [{ id: "f", from: "a", to: "a", kind: "auth", label: "F" }, { id: "g", from: "a", to: "a", kind: "data", label: "G" }],
     })).toBe("1 layers · 1 nodes · 2 flows (auth, data) · SYNTHETIC");
+  });
+  it("sends the embed options with each load (viewer studio-v0.8.1)", () => {
+    const spec = { id: "x" } as unknown as ConceptSpec;
+    expect(loadMessage(spec)).toEqual({ type: LOAD_MESSAGE, spec, options: { view: "layered", fit: true, chrome: "embed", theme: "auto" } });
   });
 });
 import { LocalRayfinClient, LocalRayfinError } from "./localRayfinClient";

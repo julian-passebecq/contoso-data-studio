@@ -1,5 +1,6 @@
 // Architecture tab concept smoke: by default the vendored standalone viewer renders the generated
-// concept spec v1 document (embed handshake load/ready); `?conceptViewer=0` falls back to the static
+// concept spec v1 document (embed handshake load/ready, options layered + fit + embed chrome, the whole
+// layer cake inside the frame); `?conceptViewer=0` falls back to the static
 // SVG; the download button serves the same bytes as the API. Writes 2 captures to qa-artifacts/.
 import { chromium } from "playwright";
 import { mkdir, readFile } from "node:fs/promises";
@@ -34,12 +35,29 @@ try {
   const iframe = page.locator("iframe.faConceptFrame");
   if ((await iframe.getAttribute("sandbox")) !== "allow-scripts") throw new Error("viewer iframe must be sandboxed (allow-scripts only)");
   const viewer = page.frameLocator("iframe.faConceptFrame");
-  await viewer.locator(`[data-spec="${spec.id}"]`).first().waitFor({ state: "attached", timeout: 30_000 });
-  for (const node of spec.nodes) {
-    await viewer.locator(`[data-entity="${node.id}"]`).first().waitFor({ state: "attached", timeout: 10_000 });
+  const root = viewer.locator(`[data-testid="concept-viewer"][data-spec="${spec.id}"]`);
+  await root.waitFor({ state: "attached", timeout: 30_000 });
+  // Options applied: layer cake, fit, embed chrome (no example gallery, no open/URL/paste inside the app).
+  for (const [attr, value] of [["data-view", "layered"], ["data-fit", "true"], ["data-chrome", "embed"]]) {
+    if ((await root.getAttribute(attr)) !== value) throw new Error(`viewer ${attr}=${await root.getAttribute(attr)}, expected ${value}`);
   }
-  await viewer.locator(`[data-entity="web-app"]`).first().waitFor({ state: "visible", timeout: 10_000 });
+  if (await viewer.getByRole("navigation", { name: "Examples" }).count()) throw new Error("embed chrome must hide the example gallery");
+  for (const name of ["Open file", "URL", "Paste"]) {
+    if (await viewer.getByRole("button", { name, exact: true }).count()) throw new Error(`embed chrome must hide ${name}`);
+  }
+  for (const node of spec.nodes) {
+    await viewer.locator(`[data-testid="concept-layered"] [data-node="${node.id}"]`).first().waitFor({ state: "attached", timeout: 10_000 });
+  }
+  await viewer.locator(`[data-testid="concept-layered"] [data-node="web-app"]`).first().waitFor({ state: "visible", timeout: 10_000 });
   await iframe.scrollIntoViewIfNeeded();
+  // The whole diagram is inside the frame (no corner zoom).
+  const frameBox = await iframe.boundingBox();
+  const svgBox = await viewer.locator('[data-testid="concept-layered"] svg').first().boundingBox();
+  if (!frameBox || !svgBox) throw new Error("viewer frame or diagram has no box");
+  if (svgBox.x < frameBox.x - 1 || svgBox.y < frameBox.y - 1 || svgBox.x + svgBox.width > frameBox.x + frameBox.width + 1
+    || svgBox.y + svgBox.height > frameBox.y + frameBox.height + 1) {
+    throw new Error(`diagram ${JSON.stringify(svgBox)} is not inside the frame ${JSON.stringify(frameBox)}`);
+  }
   await page.screenshot({ path: "qa-artifacts/concept-01-viewer.png", fullPage: true });
 
   // 2. Opt-out: static SVG fallback, no iframe; the download equals the API document.
