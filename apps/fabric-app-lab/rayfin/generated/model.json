@@ -1,0 +1,336 @@
+{
+  "generated_by": "@microsoft/rayfin-core 1.36.2 (offline analyzer)",
+  "dialect": "mssql",
+  "entities": [
+    {
+      "name": "Department",
+      "table": "Departments",
+      "plural": "Departments",
+      "columns": [
+        {
+          "name": "id",
+          "db_type": "UNIQUEIDENTIFIER",
+          "nullable": false,
+          "primary_key": true,
+          "unique": false,
+          "references": null,
+          "format": "uuid",
+          "min": null,
+          "max": null,
+          "regex": null
+        },
+        {
+          "name": "code",
+          "db_type": "NVARCHAR(12)",
+          "nullable": false,
+          "primary_key": false,
+          "unique": true,
+          "references": null,
+          "format": "text",
+          "min": null,
+          "max": 12,
+          "regex": "^[A-Z]{2,12}$"
+        },
+        {
+          "name": "name",
+          "db_type": "NVARCHAR(80)",
+          "nullable": false,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "text",
+          "min": null,
+          "max": 80,
+          "regex": null
+        },
+        {
+          "name": "finance_owner_email",
+          "db_type": "NVARCHAR(320)",
+          "nullable": false,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "email",
+          "min": null,
+          "max": 320,
+          "regex": null
+        }
+      ],
+      "roles": [
+        {
+          "role": "authenticated",
+          "actions": [
+            "read"
+          ],
+          "policy": null,
+          "policy_text": null
+        }
+      ]
+    },
+    {
+      "name": "Forecast",
+      "table": "Forecasts",
+      "plural": "Forecasts",
+      "columns": [
+        {
+          "name": "id",
+          "db_type": "UNIQUEIDENTIFIER",
+          "nullable": false,
+          "primary_key": true,
+          "unique": false,
+          "references": null,
+          "format": "uuid",
+          "min": null,
+          "max": null,
+          "regex": null
+        },
+        {
+          "name": "department_id",
+          "db_type": "UNIQUEIDENTIFIER",
+          "nullable": false,
+          "primary_key": false,
+          "unique": false,
+          "references": {
+            "entity": "Department",
+            "field": "id"
+          },
+          "format": "uuid",
+          "min": null,
+          "max": null,
+          "regex": null
+        },
+        {
+          "name": "month",
+          "db_type": "NVARCHAR(MAX)",
+          "nullable": false,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "text",
+          "min": null,
+          "max": null,
+          "regex": "^\\d{4}-(0[1-9]|1[0-2])$"
+        },
+        {
+          "name": "amount",
+          "db_type": "DECIMAL(18,2)",
+          "nullable": false,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "decimal",
+          "min": 0,
+          "max": 100000000,
+          "regex": null
+        },
+        {
+          "name": "note",
+          "db_type": "NVARCHAR(200)",
+          "nullable": true,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "text",
+          "min": null,
+          "max": 200,
+          "regex": null
+        },
+        {
+          "name": "owner_email",
+          "db_type": "NVARCHAR(320)",
+          "nullable": false,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "email",
+          "min": null,
+          "max": 320,
+          "regex": null
+        },
+        {
+          "name": "updated_by",
+          "db_type": "NVARCHAR(120)",
+          "nullable": true,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "text",
+          "min": null,
+          "max": 120,
+          "regex": null
+        },
+        {
+          "name": "updated_at",
+          "db_type": "NVARCHAR(40)",
+          "nullable": true,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "text",
+          "min": null,
+          "max": 40,
+          "regex": null
+        }
+      ],
+      "roles": [
+        {
+          "role": "authenticated",
+          "actions": [
+            "create",
+            "update"
+          ],
+          "policy": {
+            "op": "and",
+            "args": [
+              {
+                "op": "eq",
+                "lhs": {
+                  "claim": "role"
+                },
+                "rhs": "finance"
+              },
+              {
+                "op": "eq",
+                "lhs": {
+                  "claim": "email"
+                },
+                "rhs": {
+                  "field": "owner_email"
+                }
+              }
+            ]
+          },
+          "policy_text": "(@claims.role eq 'finance') and (@claims.email eq @item.owner_email)"
+        },
+        {
+          "role": "authenticated",
+          "actions": [
+            "read"
+          ],
+          "policy": {
+            "op": "or",
+            "args": [
+              {
+                "op": "eq",
+                "lhs": {
+                  "claim": "role"
+                },
+                "rhs": "executive"
+              },
+              {
+                "op": "eq",
+                "lhs": {
+                  "claim": "email"
+                },
+                "rhs": {
+                  "field": "owner_email"
+                }
+              }
+            ]
+          },
+          "policy_text": "(@claims.role eq 'executive') or (@claims.email eq @item.owner_email)"
+        }
+      ]
+    },
+    {
+      "name": "Actual",
+      "table": "Actuals",
+      "plural": "Actuals",
+      "columns": [
+        {
+          "name": "id",
+          "db_type": "UNIQUEIDENTIFIER",
+          "nullable": false,
+          "primary_key": true,
+          "unique": false,
+          "references": null,
+          "format": "uuid",
+          "min": null,
+          "max": null,
+          "regex": null
+        },
+        {
+          "name": "department_id",
+          "db_type": "UNIQUEIDENTIFIER",
+          "nullable": false,
+          "primary_key": false,
+          "unique": false,
+          "references": {
+            "entity": "Department",
+            "field": "id"
+          },
+          "format": "uuid",
+          "min": null,
+          "max": null,
+          "regex": null
+        },
+        {
+          "name": "month",
+          "db_type": "NVARCHAR(MAX)",
+          "nullable": false,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "text",
+          "min": null,
+          "max": null,
+          "regex": "^\\d{4}-(0[1-9]|1[0-2])$"
+        },
+        {
+          "name": "amount",
+          "db_type": "DECIMAL(18,2)",
+          "nullable": false,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "decimal",
+          "min": 0,
+          "max": 100000000,
+          "regex": null
+        },
+        {
+          "name": "owner_email",
+          "db_type": "NVARCHAR(320)",
+          "nullable": false,
+          "primary_key": false,
+          "unique": false,
+          "references": null,
+          "format": "email",
+          "min": null,
+          "max": 320,
+          "regex": null
+        }
+      ],
+      "roles": [
+        {
+          "role": "authenticated",
+          "actions": [
+            "read"
+          ],
+          "policy": {
+            "op": "or",
+            "args": [
+              {
+                "op": "eq",
+                "lhs": {
+                  "claim": "role"
+                },
+                "rhs": "executive"
+              },
+              {
+                "op": "eq",
+                "lhs": {
+                  "claim": "email"
+                },
+                "rhs": {
+                  "field": "owner_email"
+                }
+              }
+            ]
+          },
+          "policy_text": "(@claims.role eq 'executive') or (@claims.email eq @item.owner_email)"
+        }
+      ]
+    }
+  ]
+}

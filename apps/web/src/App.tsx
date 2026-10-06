@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "rea
 import { Badge, Button, Spinner, Text, Title2 } from "@fluentui/react-components";
 import {
   ArrowSync24Regular,
+  AppFolder24Regular,
   Board24Regular,
   ChartMultiple24Regular,
   Code24Regular,
@@ -27,6 +28,7 @@ import type { Page, Scenario, WorkspaceProjectState } from "./types";
 import "./projects.css";
 
 const ProjectsPage=lazy(()=>import("./pages/ProjectsPage"));
+const AppsPage=lazy(()=>import("./pages/AppsPage"));
 
 const pages: Array<[Page, ReactNode]> = [
   ["Projects", <Home24Regular/>],
@@ -37,6 +39,7 @@ const pages: Array<[Page, ReactNode]> = [
   ["Explore", <DocumentTable24Regular/>],
   ["Charts", <ChartMultiple24Regular/>],
   ["Canvas", <Board24Regular/>],
+  ["Apps", <AppFolder24Regular/>],
 ];
 
 export default function App() {
@@ -125,6 +128,7 @@ export default function App() {
     if (page==="Query") return <QueryPage initialSql={querySeed} initialProjectState={workspace}/>;
     if (page==="Explore") return <ExplorePage onOpenQuery={openQuery}/>;
     if (page==="Charts") return <ChartsPage onOpenQuery={openQuery}/>;
+    if (page==="Apps") return <AppsPage onOpenQuery={openQuery}/>;
     return <CanvasPage onOpenQuery={openQuery}/>;
   }
 

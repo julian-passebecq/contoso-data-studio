@@ -1,0 +1,260 @@
+{
+  "$schema": "https://github.com/Azure/data-api-builder/releases/download/v1.5.56/dab.draft.schema.json",
+  "entities": {
+    "Department": {
+      "source": "Departments",
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            "read"
+          ]
+        }
+      ],
+      "x-schema": {
+        "fields": {
+          "id": {
+            "dbType": "UNIQUEIDENTIFIER",
+            "nullable": false
+          },
+          "code": {
+            "dbType": "NVARCHAR(12)",
+            "nullable": false
+          },
+          "name": {
+            "dbType": "NVARCHAR(80)",
+            "nullable": false
+          },
+          "finance_owner_email": {
+            "dbType": "NVARCHAR(320)",
+            "nullable": false
+          }
+        },
+        "constraints": {
+          "primaryKey": {
+            "name": "PK_Departments",
+            "columns": [
+              "id"
+            ]
+          },
+          "uniqueConstraints": [
+            {
+              "name": "UQ_Departments_code",
+              "columns": [
+                "code"
+              ]
+            }
+          ],
+          "checkConstraints": [
+            {
+              "name": "CK_Departments_finance_owner_email_email",
+              "expression": "[finance_owner_email] LIKE '_%@_%._%' AND CHARINDEX(' ', [finance_owner_email]) = 0"
+            }
+          ]
+        }
+      },
+      "relationships": {
+        "forecasts": {
+          "cardinality": "many",
+          "target.entity": "Forecast",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "department_id"
+          ]
+        },
+        "actuals": {
+          "cardinality": "many",
+          "target.entity": "Actual",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "department_id"
+          ]
+        }
+      }
+    },
+    "Forecast": {
+      "source": "Forecasts",
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "create",
+              "policy": {
+                "database": "(@claims.role eq 'finance') and (@claims.email eq @item.owner_email)"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "(@claims.role eq 'finance') and (@claims.email eq @item.owner_email)"
+              }
+            },
+            {
+              "action": "read",
+              "policy": {
+                "database": "(@claims.role eq 'executive') or (@claims.email eq @item.owner_email)"
+              }
+            }
+          ]
+        }
+      ],
+      "x-schema": {
+        "fields": {
+          "id": {
+            "dbType": "UNIQUEIDENTIFIER",
+            "nullable": false
+          },
+          "department_id": {
+            "dbType": "UNIQUEIDENTIFIER",
+            "nullable": false
+          },
+          "month": {
+            "dbType": "NVARCHAR(MAX)",
+            "nullable": false
+          },
+          "amount": {
+            "dbType": "DECIMAL(18,2)",
+            "nullable": false
+          },
+          "note": {
+            "dbType": "NVARCHAR(200)",
+            "nullable": true
+          },
+          "owner_email": {
+            "dbType": "NVARCHAR(320)",
+            "nullable": false
+          },
+          "updated_by": {
+            "dbType": "NVARCHAR(120)",
+            "nullable": true
+          },
+          "updated_at": {
+            "dbType": "NVARCHAR(40)",
+            "nullable": true
+          }
+        },
+        "constraints": {
+          "primaryKey": {
+            "name": "PK_Forecasts",
+            "columns": [
+              "id"
+            ]
+          },
+          "foreignKeys": [
+            {
+              "name": "FK_Forecasts_department_id",
+              "columns": [
+                "department_id"
+              ],
+              "referencedTable": "Departments",
+              "referencedColumns": [
+                "id"
+              ]
+            }
+          ],
+          "checkConstraints": [
+            {
+              "name": "CK_Forecasts_owner_email_email",
+              "expression": "[owner_email] LIKE '_%@_%._%' AND CHARINDEX(' ', [owner_email]) = 0"
+            }
+          ]
+        }
+      },
+      "relationships": {
+        "department": {
+          "cardinality": "one",
+          "target.entity": "Department",
+          "source.fields": [
+            "department_id"
+          ],
+          "target.fields": [
+            "id"
+          ]
+        }
+      }
+    },
+    "Actual": {
+      "source": "Actuals",
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "(@claims.role eq 'executive') or (@claims.email eq @item.owner_email)"
+              }
+            }
+          ]
+        }
+      ],
+      "x-schema": {
+        "fields": {
+          "id": {
+            "dbType": "UNIQUEIDENTIFIER",
+            "nullable": false
+          },
+          "department_id": {
+            "dbType": "UNIQUEIDENTIFIER",
+            "nullable": false
+          },
+          "month": {
+            "dbType": "NVARCHAR(MAX)",
+            "nullable": false
+          },
+          "amount": {
+            "dbType": "DECIMAL(18,2)",
+            "nullable": false
+          },
+          "owner_email": {
+            "dbType": "NVARCHAR(320)",
+            "nullable": false
+          }
+        },
+        "constraints": {
+          "primaryKey": {
+            "name": "PK_Actuals",
+            "columns": [
+              "id"
+            ]
+          },
+          "foreignKeys": [
+            {
+              "name": "FK_Actuals_department_id",
+              "columns": [
+                "department_id"
+              ],
+              "referencedTable": "Departments",
+              "referencedColumns": [
+                "id"
+              ]
+            }
+          ],
+          "checkConstraints": [
+            {
+              "name": "CK_Actuals_owner_email_email",
+              "expression": "[owner_email] LIKE '_%@_%._%' AND CHARINDEX(' ', [owner_email]) = 0"
+            }
+          ]
+        }
+      },
+      "relationships": {
+        "department": {
+          "cardinality": "one",
+          "target.entity": "Department",
+          "source.fields": [
+            "department_id"
+          ],
+          "target.fields": [
+            "id"
+          ]
+        }
+      }
+    }
+  }
+}

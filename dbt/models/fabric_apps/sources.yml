@@ -1,0 +1,33 @@
+version: 2
+
+# Bronze tables written by the Fabric-style app mirror (apps/api/app/services/fabric_apps/mirror.py),
+# the local stand-in for Fabric SQL database -> OneLake mirroring. Enabled only when the app pipeline
+# runs dbt with --vars '{"fabric_apps_enabled": true}', so the main project build is unaffected.
+sources:
+  - name: fabric_app
+    database: contoso
+    schema: bronze
+    config:
+      enabled: "{{ var('fabric_apps_enabled', false) }}"
+    tables:
+      - name: sfapp_departments
+        columns:
+          - name: id
+            data_tests: [not_null, unique]
+          - name: code
+            data_tests: [not_null, unique]
+      - name: sfapp_forecasts
+        columns:
+          - name: id
+            data_tests: [not_null, unique]
+          - name: department_id
+            data_tests:
+              - not_null
+              - relationships:
+                  arguments:
+                    to: source('fabric_app', 'sfapp_departments')
+                    field: id
+      - name: sfapp_actuals
+        columns:
+          - name: id
+            data_tests: [not_null, unique]

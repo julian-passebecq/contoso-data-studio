@@ -1,0 +1,57 @@
+.faPage{display:grid;gap:16px}
+.faHeader{display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:16px}
+.faHeader>div,.faCardHead>div{display:grid;gap:2px}
+.faHeader code,.faChartCard code{font-size:12px}
+.faRole{display:grid;gap:4px;font-size:12px;color:#555}
+.faRole select{padding:7px 10px;border:1px solid #c8c8cc;border-radius:6px;background:#fff;min-width:280px;font:inherit;font-size:14px}
+.faRls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-radius:6px;border:1px solid #d6e4f5;background:#f3f8fd}
+.faRls.read{border-color:#e2e2e6;background:#f7f7f8}
+.faPolicy{font-family:Consolas,"Cascadia Code",monospace;font-size:11px;color:#666}
+
+.faPath{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.faStage{border:1px solid #e1e1e3;border-radius:6px;padding:10px 12px;background:#fff;display:grid;gap:3px;min-width:0}
+.faStage span{font-size:11px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.faStage b{font-family:Consolas,"Cascadia Code",monospace;font-size:13px}
+.faStageHead{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#333}
+.faStageHead i{margin-left:auto;font-style:normal;color:#aaa}
+.faDot{width:9px;height:9px;border-radius:50%;background:#c9c9ce;flex:none}
+.faStage.done{border-color:#bcd8bf}
+.faStage.done .faDot{background:#0e7a0d}
+.faStage.pending .faDot{background:#eda100;animation:faPulse 1s infinite}
+.faStage.failed{border-color:#e9b5b5}
+.faStage.failed .faDot{background:#c42b1c}
+@keyframes faPulse{50%{opacity:.35}}
+
+.faKpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.faKpis b{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.faKpis .muted{font-size:11px}
+
+.faGridTwo{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px}
+.faCardHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.faChart svg{width:100%;height:auto;display:block}
+.faLegend{display:flex;gap:16px;font-size:12px;color:#444;margin:4px 0}
+.faLegend span{display:flex;align-items:center;gap:6px}
+.faLegend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.faGrid{stroke:#ececef;stroke-width:1}
+.faBaseline{stroke:#9a9aa0;stroke-width:1}
+.faAxis{font-size:11px;fill:#6a6a6a}
+.faHit{fill:transparent}
+.faHit.active{fill:#f1f1f4}
+.faEdited{fill:none;stroke:#1f1f1f;stroke-width:1;stroke-dasharray:3 3}
+.faTooltip{font-size:12px;min-height:18px;color:#1f1f1f}
+.faEmpty{padding:40px 0;text-align:center;color:#777}
+.faSide{display:grid;gap:8px;align-content:start}
+.faMini{width:100%;border-collapse:collapse;font-size:12px}
+.faMini th,.faMini td{text-align:left;padding:5px 4px;border-bottom:1px solid #eee}
+.faActions{display:flex;gap:8px;flex-wrap:wrap}
+
+.faTableWrap{overflow-x:auto;max-height:560px;overflow-y:auto}
+.faTable{width:100%;border-collapse:collapse;font-size:13px}
+.faTable th{position:sticky;top:0;background:#fff;text-align:left;font-size:11px;color:#666;font-weight:600;padding:8px 6px;border-bottom:1px solid #ddd}
+.faTable td{padding:5px 6px;border-bottom:1px solid #f0f0f2;vertical-align:top}
+.faTable .num{text-align:right;font-variant-numeric:tabular-nums}
+.faTable td.neg{color:#b42318}
+.faTable input{width:100%;min-width:90px;padding:4px 6px;border:1px solid #cfcfd4;border-radius:4px;text-align:inherit;font-variant-numeric:tabular-nums}
+.faTable input[aria-invalid="true"]{border-color:#c42b1c}
+.faTable tr.edited td{background:#f3f8fd}
+.faError{color:#b42318;font-size:11px;margin-top:3px;max-width:220px}
