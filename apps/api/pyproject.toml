@@ -16,7 +16,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dbt = ["dbt-duckdb==1.11.0"]
-dev = ["httpx>=0.28,<1", "pytest>=8,<9"]
+dev = ["httpx>=0.28,<1", "jsonschema>=4.18,<5", "pytest>=8,<9"]
 
 [tool.setuptools.packages.find]
 where = ["."]

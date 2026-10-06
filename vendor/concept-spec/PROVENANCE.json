@@ -1,0 +1,12 @@
+{
+  "artifact": "concept spec v1 JSON Schema (draft 2020-12)",
+  "vendored_path": "vendor/concept-spec/v1/concept-spec.schema.json",
+  "upstream_repo": "julian-passebecq/datapass-mosaicstudio",
+  "upstream_path": "docs/contracts/concept-spec.schema.json",
+  "upstream_sha": "8bc6798b735afff0042af4d9f1162b2acb3128c3",
+  "upstream_file_last_commit": "a77db4a8d0a68054538b11f5e1bd558bfc43c739",
+  "vendored_on": "2026-10-06",
+  "sha256": "7172cc12c37b9627543b27378026e50d8ea61cbeb86a0bf5cc8242f5c8758972",
+  "status": "interim: zod-generated export from upstream origin/main. Replace with spec/concept/v1/concept-spec.schema.json once BRIDGE-SPEC publishes it, then update this record.",
+  "policy": "Do not edit the vendored file; re-vendor from upstream instead."
+}

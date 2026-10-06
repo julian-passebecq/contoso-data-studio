@@ -69,3 +69,8 @@
 .faArchArrow.dashed{stroke-dasharray:4 3}
 .faArchArrowHead{fill:#9a9aa0}
 .faError{color:#b42318;font-size:11px;margin-top:3px;max-width:220px}
+.faConcept{display:grid;gap:10px}
+.faConceptBar{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.faConceptSummary{flex:1 1 240px}
+.faConceptFrame{width:100%;height:720px;border:1px solid var(--colorNeutralStroke2,#d1d1d1);border-radius:6px;background:transparent}
+.faConceptFallback>summary{cursor:pointer;margin-bottom:8px}

@@ -2,6 +2,24 @@ import { describe, expect, it, vi } from "vitest";
 
 import { buildPlanRows, computeKpis, dataPathStages, monthlySeries, validateAmount, validateNote } from "./forecastLogic";
 import { buildArchitecture } from "./architecture";
+import { conceptViewerEnabled, summarizeConcept } from "./conceptViewer";
+
+describe("concept viewer flag", () => {
+  it("is off by default and follows the query string over the build env", () => {
+    expect(conceptViewerEnabled("")).toBe(false);
+    expect(conceptViewerEnabled("?conceptViewer=1")).toBe(true);
+    expect(conceptViewerEnabled("", { VITE_CONCEPT_VIEWER: "1" })).toBe(true);
+    expect(conceptViewerEnabled("?conceptViewer=0", { VITE_CONCEPT_VIEWER: "1" })).toBe(false);
+  });
+  it("summarizes a concept spec", () => {
+    expect(summarizeConcept({
+      format: "datapass.concept-spec", version: 1, id: "x", title: "X", provenance: "synthetic", note: "n",
+      layers: [{ id: "l", label: "L" }], domains: [{ id: "d", label: "D" }],
+      nodes: [{ id: "a", kind: "app", layer: "l", domain: "d", label: "A" }],
+      flows: [{ id: "f", from: "a", to: "a", kind: "auth", label: "F" }, { id: "g", from: "a", to: "a", kind: "data", label: "G" }],
+    })).toBe("1 layers · 1 nodes · 2 flows (auth, data) · SYNTHETIC");
+  });
+});
 import { LocalRayfinClient, LocalRayfinError } from "./localRayfinClient";
 import type { Actual, Department, Forecast, LocalUser, Trace } from "./types";
 
