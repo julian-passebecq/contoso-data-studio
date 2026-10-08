@@ -28,3 +28,4 @@ workspaces/
 apps/web/package-lock.json
 *.tsbuildinfo
 dbt/.user.yml
+qa-evidence/
