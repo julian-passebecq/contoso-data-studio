@@ -45,7 +45,7 @@ class DbtService:
         return models
 
     def _read_manifest(self) -> dict[str, Any] | None:
-        path = self.settings.dbt_path / "target" / "manifest.json"
+        path = self.settings.dbt_target_path / "manifest.json"
         if not path.exists():
             return None
         try:
@@ -184,7 +184,7 @@ class DbtService:
             compiled_code = None
 
         if compiled_code is None and resource_type == "model" and original_file_path:
-            compiled_root = self.settings.dbt_path / "target" / "compiled"
+            compiled_root = self.settings.dbt_target_path / "compiled"
             if compiled_root.exists():
                 for package_dir in sorted(compiled_root.iterdir()):
                     if not package_dir.is_dir():
@@ -271,7 +271,7 @@ class DbtService:
         }
 
     def quality(self) -> dict[str, Any]:
-        run_results_path = self.settings.dbt_path / "target" / "run_results.json"
+        run_results_path = self.settings.dbt_target_path / "run_results.json"
         manifest = self._read_manifest()
         if not run_results_path.exists() or manifest is None:
             return {
@@ -358,7 +358,7 @@ class DbtService:
         }
 
     def _read_run_results(self) -> dict[str, Any] | None:
-        path = self.settings.dbt_path / "target" / "run_results.json"
+        path = self.settings.dbt_target_path / "run_results.json"
         if not path.exists():
             return None
         try:
@@ -440,6 +440,7 @@ class DbtService:
         completed = subprocess.run(
             args,
             cwd=self.settings.dbt_path,
+            env=self.settings.dbt_env(),
             capture_output=True,
             text=True,
             timeout=300,

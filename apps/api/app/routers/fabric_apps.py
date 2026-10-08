@@ -122,6 +122,7 @@ def mirror_status():
         "last_error": lab.mirror.last_error,
         "last_gold": lab.mirror.last_gold,
         "snapshots": lab.mirror.snapshots(12),
+        "provenance": lab.mirror.provenance(),
     }
 
 

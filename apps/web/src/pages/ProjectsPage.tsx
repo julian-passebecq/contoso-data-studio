@@ -11,6 +11,7 @@ import {
   writeTutorialProgress,
 } from "../tutorialProgress";
 import "../projects.css";
+import { scopedKey } from "../workspaceScope";
 
 type TutorialStep = {
   id: string;
@@ -84,14 +85,14 @@ export default function ProjectsPage({
   onNavigate: (page:Page)=>void;
 }) {
   const [selectedScenario,setSelectedScenario] = useState(
-    ()=>localStorage.getItem("contoso-selected-project") || ""
+    ()=>localStorage.getItem(scopedKey("contoso-selected-project")) || ""
   );
   const [progress,setProgress] = useState<Record<string,boolean>>(
     ()=>selectedScenario ? readTutorialProgress(selectedScenario) : {}
   );
   const preparing=opening;
   const [group,setGroup] = useState<ProjectGroup>(()=>{
-    const saved=localStorage.getItem("contoso-project-group");
+    const saved=localStorage.getItem(scopedKey("contoso-project-group"));
     return saved==="samples" ? "samples" : "foil";
   });
 
@@ -127,7 +128,7 @@ export default function ProjectsPage({
 
   function switchGroup(next:ProjectGroup) {
     setGroup(next);
-    localStorage.setItem("contoso-project-group",next);
+    localStorage.setItem(scopedKey("contoso-project-group"),next);
   }
 
   function openStep(step:TutorialStep) {

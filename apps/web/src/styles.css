@@ -182,3 +182,18 @@ main{padding:28px 32px;min-width:0}
 }
 .themePicker{display:flex;align-items:center;gap:6px;margin-left:8px;font-size:11px;color:#666}
 .themePicker select{padding:3px 6px;border:1px solid #d1d1d5;border-radius:5px;background:#fff;color:inherit;font:inherit;font-size:12px}
+
+/* Local workspaces and Mosaic export (07-contoso F07/F10) */
+.workspacePicker select { max-width: 14rem; }
+.workspaceDialog { display: grid; gap: 12px; }
+.workspaceList { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.workspaceList li { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 8px 10px; border: 1px solid var(--colorNeutralStroke2, #d6d6d6); border-radius: 6px; }
+.workspaceList li > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+.workspaceActive { color: var(--colorPaletteGreenForeground1, #107c10); }
+.workspaceForm { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+.workspaceBackups { display: grid; gap: 8px; }
+.successText { color: var(--colorPaletteGreenForeground1, #107c10); }
+.exportPanel .buttonRow a { margin-right: 12px; }
+.exportLatest { display: grid; gap: 6px; padding-top: 4px; }
+.exportHistory { margin: 6px 0 0; padding-left: 18px; }
+.apiDown { margin-bottom: 12px; }

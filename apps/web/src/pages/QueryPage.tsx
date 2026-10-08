@@ -5,6 +5,7 @@ import { SkeletonTable } from "../motion";
 import DataTable from "../components/DataTable";
 import type { CatalogTable, QueryResult, WorkspaceProjectState } from "../types";
 import { completeTutorialStep, isGoldQuery } from "../tutorialProgress";
+import { scopedKey } from "../workspaceScope";
 
 const DEFAULT_SQL = "select *\nfrom contoso.bronze.sales\nlimit 100;";
 
@@ -45,7 +46,7 @@ export default function QueryPage({initialSql,initialProjectState}:{initialSql?:
   const [running,setRunning] = useState(false);
   const [projectState,setProjectState] = useState<WorkspaceProjectState|null>(initialProjectState ?? null);
   const [history,setHistory] = useState<HistoryItem[]>(()=>{
-    try { return JSON.parse(localStorage.getItem("contoso-query-history") ?? "[]"); }
+    try { return JSON.parse(localStorage.getItem(scopedKey("contoso-query-history")) ?? "[]"); }
     catch { return []; }
   });
 
@@ -79,7 +80,7 @@ export default function QueryPage({initialSql,initialProjectState}:{initialSql?:
       const item:HistoryItem = {sql,ranAt:new Date().toISOString(),rows:next.row_count};
       setHistory(previous=>{
         const updated=[item,...previous.filter(entry=>entry.sql!==sql)].slice(0,12);
-        localStorage.setItem("contoso-query-history",JSON.stringify(updated));
+        localStorage.setItem(scopedKey("contoso-query-history"),JSON.stringify(updated));
         return updated;
       });
     } catch (err) {
@@ -161,7 +162,7 @@ export default function QueryPage({initialSql,initialProjectState}:{initialSql?:
           description="Stored locally in this browser"
           action={history.length?<Button onClick={()=>{
             setHistory([]);
-            localStorage.removeItem("contoso-query-history");
+            localStorage.removeItem(scopedKey("contoso-query-history"));
           }}>Clear</Button>:undefined}
         />
         <div className="queryHistory">

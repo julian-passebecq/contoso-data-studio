@@ -1,3 +1,5 @@
+import { scopedKey } from "./workspaceScope";
+
 export type TutorialStepId =
   | "prepare"
   | "explore"
@@ -11,15 +13,15 @@ const SELECTED_PROJECT_KEY = "contoso-selected-project";
 const PROGRESS_EVENT = "contoso:tutorial-progress";
 
 export function tutorialProgressKey(scenario:string) {
-  return `contoso-project-progress:${scenario}`;
+  return scopedKey(`contoso-project-progress:${scenario}`);
 }
 
 export function getSelectedProjectScenario() {
-  return localStorage.getItem(SELECTED_PROJECT_KEY) || null;
+  return localStorage.getItem(scopedKey(SELECTED_PROJECT_KEY)) || null;
 }
 
 export function setSelectedProjectScenario(scenario:string) {
-  localStorage.setItem(SELECTED_PROJECT_KEY,scenario);
+  localStorage.setItem(scopedKey(SELECTED_PROJECT_KEY),scenario);
 }
 
 export function readTutorialProgress(scenario:string):Record<string,boolean> {

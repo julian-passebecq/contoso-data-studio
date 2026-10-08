@@ -123,6 +123,7 @@ class ChartsService:
                 str(self.settings.dbt_path),
             ],
             cwd=self.settings.project_root,
+            env=self.settings.dbt_env(),
             capture_output=True,
             text=True,
             timeout=120,

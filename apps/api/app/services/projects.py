@@ -21,13 +21,18 @@ class ProjectService:
         active = self.generator.active_run()
         digest = hashlib.sha256(json.dumps(active, sort_keys=True).encode())
         root = self.generator.settings.dbt_path
-        paths = [root / "dbt_project.yml", root / "profiles.yml", root / "target/run_results.json"]
+        paths = [root / "dbt_project.yml", root / "profiles.yml"]
         for folder in ("models", "macros"):
             paths.extend(sorted((root / folder).rglob("*")))
         for path in paths:
             if path.is_file():
                 digest.update(path.relative_to(root).as_posix().encode())
                 digest.update(path.read_bytes())
+        target = getattr(self.generator.settings, "dbt_target_path", root / "target")
+        run_results = target / "run_results.json"
+        if run_results.is_file():
+            digest.update(b"target/run_results.json")
+            digest.update(run_results.read_bytes())
         return digest.hexdigest()
 
     def _quality_ok(self):

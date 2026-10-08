@@ -6,6 +6,7 @@ import type { GenerationRunDetail, QueryResult } from "../types";
 import { completeTutorialStep } from "../tutorialProgress";
 import { CountUp, SkeletonCards } from "../motion";
 import "../charts.css";
+import ExportPanel from "../components/ExportPanel";
 const FoilDashboard = lazy(()=>import("../components/FoilDashboard"));
 
 type ChartsStatus = {
@@ -457,5 +458,6 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
       {validation?.output && <details className="consoleDetails"><summary>Validation output</summary><pre>{validation.output}</pre></details>}
       <div className="serveHint"><Text className="muted tiny">Live dbt Charts renderer:</Text><code>dct serve --project-dir . --dbt-project-dir dbt</code></div>
     </Card>
+    <ExportPanel/>
   </div>;
 }
