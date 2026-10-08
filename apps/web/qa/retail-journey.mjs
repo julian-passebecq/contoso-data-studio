@@ -55,8 +55,7 @@ async function switchWorkspace(id) {
   const select = await workspaceSelect();
   await Promise.all([page.waitForEvent("load"), select.selectOption(id)]);
   await page.getByText("Contoso Data Studio").first().waitFor();
-  await (await workspaceSelect()).waitFor();
-  assert.equal(await (await workspaceSelect()).inputValue(), id);
+  await page.waitForFunction(value => document.querySelector('select[aria-label="Local workspace"]')?.value === value, id, { timeout: 60000 });
   assert.equal((await api("/api/health")).body.workspace_id, id);
 }
 async function openProject(scenario) {

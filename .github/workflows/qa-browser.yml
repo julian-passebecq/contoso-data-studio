@@ -70,3 +70,25 @@ jobs:
           name: contoso-v1-browser-smoke
           path: apps/web/qa-artifacts
           if-no-files-found: warn
+
+      - name: Real retail journey (workspaces, restart reopen, fault/repair, export, a11y)
+        run: python tools/qa_retail_journey.py --out qa-evidence/retail-journey
+
+      - name: Validate journey export with MosaicStudio's own validators
+        run: |
+          git clone --quiet --depth 1 --branch studio-v0.8.1 https://github.com/julian-passebecq/datapass-mosaicstudio.git /tmp/mosaic
+          git -C /tmp/mosaic fetch --quiet --depth 1 origin tag studio-v0.8.1
+          node tools/validate_with_mosaic.mjs --mosaic /tmp/mosaic --ref studio-v0.8.1 \
+            --export qa-evidence/retail-journey/export --concept qa-evidence/retail-journey/contoso-sales-forecasting.concept.json
+
+      - name: Upload journey evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: retail-journey-evidence
+          path: |
+            qa-evidence/retail-journey/evidence.json
+            qa-evidence/retail-journey/screenshots/
+            qa-evidence/retail-journey/export/
+            qa-evidence/retail-journey/*.log
+          if-no-files-found: warn
