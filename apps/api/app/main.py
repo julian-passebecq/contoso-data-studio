@@ -81,12 +81,14 @@ def _switch(workspace_id: str) -> dict:
         raise HTTPException(409, detail="Another workspace switch is in progress.")
     try:
         target = workspaces.settings_for(workspace_id)
+        # Stop the app lab mirror first: its worker takes the catalog lock, so joining it while
+        # holding that lock would deadlock. It is recreated lazily for the new workspace.
+        set_lab(None)
         # Wait for an in-flight dbt run / project open on the current catalog to finish.
         lock = catalog_lock(settings.catalog_path)
         if not lock.acquire(timeout=30):
             raise HTTPException(409, detail="The current workspace is busy (dbt or a project is running).")
         try:
-            set_lab(None)  # the app lab holds its own store/mirror for the old workspace
             _bind(workspaces.activate(target.workspace_id))
         finally:
             lock.release()

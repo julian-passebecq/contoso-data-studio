@@ -1,7 +1,7 @@
 {
  "format": "contoso.datapass-react-traces",
  "version": 1,
- "source_commit": "61353848b4e7e129e03ea8aedfc2794a17667de3",
+ "source_commit": "5773a8f07624d6a919278a43ed7afa75e9c00068",
  "traces": [
   {
    "id": "charts-kpi-revenue",
@@ -11,32 +11,32 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/ChartsPage.tsx",
-     "start": 278,
-     "end": 287,
+     "start": 280,
+     "end": 289,
      "symbol": "contoso.gold.monthly_sales",
      "note": "Default (retail-baseline) branch posts two literal SQL strings to /api/query"
     },
     {
      "layer": "react",
      "path": "apps/web/src/api.ts",
-     "start": 13,
-     "end": 19,
+     "start": 32,
+     "end": 38,
      "symbol": "postJson",
      "note": "POST JSON helper wrapping fetch"
     },
     {
      "layer": "http",
      "path": "apps/web/src/pages/ChartsPage.tsx",
-     "start": 279,
-     "end": 279,
+     "start": 280,
+     "end": 280,
      "symbol": "\"/api/query\"",
      "note": "POST /api/query body {sql,limit}"
     },
     {
      "layer": "api",
      "path": "apps/api/app/main.py",
-     "start": 375,
-     "end": 388,
+     "start": 449,
+     "end": 462,
      "symbol": "def query",
      "note": "FastAPI route POST /api/query -> ducklake.query"
     },
@@ -51,16 +51,16 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/ChartsPage.tsx",
-     "start": 289,
-     "end": 293,
+     "start": 291,
+     "end": 295,
      "symbol": "label:\"Revenue\"",
      "note": "rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card"
     },
     {
      "layer": "sql",
      "path": "apps/web/src/pages/ChartsPage.tsx",
-     "start": 280,
-     "end": 280,
+     "start": 281,
+     "end": 281,
      "symbol": "sum(revenue)",
      "note": "select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales"
     },
@@ -107,8 +107,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/generator.py",
-     "start": 650,
-     "end": 650,
+     "start": 655,
+     "end": 655,
      "symbol": "AS net_revenue",
      "note": "Parquet net_revenue = round(net_revenue_local*exchange_rate_to_usd,2)"
     },
@@ -139,16 +139,16 @@
     {
      "layer": "react",
      "path": "apps/web/src/api.ts",
-     "start": 13,
-     "end": 19,
+     "start": 32,
+     "end": 38,
      "symbol": "postJson",
      "note": "POST JSON helper wrapping fetch"
     },
     {
      "layer": "api",
      "path": "apps/api/app/main.py",
-     "start": 375,
-     "end": 388,
+     "start": 449,
+     "end": 462,
      "symbol": "def query",
      "note": "POST /api/query"
     },
@@ -182,16 +182,16 @@
     {
      "layer": "react",
      "path": "apps/web/src/api.ts",
-     "start": 9,
-     "end": 11,
+     "start": 28,
+     "end": 30,
      "symbol": "getJson",
      "note": "GET helper"
     },
     {
      "layer": "api",
      "path": "apps/api/app/main.py",
-     "start": 192,
-     "end": 197,
+     "start": 266,
+     "end": 271,
      "symbol": "def catalog",
      "note": "GET /api/lakehouse/catalog -> {tables}"
     },
@@ -232,16 +232,16 @@
     {
      "layer": "react",
      "path": "apps/web/src/api.ts",
-     "start": 13,
-     "end": 19,
+     "start": 32,
+     "end": 38,
      "symbol": "postJson",
      "note": "POST JSON helper wrapping fetch"
     },
     {
      "layer": "api",
      "path": "apps/api/app/main.py",
-     "start": 326,
-     "end": 340,
+     "start": 400,
+     "end": 414,
      "symbol": "def dbt_run",
      "note": "POST /api/dbt/{command}"
     },
@@ -291,56 +291,56 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/ProjectsPage.tsx",
-     "start": 120,
-     "end": 126,
+     "start": 121,
+     "end": 127,
      "symbol": "prepareProject",
      "note": "Button handler calls onOpenProject"
     },
     {
      "layer": "react",
      "path": "apps/web/src/App.tsx",
-     "start": 74,
-     "end": 84,
+     "start": 88,
+     "end": 98,
      "symbol": "/api/projects/${project.scenario}/open",
      "note": "openProject posts to the open route"
     },
     {
      "layer": "react",
      "path": "apps/web/src/api.ts",
-     "start": 13,
-     "end": 19,
+     "start": 32,
+     "end": 38,
      "symbol": "postJson",
      "note": "POST JSON helper wrapping fetch"
     },
     {
      "layer": "api",
      "path": "apps/api/app/main.py",
-     "start": 53,
-     "end": 62,
+     "start": 127,
+     "end": 136,
      "symbol": "def open_project",
      "note": "POST /api/projects/{scenario}/open"
     },
     {
      "layer": "service",
      "path": "apps/api/app/services/projects.py",
-     "start": 37,
-     "end": 46,
+     "start": 42,
+     "end": 51,
      "symbol": "def open",
      "note": "Lock, catalog lock, then _open"
     },
     {
      "layer": "service",
      "path": "apps/api/app/services/projects.py",
-     "start": 65,
-     "end": 65,
+     "start": 70,
+     "end": 70,
      "symbol": "self.generator.generate",
      "note": "Generates parquet for scenario"
     },
     {
      "layer": "service",
      "path": "apps/api/app/services/projects.py",
-     "start": 76,
-     "end": 76,
+     "start": 81,
+     "end": 81,
      "symbol": "load_parquet_to_bronze",
      "note": "Loads parquet into bronze"
     },
@@ -355,8 +355,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/projects.py",
-     "start": 79,
-     "end": 79,
+     "start": 84,
+     "end": 84,
      "symbol": "self.dbt.run(\"build\")",
      "note": "dbt build to produce Silver/Gold"
     },
@@ -429,6 +429,182 @@
     "Concept content comes from the compiled model file (data); no SQL or Gold field is involved.",
     "Viewer iframe URL /vendor/concept-viewer/concept-viewer.html is served by vite.config.ts, not traced."
    ]
+  },
+  {
+   "id": "charts-export-mosaic",
+   "title": "Charts export for Mosaic: Gold mart artifact (monthly_sales.revenue, unit USD)",
+   "status": "RESOLVED",
+   "steps": [
+    {
+     "layer": "react",
+     "path": "apps/web/src/components/ExportPanel.tsx",
+     "start": 49,
+     "end": 54,
+     "symbol": "\"/api/exports/artifact\"",
+     "note": "exportNow() posts {mart}; mart is chosen from gold_tables returned by GET /api/exports"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/api.ts",
+     "start": 32,
+     "end": 38,
+     "symbol": "postJson",
+     "note": "POST JSON helper wrapping fetch"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/main.py",
+     "start": 470,
+     "end": 475,
+     "symbol": "def export_artifact",
+     "note": "POST /api/exports/artifact -> exports.export(mart, columns, max_rows)"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/main.py",
+     "start": 38,
+     "end": 38,
+     "symbol": "ExportService(settings",
+     "note": "exports service bound per workspace in _bind"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/exports.py",
+     "start": 162,
+     "end": 165,
+     "symbol": "def export",
+     "note": "Mart must match _MART and be in gold_tables() (catalog gold schema)"
+    },
+    {
+     "layer": "sql",
+     "path": "apps/api/app/services/exports.py",
+     "start": 183,
+     "end": 183,
+     "symbol": "DESCRIBE contoso.gold.",
+     "note": "DESCRIBE the Gold mart for column names and types"
+    },
+    {
+     "layer": "sql",
+     "path": "apps/api/app/services/exports.py",
+     "start": 193,
+     "end": 194,
+     "symbol": "SELECT count(*) FROM contoso.gold.",
+     "note": "Row count then bounded SELECT of columns ORDER BY"
+    },
+    {
+     "layer": "sql",
+     "path": "apps/api/app/services/exports.py",
+     "start": 197,
+     "end": 197,
+     "symbol": "COPY (SELECT * FROM contoso.gold.",
+     "note": "COPY mart to parquet artifact"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/exports.py",
+     "start": 42,
+     "end": 44,
+     "symbol": "\"revenue\": \"USD\"",
+     "note": "UNITS declares unit USD for the revenue column"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/exports.py",
+     "start": 220,
+     "end": 221,
+     "symbol": "column[\"unit\"] = UNITS[name]",
+     "note": "Unit attached to exported column"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/gold/monthly_sales.sql",
+     "start": 8,
+     "end": 8,
+     "symbol": "as revenue",
+     "note": "revenue = round(sum(net_revenue),2)"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/silver/stg_sales.sql",
+     "start": 20,
+     "end": 20,
+     "symbol": "as net_revenue",
+     "note": "net_revenue is USD-normalised in Silver"
+    },
+    {
+     "layer": "gold",
+     "path": "dbt/models/gold/monthly_sales.sql",
+     "start": 8,
+     "end": 8,
+     "symbol": "revenue",
+     "note": "FIELD contoso.gold.monthly_sales.revenue, unit USD"
+    }
+   ],
+   "unresolved": []
+  },
+  {
+   "id": "workspace-switch",
+   "title": "Workspace switch: activate a named workspace",
+   "status": "RESOLVED",
+   "steps": [
+    {
+     "layer": "react",
+     "path": "apps/web/src/components/WorkspaceSwitcher.tsx",
+     "start": 79,
+     "end": 85,
+     "symbol": "/api/workspaces/${encodeURIComponent(id)}/activate",
+     "note": "activate(id) posts then reloads the page"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/api.ts",
+     "start": 32,
+     "end": 38,
+     "symbol": "postJson",
+     "note": "POST JSON helper wrapping fetch"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/main.py",
+     "start": 100,
+     "end": 102,
+     "symbol": "def activate_workspace",
+     "note": "POST /api/workspaces/{workspace_id}/activate -> _switch"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/main.py",
+     "start": 79,
+     "end": 97,
+     "symbol": "def _switch",
+     "note": "Takes switch lock and catalog lock, then _bind(workspaces.activate(...))"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/main.py",
+     "start": 27,
+     "end": 38,
+     "symbol": "def _bind",
+     "note": "Recreates every workspace-scoped service from the new Settings"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/workspaces.py",
+     "start": 129,
+     "end": 134,
+     "symbol": "def activate",
+     "note": "settings_for(id), config.set_active, writes pointer file"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/config.py",
+     "start": 67,
+     "end": 74,
+     "symbol": "def catalog_path",
+     "note": "Settings.catalog_path = workspace/contoso.ducklake.sqlite (or CONTOSO_DUCKLAKE_CATALOG for the default workspace)"
+    }
+   ],
+   "unresolved": []
   }
  ]
 }
