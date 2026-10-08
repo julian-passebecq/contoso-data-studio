@@ -19,7 +19,11 @@ const record = { checks: [], exceptions: [], httpErrors: [], allowedHttpErrors: 
 let expectFailure = false;
 
 const browser = await chromium.launch();
-const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+// One browser profile across phases (like a real user): browser-side history survives an API restart.
+const storagePath = `${statePath}.storage.json`;
+let storageState;
+try { storageState = JSON.parse(await readFile(storagePath, "utf8")); } catch { storageState = undefined; }
+const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, storageState });
 const page = await context.newPage();
 page.on("pageerror", e => record.exceptions.push(e.message));
 page.on("response", r => {
@@ -224,6 +228,7 @@ try {
 } finally {
   state.phases[phase] = record;
   await writeFile(statePath, JSON.stringify(state, null, 2));
+  await context.storageState({ path: storagePath }).catch(() => {});
   await browser.close();
 }
 if (!record.ok) { console.error(record.error); process.exit(1); }
