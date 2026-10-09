@@ -17,7 +17,6 @@ from app.services.fabric_apps.concept import CONCEPT_FILENAME, concept_bytes
 from app.services.fabric_apps.mirror import GOLD_MODEL, bronze_table
 from app.services.fabric_apps.model import load_model
 from app.services.fabric_apps.policy import LocalUser, PolicyDenied
-from app.services.fabric_apps.retail import read_retail_actuals
 from app.services.fabric_apps.store import USERS, NotFound, ValidationError, user_by_id
 
 router = APIRouter(prefix=f"/api/fabric-apps/{APP_SLUG}", tags=["fabric-apps"])
@@ -176,6 +175,8 @@ def retail_actuals(x_local_user: str | None = Header(default=None)):
 
     Same department scope as /gold. Disabled with CONTOSO_RETAIL_GOLD_TO_APP=0.
     """
+    from app.services.fabric_apps.retail import read_retail_actuals  # local: keeps traced line numbers above stable
+
     user = _user(x_local_user)
     result = read_retail_actuals(get_lab().ducklake)
     if user.app_role != "executive":
