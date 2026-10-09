@@ -169,6 +169,21 @@ def gold(x_local_user: str | None = Header(default=None)):
     return {"ready": True, "items": items, "last_gold": lab.mirror.last_gold}
 
 
+@router.get("/retail-actuals")
+def retail_actuals(x_local_user: str | None = Header(default=None)):
+    """Optional retail Gold -> app read (GOLD-MAPPING.md section 3): a labelled, non-authoritative copy.
+
+    Same department scope as /gold. Disabled with CONTOSO_RETAIL_GOLD_TO_APP=0.
+    """
+    from app.services.fabric_apps.retail import read_retail_actuals  # local: keeps traced line numbers above stable
+
+    user = _user(x_local_user)
+    result = read_retail_actuals(get_lab().ducklake)
+    if user.app_role != "executive":
+        result["items"] = [item for item in result["items"] if item["department_code"] == user.department_code]
+    return result
+
+
 @router.get("/trace")
 def trace(seq: int | None = Query(default=None, ge=1)):
     lab = get_lab()

@@ -47,6 +47,24 @@ models:
               arguments:
                 values: ["Online", "Store"]
 
+  - name: monthly_sales_by_country
+    description: Monthly revenue by channel and store country (source of the optional Fabric app retail Actual read).
+    columns:
+      - name: scenario
+        data_tests: [not_null]
+      - name: order_month
+        data_tests: [not_null]
+      - name: channel
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Online", "Store"]
+      - name: store_country
+        data_tests: [not_null]
+      - name: revenue
+        data_tests: [not_null]
+
   - name: channel_performance
     description: Annual channel mix and revenue share, primarily for the online-migration scenario.
     columns:

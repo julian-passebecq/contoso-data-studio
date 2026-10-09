@@ -17,7 +17,7 @@ and is checked by `apps/api/tests/test_rayfin_boundary.py`. Line numbers below a
 ```text
 app (SQLite)  ──mirror worker──▶  contoso.bronze.sfapp_*  ──dbt build──▶  contoso.gold.forecast_vs_actual
    ▲ writeback (finance users)        copy + _mirrored_at                 app Gold, read-only for the app
-retail contoso.gold.* (monthly_sales, …)  ──╳──  app      (optional read, declared, disabled)
+retail contoso.gold.monthly_sales_by_country  ──read-only, pinned snapshot──▶  GET /retail-actuals (copy, on by default)
 ```
 
 ### 1. App → Bronze (mirror, `APP_TO_BRONZE`, `mapping.py:33`)
@@ -49,17 +49,48 @@ replaces the table (`mirror.py:139`); an incremental batch deletes and re-insert
 
 The app reads it back through the read-only SQL path (`routers/fabric_apps.py:152`), scoped by department.
 
-### 3. Retail Gold → app (`RETAIL_GOLD_TO_APP`, `mapping.py:74`) — optional, **disabled**
+### 3. Retail Gold → app (`RETAIL_GOLD_TO_APP`, `RETAIL_DEPARTMENTS` in `mapping.py`) — optional, **on by default**
+
+Served by `GET /api/fabric-apps/sales-forecasting/retail-actuals` (`retail.py`), scoped by department like
+`/gold` (a finance user sees its own department, the executive sees all). Turn it off with
+`CONTOSO_RETAIL_GOLD_TO_APP=0` (the flag behind `OptionalGoldRead.enabled`); the endpoint then answers
+`{"enabled": false, "ready": false, "items": []}`.
 
 | Retail Gold column | App field | Transform | Enabled |
 |---|---|---|---|
-| `monthly_sales.order_month` | `Actual.month` | `strftime(order_month, '%Y-%m')` | no |
-| `monthly_sales.revenue` | `Actual.amount` | sum per month for the department's channel/countries | no |
+| `monthly_sales_by_country.order_month` | `Actual.month` | `strftime(order_month, '%Y-%m')` | yes |
+| `monthly_sales_by_country.channel` | `Department.code` | department slice per `RETAIL_DEPARTMENTS` | yes |
+| `monthly_sales_by_country.store_country` | `Department.code` | department slice per `RETAIL_DEPARTMENTS` (store channel only) | yes |
+| `monthly_sales_by_country.revenue` | `Actual.amount` | sum per scenario, department and month, `decimal(18,2)` | yes |
 
-Today `Actual` rows are the **synthetic seed** in `store.py:131` (`reset`), not retail Gold. Wiring this
-read needs a product decision (how retail channels and countries map to `NORD`/`SOUTH`/`ONLINE`). If it is
-wired, the copied rows must carry the Gold table, the DuckLake snapshot id and the read time, and stay
-labelled as a copy.
+`monthly_sales_by_country` (`dbt/models/gold/monthly_sales_by_country.sql`) is a new retail Gold model built
+by `dbt build` from `stg_sales`: `monthly_sales` has no country, and the split needs one. It sums to the same
+revenue as `monthly_sales`.
+
+**Department mapping (decided 2026-10-09, synthetic Contoso default).** The generator writes two channels
+(`Online`, `Store`) and five store countries (Norway, Switzerland, France, Germany, United Kingdom; every sales
+line, online included, carries the country of its store).
+
+| App department | Retail slice | Share of its channel's USD revenue (retail-baseline, 20 000 lines, seed 42) |
+|---|---|---|
+| `ONLINE` (Online Sales) | channel `Online`, every country | 100 % of online |
+| `NORD` (Nordic Retail) | channel `Store`, Norway + Germany + United Kingdom | 52.6 % of store (Norway 2.4, Germany 19.1, UK 31.1) |
+| `SOUTH` (Southern Europe) | channel `Store`, France + Switzerland | 47.4 % of store (France 24.1, Switzerland 23.3) |
+
+Why: the app's departments are one online team and two regional store teams, so the channel decides first
+and geography only splits stores. Norway alone would make `NORD` about 2 % of store revenue (NOK converts at
+~0.095 USD), so the northern half of the five countries goes to `NORD` and the two southern ones to `SOUTH`,
+which gives two comparable regions (the online-migration scenario gives 52.6 / 47.4 too). Every
+(channel, country) pair lands in exactly one department (tested); a country the mapping does not know is
+returned under `unmapped`, never dropped or guessed. Change the split only in `RETAIL_DEPARTMENTS`.
+
+Authority stays as above: the read goes through the read-only SQL path, pinned to the latest DuckLake
+snapshot (`AT (VERSION => n)`), creates no snapshot and writes nothing to Gold or to the app store. The
+response is labelled `provenance.kind: "copy"`, `authoritative: false`, with `source` (Gold table),
+`snapshot_id`, `read_at` and the department mapping; every item repeats `gold_table`, `snapshot_id` and
+`read_at` in `_provenance`. The app's own `Actual` rows remain the synthetic 2026 seed in `store.py`
+(`reset`): retail data covers 2024–2025, so the two sit side by side and nothing is overwritten. Before
+retail Gold is built the endpoint answers `ready: false` with the error, no invented rows.
 
 ### 4. Writeback
 
@@ -89,7 +120,7 @@ write against `contoso.gold` (tested).
 
 ## Not supported
 
-- Retail Gold → app reads (declared, disabled, see 3).
+- Writing retail Gold rows into the app's `Actual` table (the retail read is served side by side, see 3).
 - Any app → retail Gold write, or editing app Gold outside `dbt build`.
 - Real Fabric mirroring, OneLake, SQL analytics endpoint or Entra ID (see [README](README.md), [ADR-001](ADR-001.md)).
 - Per-row snapshot ids inside Bronze (use `_mirrored_at` plus DuckLake snapshots).
