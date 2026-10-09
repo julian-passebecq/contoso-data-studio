@@ -16,7 +16,8 @@ let state = {};
 try { state = JSON.parse(await readFile(statePath, "utf8")); } catch { state = {}; }
 state.phases ??= {};
 const record = { checks: [], exceptions: [], httpErrors: [], allowedHttpErrors: [] };
-let expectFailure = false;
+// The api-down phase starts with the API stopped: every /api error there is the expected state.
+let expectFailure = phase === "api-down";
 
 const browser = await chromium.launch();
 // One browser profile across phases (like a real user): browser-side history survives an API restart.
@@ -97,7 +98,7 @@ async function exportGold() {
 const REVENUE_SQL = "select scenario, round(sum(revenue),2) as revenue from contoso.gold.monthly_sales group by 1";
 
 try {
-  await page.goto(base, { waitUntil: "networkidle" });
+  await page.goto(base, { waitUntil: phase === "api-down" ? "load" : "networkidle" });
   await page.getByText("Contoso Data Studio").first().waitFor();
 
   if (phase === "build") {
