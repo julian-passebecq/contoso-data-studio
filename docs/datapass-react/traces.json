@@ -11,8 +11,8 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/ChartsPage.tsx",
-     "start": 280,
-     "end": 289,
+     "start": 286,
+     "end": 295,
      "symbol": "contoso.gold.monthly_sales",
      "note": "Default (retail-baseline) branch posts two literal SQL strings to /api/query"
     },
@@ -27,8 +27,8 @@
     {
      "layer": "http",
      "path": "apps/web/src/pages/ChartsPage.tsx",
-     "start": 280,
-     "end": 280,
+     "start": 286,
+     "end": 286,
      "symbol": "\"/api/query\"",
      "note": "POST /api/query body {sql,limit}"
     },
@@ -51,16 +51,16 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/ChartsPage.tsx",
-     "start": 291,
-     "end": 295,
+     "start": 297,
+     "end": 301,
      "symbol": "label:\"Revenue\"",
      "note": "rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card"
     },
     {
      "layer": "sql",
      "path": "apps/web/src/pages/ChartsPage.tsx",
-     "start": 281,
-     "end": 281,
+     "start": 287,
+     "end": 287,
      "symbol": "sum(revenue)",
      "note": "select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales"
     },

@@ -9,13 +9,13 @@ Charts KPIs: Revenue card and monthly revenue chart (Gold monthly_sales.revenue)
 
 | Layer | Location | Symbol | Note |
 |---|---|---|---|
-| react | `apps/web/src/pages/ChartsPage.tsx:280-289` | `contoso.gold.monthly_sales` | Default (retail-baseline) branch posts two literal SQL strings to /api/query |
+| react | `apps/web/src/pages/ChartsPage.tsx:286-295` | `contoso.gold.monthly_sales` | Default (retail-baseline) branch posts two literal SQL strings to /api/query |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | POST JSON helper wrapping fetch |
-| http | `apps/web/src/pages/ChartsPage.tsx:280-280` | `"/api/query"` | POST /api/query body {sql,limit} |
+| http | `apps/web/src/pages/ChartsPage.tsx:286-286` | `"/api/query"` | POST /api/query body {sql,limit} |
 | api | `apps/api/app/main.py:502-515` | `def query` | FastAPI route POST /api/query -> ducklake.query |
 | service | `apps/api/app/services/ducklake.py:305-329` | `def query` | Read-only validation, executes statement on DuckLake read-only connection |
-| react | `apps/web/src/pages/ChartsPage.tsx:291-295` | `label:"Revenue"` | rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card |
-| sql | `apps/web/src/pages/ChartsPage.tsx:281-281` | `sum(revenue)` | select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales |
+| react | `apps/web/src/pages/ChartsPage.tsx:297-301` | `label:"Revenue"` | rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card |
+| sql | `apps/web/src/pages/ChartsPage.tsx:287-287` | `sum(revenue)` | select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales |
 | dbt | `dbt/models/gold/monthly_sales.sql:8-8` | `as revenue` | revenue = round(sum(net_revenue),2) grouped by scenario, order_month, channel |
 | dbt | `dbt/models/gold/monthly_sales.sql:12-12` | `ref('stg_sales')` | Gold reads Silver |
 | dbt | `dbt/models/silver/stg_sales.sql:20-20` | `as net_revenue` | net_revenue = cast(net_revenue as decimal(18,2)) |
