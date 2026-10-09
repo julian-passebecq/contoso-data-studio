@@ -37,10 +37,13 @@ def get_lab() -> FabricAppLab:
         return _lab
 
 
-def set_lab(lab: FabricAppLab | None) -> None:
-    """Test hook."""
+def set_lab(lab: FabricAppLab | None, wait: bool = True) -> None:
+    """Replace the lab (test hook; workspace switch). wait=False stops the old mirror in the background."""
     global _lab
     with _lab_lock:
-        if _lab is not None and _lab is not lab:
-            _lab.mirror.stop()
-        _lab = lab
+        previous, _lab = _lab, lab
+    if previous is not None and previous is not lab:
+        if wait:
+            previous.mirror.stop()
+        else:
+            threading.Thread(target=previous.mirror.stop, name="fabric-app-mirror-stop", daemon=True).start()

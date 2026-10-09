@@ -17,7 +17,6 @@ from app.services.workspace_state import WorkspaceStateService
 from app.services.projects import ProjectService, ProjectBusyError
 from app.services.workspaces import WorkspaceError, WorkspaceRegistry
 from app.services.exports import ExportError, ExportService
-from app.services.catalog_lock import catalog_lock
 from app.services.fabric_apps import set_lab
 
 workspaces = WorkspaceRegistry()
@@ -81,17 +80,11 @@ def _switch(workspace_id: str) -> dict:
         raise HTTPException(409, detail="Another workspace switch is in progress.")
     try:
         target = workspaces.settings_for(workspace_id)
-        # Stop the app lab mirror first: its worker takes the catalog lock, so joining it while
-        # holding that lock would deadlock. It is recreated lazily for the new workspace.
-        set_lab(None)
-        # Wait for an in-flight dbt run / project open on the current catalog to finish.
-        lock = catalog_lock(settings.catalog_path)
-        if not lock.acquire(timeout=30):
-            raise HTTPException(409, detail="The current workspace is busy (dbt or a project is running).")
-        try:
-            _bind(workspaces.activate(target.workspace_id))
-        finally:
-            lock.release()
+        # Every service is rebuilt for the target workspace. Work still in flight (a dbt run, an app-lab
+        # mirror batch) keeps the Settings it started with, so it only ever writes its own workspace's
+        # catalog; nothing has to wait for it. The old mirror stops in the background.
+        set_lab(None, wait=False)
+        _bind(workspaces.activate(target.workspace_id))
         return {"active": settings.workspace_id, "workspace": workspaces.describe(settings)}
     except WorkspaceError as exc:
         raise HTTPException(400, detail=str(exc)) from exc
