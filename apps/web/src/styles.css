@@ -200,6 +200,8 @@ main{padding:28px 32px;min-width:0}
 
 /* Phone and narrow tablet: header wraps, navigation becomes a horizontal strip above the page. */
 @media (max-width: 760px) {
+  body { min-width: 0; }
+  .badges, aside, main, .layout > * { min-width: 0; }
   header { height: auto; flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
   .brand { flex-direction: column; gap: 2px; }
   .badges { flex-wrap: wrap; gap: 6px; align-items: center; }
