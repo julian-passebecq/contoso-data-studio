@@ -133,7 +133,7 @@ def main() -> int:
         "machine": platform.machine(),
         "python": sys.version.split()[0],
         "node": version(["node", "--version"]),
-        "dbt": version(["python", "-c", "import dbt.version as v; print(v.__version__)"]),
+        "dbt": version([sys.executable, "-c", "from importlib.metadata import version; print(version('dbt-core'))"]),
         "web_mode": "production build served by vite preview",
         "phases": [],
     }

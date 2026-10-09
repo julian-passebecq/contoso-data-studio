@@ -1,0 +1,423 @@
+{
+  "$schema": "https://raw.githubusercontent.com/julian-passebecq/datapass-mosaicstudio/main/spec/concept/v1/concept-spec.schema.json",
+  "format": "datapass.concept-spec",
+  "version": 1,
+  "specVersion": "1.0.0",
+  "id": "contoso-sales-forecasting",
+  "title": "Sales Forecasting app (Contoso lab)",
+  "subtitle": "Generated from the compiled Rayfin model and the local data path: SQL DB, mirror, DuckLake, dbt Gold.",
+  "provenance": "synthetic",
+  "note": "SYNTHETIC local lab: fake users, generated data, local stand-ins for Fabric pieces. Not a vendor reference architecture, a tenant or a measured system. Generated from apps/fabric-app-lab/rayfin/generated/model.json (sha256 2ba252d9ec9a).",
+  "layers": [
+    {
+      "id": "lake",
+      "label": "Shared lake",
+      "height": 0,
+      "role": "storage",
+      "description": "DuckLake catalog (local stand-in for OneLake): Bronze mirror tables and Gold marts as Parquet with snapshot history."
+    },
+    {
+      "id": "stores",
+      "label": "Stores",
+      "height": 1,
+      "role": "data",
+      "description": "The app's operational SQL database and the mirrored Bronze tables."
+    },
+    {
+      "id": "sync",
+      "label": "Sync & transform",
+      "height": 1.9,
+      "role": "compute",
+      "description": "The mirror worker copies committed changes to the lake; dbt builds the Gold table."
+    },
+    {
+      "id": "service",
+      "label": "Model & service",
+      "height": 2.9,
+      "role": "serving",
+      "description": "The compiled Rayfin model, the data API generated from it and the read-only SQL path."
+    },
+    {
+      "id": "app",
+      "label": "App & report",
+      "height": 4.1,
+      "role": "experience",
+      "description": "The editable forecast app and the forecast-vs-actual chart."
+    },
+    {
+      "id": "people",
+      "label": "People",
+      "height": 5.1,
+      "role": "users",
+      "description": "Synthetic finance planners and an executive (fake local users)."
+    }
+  ],
+  "domains": [
+    {
+      "id": "operational",
+      "label": "Operational app",
+      "description": "Write path: UI, data API, model and SQL database."
+    },
+    {
+      "id": "analytics",
+      "label": "Analytics",
+      "description": "Read path: mirror, Bronze, dbt Gold, SQL endpoint and chart."
+    },
+    {
+      "id": "access",
+      "label": "Identity & access",
+      "placement": "side",
+      "description": "Cross-cutting sign-in, roles and row policies."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "shared-lake",
+      "kind": "lake",
+      "layer": "lake",
+      "domain": "analytics",
+      "label": "DuckLake (shared lake)",
+      "description": "Single storage layer for Bronze and Gold, with one snapshot per mirror batch.",
+      "sources": [
+        {
+          "path": "apps/api/app/services/ducklake.py"
+        }
+      ]
+    },
+    {
+      "id": "sql-db",
+      "kind": "sql-db",
+      "layer": "stores",
+      "domain": "operational",
+      "label": "Operational SQL DB",
+      "description": "SQLite stand-in for the app's SQL database. Tables: Departments, Forecasts, Actuals.",
+      "sources": [
+        {
+          "path": "apps/api/app/services/fabric_apps/store.py"
+        },
+        {
+          "path": "apps/fabric-app-lab/rayfin/generated/dab-config.json",
+          "note": "table mapping"
+        }
+      ]
+    },
+    {
+      "id": "bronze",
+      "kind": "lakehouse",
+      "layer": "stores",
+      "domain": "analytics",
+      "label": "Mirrored Bronze tables",
+      "description": "Read-only copies of the SQL tables in the lake: bronze.sfapp_departments, bronze.sfapp_forecasts, bronze.sfapp_actuals.",
+      "sources": [
+        {
+          "path": "apps/api/app/services/fabric_apps/mirror.py",
+          "note": "bronze_table()"
+        },
+        {
+          "path": "dbt/models/fabric_apps/sources.yml"
+        }
+      ]
+    },
+    {
+      "id": "mirror",
+      "kind": "stream",
+      "layer": "sync",
+      "domain": "analytics",
+      "label": "Mirror stream",
+      "description": "Worker that copies every committed change to Bronze, on change and on a short timer.",
+      "sources": [
+        {
+          "path": "apps/api/app/services/fabric_apps/mirror.py"
+        }
+      ]
+    },
+    {
+      "id": "dbt-gold",
+      "kind": "pipeline",
+      "layer": "sync",
+      "domain": "analytics",
+      "label": "dbt Gold",
+      "description": "dbt model gold.forecast_vs_actual: monthly forecast vs actual with variance, built from Bronze.",
+      "sources": [
+        {
+          "path": "dbt/models/fabric_apps/gold/forecast_vs_actual.sql"
+        },
+        {
+          "path": "dbt/models/fabric_apps/sources.yml"
+        }
+      ]
+    },
+    {
+      "id": "data-model",
+      "kind": "semantic-model",
+      "layer": "service",
+      "domain": "operational",
+      "label": "Rayfin data model",
+      "description": "Compiled offline from decorators. Entities: Department, Forecast, Actual. Relations: Forecast.department_id -> Department.id; Actual.department_id -> Department.id.",
+      "sources": [
+        {
+          "path": "apps/fabric-app-lab/rayfin/generated/model.json",
+          "note": "compiled model"
+        },
+        {
+          "path": "apps/fabric-app-lab/rayfin/data/entities/Department.ts",
+          "note": "Department entity (Rayfin decorators)"
+        },
+        {
+          "path": "apps/fabric-app-lab/rayfin/data/entities/Forecast.ts",
+          "note": "Forecast entity (Rayfin decorators)"
+        },
+        {
+          "path": "apps/fabric-app-lab/rayfin/data/entities/Actual.ts",
+          "note": "Actual entity (Rayfin decorators)"
+        }
+      ]
+    },
+    {
+      "id": "data-api",
+      "kind": "api",
+      "layer": "service",
+      "domain": "operational",
+      "label": "Data API",
+      "description": "Local REST stand-in for the generated data API; validates every write and applies row policies.",
+      "sources": [
+        {
+          "path": "apps/web/src/fabricApps/localRayfinClient.ts",
+          "note": "local adapter (RayfinClient call shapes)"
+        },
+        {
+          "path": "apps/api/app/routers/fabric_apps.py"
+        },
+        {
+          "path": "apps/api/app/services/fabric_apps/store.py"
+        }
+      ]
+    },
+    {
+      "id": "sql-endpoint",
+      "kind": "endpoint",
+      "layer": "service",
+      "domain": "analytics",
+      "label": "SQL endpoint",
+      "description": "Read-only SQL over the lake tables (SELECT only, time travel by snapshot).",
+      "sources": [
+        {
+          "path": "apps/api/app/services/ducklake.py"
+        },
+        {
+          "path": "apps/api/app/routers/fabric_apps.py",
+          "note": "GET /gold"
+        }
+      ]
+    },
+    {
+      "id": "identity",
+      "kind": "identity",
+      "layer": "service",
+      "domain": "access",
+      "label": "Local identity",
+      "description": "Fake users in the X-Local-User header; roles: authenticated. Policies: Department read: any signed-in user; Forecast create/update: (@claims.role eq 'finance') and (@claims.email eq @item.owner_email); Forecast read: (@claims.role eq 'executive') or (@claims.email eq @item.owner_email); Actual read: (@claims.role eq 'executive') or (@claims.email eq @item.owner_email).",
+      "sources": [
+        {
+          "path": "apps/api/app/services/fabric_apps/policy.py"
+        },
+        {
+          "path": "apps/fabric-app-lab/rayfin/generated/model.json",
+          "note": "role declarations"
+        }
+      ]
+    },
+    {
+      "id": "web-app",
+      "kind": "web-app",
+      "layer": "app",
+      "domain": "operational",
+      "label": "Sales Forecasting app",
+      "description": "Editable forecast table with client-side validation, KPI cards and a monthly chart.",
+      "sources": [
+        {
+          "path": "apps/web/src/pages/AppsPage.tsx"
+        },
+        {
+          "path": "apps/web/src/fabricApps/localRayfinClient.ts"
+        }
+      ]
+    },
+    {
+      "id": "report",
+      "kind": "report",
+      "layer": "app",
+      "domain": "analytics",
+      "label": "Forecast vs actual",
+      "description": "Monthly chart read from Gold, scoped to the user's department unless executive.",
+      "sources": [
+        {
+          "path": "apps/web/src/fabricApps/MonthlyBarChart.tsx"
+        },
+        {
+          "path": "dbt/models/fabric_apps/gold/forecast_vs_actual.sql"
+        }
+      ]
+    },
+    {
+      "id": "planner",
+      "kind": "user",
+      "layer": "people",
+      "domain": "operational",
+      "label": "Finance planner",
+      "description": "Edits forecasts for their own department (synthetic user)."
+    },
+    {
+      "id": "executive",
+      "kind": "user",
+      "layer": "people",
+      "domain": "analytics",
+      "label": "Executive",
+      "description": "Reads every department; cannot edit (synthetic user)."
+    }
+  ],
+  "flows": [
+    {
+      "id": "f-planner-app",
+      "from": "planner",
+      "to": "web-app",
+      "kind": "control",
+      "label": "Edit forecast"
+    },
+    {
+      "id": "f-app-api",
+      "from": "web-app",
+      "to": "data-api",
+      "kind": "data",
+      "label": "Read / write",
+      "direction": "both"
+    },
+    {
+      "id": "f-model-api",
+      "from": "data-model",
+      "to": "data-api",
+      "kind": "control",
+      "label": "Defines entities"
+    },
+    {
+      "id": "f-api-db",
+      "from": "data-api",
+      "to": "sql-db",
+      "kind": "data",
+      "label": "Rows",
+      "direction": "both"
+    },
+    {
+      "id": "f-db-mirror",
+      "from": "sql-db",
+      "to": "mirror",
+      "kind": "data",
+      "label": "Change feed"
+    },
+    {
+      "id": "f-mirror-bronze",
+      "from": "mirror",
+      "to": "bronze",
+      "kind": "data",
+      "label": "Replicate"
+    },
+    {
+      "id": "f-bronze-lake",
+      "from": "bronze",
+      "to": "shared-lake",
+      "kind": "data",
+      "label": "Bronze files"
+    },
+    {
+      "id": "f-bronze-gold",
+      "from": "bronze",
+      "to": "dbt-gold",
+      "kind": "data",
+      "label": "Bronze"
+    },
+    {
+      "id": "f-gold-lake",
+      "from": "dbt-gold",
+      "to": "shared-lake",
+      "kind": "data",
+      "label": "Gold table"
+    },
+    {
+      "id": "f-mirror-gold",
+      "from": "mirror",
+      "to": "dbt-gold",
+      "kind": "control",
+      "label": "Trigger build"
+    },
+    {
+      "id": "f-lake-endpoint",
+      "from": "shared-lake",
+      "to": "sql-endpoint",
+      "kind": "data",
+      "label": "SELECT"
+    },
+    {
+      "id": "f-endpoint-report",
+      "from": "sql-endpoint",
+      "to": "report",
+      "kind": "data",
+      "label": "Gold rows"
+    },
+    {
+      "id": "f-report-exec",
+      "from": "report",
+      "to": "executive",
+      "kind": "data",
+      "label": "Read"
+    },
+    {
+      "id": "f-report-planner",
+      "from": "report",
+      "to": "planner",
+      "kind": "data",
+      "label": "Read own department"
+    },
+    {
+      "id": "f-id-app",
+      "from": "identity",
+      "to": "web-app",
+      "kind": "auth",
+      "label": "Sign in (fake user)"
+    },
+    {
+      "id": "f-id-api",
+      "from": "identity",
+      "to": "data-api",
+      "kind": "auth",
+      "label": "Role + row policy"
+    },
+    {
+      "id": "f-id-endpoint",
+      "from": "identity",
+      "to": "sql-endpoint",
+      "kind": "auth",
+      "label": "Department scope"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "n-synthetic",
+      "text": "SYNTHETIC: every user, row and number in this lab is generated."
+    },
+    {
+      "id": "n-mirror",
+      "target": "mirror",
+      "text": "One DuckLake snapshot per batch; latency is stamped on every write."
+    },
+    {
+      "id": "n-api",
+      "target": "data-api",
+      "text": "Row policies run on every call: planners edit only their own forecasts."
+    },
+    {
+      "id": "n-report",
+      "target": "report",
+      "text": "Policies do not reach the lake; the Gold read applies the department scope."
+    }
+  ]
+}
