@@ -1,6 +1,6 @@
 # DataPass React consumer traces
 
-Source commit: `5773a8f07624d6a919278a43ed7afa75e9c00068`. Machine-readable twin: `traces.json`. Verify with `python -I docs/datapass-react/check_traces.py`.
+Source commit: `6b822576a91861190be4232832a2035569fcdc4f`. Machine-readable twin: `traces.json`. Verify with `python -I docs/datapass-react/check_traces.py`.
 
 Status: RESOLVED = every hop read in code. PARTIAL = chain verified but a hop depends on runtime input (listed as UNRESOLVED).
 
@@ -12,7 +12,7 @@ Charts KPIs: Revenue card and monthly revenue chart (Gold monthly_sales.revenue)
 | react | `apps/web/src/pages/ChartsPage.tsx:280-289` | `contoso.gold.monthly_sales` | Default (retail-baseline) branch posts two literal SQL strings to /api/query |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | POST JSON helper wrapping fetch |
 | http | `apps/web/src/pages/ChartsPage.tsx:280-280` | `"/api/query"` | POST /api/query body {sql,limit} |
-| api | `apps/api/app/main.py:449-462` | `def query` | FastAPI route POST /api/query -> ducklake.query |
+| api | `apps/api/app/main.py:502-515` | `def query` | FastAPI route POST /api/query -> ducklake.query |
 | service | `apps/api/app/services/ducklake.py:305-329` | `def query` | Read-only validation, executes statement on DuckLake read-only connection |
 | react | `apps/web/src/pages/ChartsPage.tsx:291-295` | `label:"Revenue"` | rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card |
 | sql | `apps/web/src/pages/ChartsPage.tsx:281-281` | `sum(revenue)` | select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales |
@@ -31,7 +31,7 @@ Query page: run user SQL
 |---|---|---|---|
 | react | `apps/web/src/pages/QueryPage.tsx:66-70` | `"/api/query"` | run() posts the editor SQL with limit 500 |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:449-462` | `def query` | POST /api/query |
+| api | `apps/api/app/main.py:502-515` | `def query` | POST /api/query |
 | service | `apps/api/app/services/ducklake.py:305-329` | `def query` | Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation |
 
 UNRESOLVED:
@@ -45,7 +45,7 @@ Lakehouse catalog: bronze/silver/gold table list
 |---|---|---|---|
 | react | `apps/web/src/pages/LakehousePage.tsx:40-45` | `"/api/lakehouse/catalog"` | load() fetches catalog with snapshots, quality, project state |
 | react | `apps/web/src/api.ts:28-30` | `getJson` | GET helper |
-| api | `apps/api/app/main.py:266-271` | `def catalog` | GET /api/lakehouse/catalog -> {tables} |
+| api | `apps/api/app/main.py:319-324` | `def catalog` | GET /api/lakehouse/catalog -> {tables} |
 | service | `apps/api/app/services/ducklake.py:153-171` | `def catalog` | Reads the DuckLake SQLite metadata catalog, schemas bronze/silver/gold |
 | sql | `apps/api/app/services/ducklake.py:156-165` | `FROM ducklake_table` | Metadata SQL; table names come from the catalog at run time |
 
@@ -59,7 +59,7 @@ Transform page: dbt build
 |---|---|---|---|
 | react | `apps/web/src/pages/TransformPage.tsx:118-127` | `/api/dbt/${command}` | execute('build'|'test', selector?) posts to /api/dbt/{command}[?selector=] |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:400-414` | `def dbt_run` | POST /api/dbt/{command} |
+| api | `apps/api/app/main.py:453-467` | `def dbt_run` | POST /api/dbt/{command} |
 | service | `apps/api/app/services/dbt_runner.py:407-456` | `def run` | Runs dbt CLI subprocess with --project-dir dbt/, returns run_results |
 | service | `apps/api/app/services/dbt_runner.py:13-13` | `ALLOWED_COMMANDS` | build|run|test|parse |
 | dbt | `dbt/models/silver/stg_sales.sql:1-23` | `source(` | Silver model built from bronze.sales |
@@ -77,7 +77,7 @@ Projects open: open a project scenario
 | react | `apps/web/src/pages/ProjectsPage.tsx:121-127` | `prepareProject` | Button handler calls onOpenProject |
 | react | `apps/web/src/App.tsx:88-98` | `/api/projects/${project.scenario}/open` | openProject posts to the open route |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:127-136` | `def open_project` | POST /api/projects/{scenario}/open |
+| api | `apps/api/app/main.py:180-189` | `def open_project` | POST /api/projects/{scenario}/open |
 | service | `apps/api/app/services/projects.py:42-51` | `def open` | Lock, catalog lock, then _open |
 | service | `apps/api/app/services/projects.py:70-70` | `self.generator.generate` | Generates parquet for scenario |
 | service | `apps/api/app/services/projects.py:81-81` | `load_parquet_to_bronze` | Loads parquet into bronze |
@@ -108,14 +108,14 @@ Charts export for Mosaic: Gold mart artifact (monthly_sales.revenue, unit USD)
 |---|---|---|---|
 | react | `apps/web/src/components/ExportPanel.tsx:49-54` | `"/api/exports/artifact"` | exportNow() posts {mart}; mart is chosen from gold_tables returned by GET /api/exports |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:470-475` | `def export_artifact` | POST /api/exports/artifact -> exports.export(mart, columns, max_rows) |
-| service | `apps/api/app/main.py:38-38` | `ExportService(settings` | exports service bound per workspace in _bind |
-| service | `apps/api/app/services/exports.py:162-165` | `def export` | Mart must match _MART and be in gold_tables() (catalog gold schema) |
-| sql | `apps/api/app/services/exports.py:183-183` | `DESCRIBE contoso.gold.` | DESCRIBE the Gold mart for column names and types |
-| sql | `apps/api/app/services/exports.py:193-194` | `SELECT count(*) FROM contoso.gold.` | Row count then bounded SELECT of columns ORDER BY |
-| sql | `apps/api/app/services/exports.py:197-197` | `COPY (SELECT * FROM contoso.gold.` | COPY mart to parquet artifact |
+| api | `apps/api/app/main.py:523-528` | `def export_artifact` | POST /api/exports/artifact -> exports.export(mart, columns, max_rows) |
+| service | `apps/api/app/main.py:77-77` | `ExportService(settings` | exports service bound per workspace in _bind |
+| service | `apps/api/app/services/exports.py:172-175` | `def export` | Mart must match _MART and be in gold_tables() (catalog gold schema) |
+| sql | `apps/api/app/services/exports.py:199-199` | `DESCRIBE contoso.gold.` | DESCRIBE the Gold mart for column names and types |
+| sql | `apps/api/app/services/exports.py:209-210` | `SELECT count(*) FROM contoso.gold.` | Row count then bounded SELECT of columns ORDER BY |
+| sql | `apps/api/app/services/exports.py:213-213` | `COPY (SELECT * FROM contoso.gold.` | COPY mart to parquet artifact |
 | service | `apps/api/app/services/exports.py:42-44` | `"revenue": "USD"` | UNITS declares unit USD for the revenue column |
-| service | `apps/api/app/services/exports.py:220-221` | `column["unit"] = UNITS[name]` | Unit attached to exported column |
+| service | `apps/api/app/services/exports.py:237-238` | `column["unit"] = UNITS[name]` | Unit attached to exported column |
 | dbt | `dbt/models/gold/monthly_sales.sql:8-8` | `as revenue` | revenue = round(sum(net_revenue),2) |
 | dbt | `dbt/models/silver/stg_sales.sql:20-20` | `as net_revenue` | net_revenue is USD-normalised in Silver |
 | gold | `dbt/models/gold/monthly_sales.sql:8-8` | `revenue` | FIELD contoso.gold.monthly_sales.revenue, unit USD |
@@ -127,9 +127,9 @@ Workspace switch: activate a named workspace
 |---|---|---|---|
 | react | `apps/web/src/components/WorkspaceSwitcher.tsx:79-85` | `/api/workspaces/${encodeURIComponent(id)}/activate` | activate(id) posts then reloads the page |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:100-102` | `def activate_workspace` | POST /api/workspaces/{workspace_id}/activate -> _switch |
-| service | `apps/api/app/main.py:79-97` | `def _switch` | Takes switch lock and catalog lock, then _bind(workspaces.activate(...)) |
-| service | `apps/api/app/main.py:27-38` | `def _bind` | Recreates every workspace-scoped service from the new Settings |
+| api | `apps/api/app/main.py:153-155` | `def activate_workspace` | POST /api/workspaces/{workspace_id}/activate -> _switch |
+| service | `apps/api/app/main.py:130-148` | `def _switch` | Takes switch lock and catalog lock, then _bind(workspaces.activate(...)) |
+| service | `apps/api/app/main.py:66-77` | `def _bind` | Recreates every workspace-scoped service from the new Settings |
 | service | `apps/api/app/services/workspaces.py:129-134` | `def activate` | settings_for(id), config.set_active, writes pointer file |
 | service | `apps/api/app/config.py:67-74` | `def catalog_path` | Settings.catalog_path = workspace/contoso.ducklake.sqlite (or CONTOSO_DUCKLAKE_CATALOG for the default workspace) |
 
