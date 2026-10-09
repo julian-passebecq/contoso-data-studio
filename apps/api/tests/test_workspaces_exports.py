@@ -179,6 +179,11 @@ def test_two_workspaces_stay_isolated_and_export_backup_restore(registry):
     assert {r["kind"] for r in artifact["representations"]} >= {"table", "chart", "json"}
 
     receipt = json.loads((out / "contoso-export.json").read_text(encoding="utf-8"))
+    # Source hashes of the staging Parquet files travel with the export (F07).
+    manifest = json.loads(next((a.workspace / "staging").glob("*/manifest.json")).read_text(encoding="utf-8"))
+    staged = manifest["file_sha256"]
+    assert staged and receipt["lineage"]["generator_run"]["file_sha256"] == staged
+    assert set(staged.values()) <= set(inputs.values())
     bulk = out / receipt["bulk_data"]["file"]
     assert hashlib.sha256(bulk.read_bytes()).hexdigest() == receipt["bulk_data"]["sha256"]
     full_rows = duckdb.sql(f"select count(*) from read_parquet('{bulk.as_posix()}')").fetchone()[0]

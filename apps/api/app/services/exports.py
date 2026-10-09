@@ -253,7 +253,9 @@ class ExportService:
             representations.append(representation)
         representations.append({"id": "json", "title": "JSON", "kind": "json"})
 
-        file_hashes = detail.get("file_sha256") if isinstance(detail.get("file_sha256"), dict) else {}
+        files = detail.get("files") if isinstance(detail.get("files"), dict) else {}
+        file_hashes = {name: info["sha256"] for name, info in files.items()
+                       if isinstance(info, dict) and isinstance(info.get("sha256"), str) and info["sha256"]}
         node = self._manifest_node(mart)
         model_path = node.get("original_file_path") or f"models/gold/{mart}.sql"
         model_file = self.settings.dbt_path / model_path
