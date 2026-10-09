@@ -259,8 +259,8 @@ class MirrorService:
             "--select", GOLD_MODEL,
             "--vars", '{"fabric_apps_enabled": true}',
             # Keep the Transform page's own run_results/manifest untouched.
-            "--target-path", "target/fabric-apps",
-            "--log-path", "logs/fabric-apps",
+            "--target-path", str(self.settings.dbt_target_path / "fabric-apps"),
+            "--log-path", str(self.settings.dbt_target_path.parent / ("logs" if self.settings.is_default else "dbt-logs") / "fabric-apps"),
             "--no-use-colors",
         ]
         # Same absolute catalog/data paths as the API, so dbt attaches the very same DuckLake.

@@ -1,6 +1,8 @@
 import subprocess
 from pathlib import Path
-from threading import Lock
+from threading import Condition, Lock
+
+import anyio
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
@@ -21,6 +23,44 @@ from app.services.fabric_apps import set_lab
 
 workspaces = WorkspaceRegistry()
 _switch_lock = Lock()
+
+
+class _WorkspaceGate:
+    """Requests share the active workspace; a switch waits until none is in flight, then rebinds alone."""
+
+    def __init__(self) -> None:
+        self._cond = Condition()
+        self._readers = 0
+        self._writing = False
+
+    def enter(self) -> None:
+        with self._cond:
+            while self._writing:
+                self._cond.wait()
+            self._readers += 1
+
+    def leave(self) -> None:
+        with self._cond:
+            self._readers -= 1
+            self._cond.notify_all()
+
+    def exclusive(self, timeout: float) -> bool:
+        with self._cond:
+            self._writing = True
+            if not self._cond.wait_for(lambda: self._readers == 0, timeout=timeout):
+                self._writing = False
+                self._cond.notify_all()
+                return False
+            return True
+
+    def release(self) -> None:
+        with self._cond:
+            self._writing = False
+            self._cond.notify_all()
+
+
+_gate = _WorkspaceGate()
+SWITCH_WAIT_SECONDS = 60
 
 
 def _bind(active: Settings) -> None:
@@ -56,6 +96,18 @@ app.include_router(fabric_apps_router)
 app.include_router(fabric_concept_router)
 
 
+@app.middleware("http")
+async def workspace_gate(request: Request, call_next):
+    # Every API request runs against one workspace from start to end; the switch itself is the writer.
+    if not request.url.path.startswith("/api/") or request.url.path.endswith("/activate"):
+        return await call_next(request)
+    await anyio.to_thread.run_sync(_gate.enter)
+    try:
+        return await call_next(request)
+    finally:
+        _gate.leave()
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok", "workspace": str(settings.workspace), "workspace_id": settings.workspace_id}
@@ -83,8 +135,13 @@ def _switch(workspace_id: str) -> dict:
         # Every service is rebuilt for the target workspace. Work still in flight (a dbt run, an app-lab
         # mirror batch) keeps the Settings it started with, so it only ever writes its own workspace's
         # catalog; nothing has to wait for it. The old mirror stops in the background.
-        set_lab(None, wait=False)
-        _bind(workspaces.activate(target.workspace_id))
+        if not _gate.exclusive(SWITCH_WAIT_SECONDS):
+            raise HTTPException(409, detail="The current workspace is still busy (for example a dbt build). Try again when it finishes.")
+        try:
+            set_lab(None, wait=False)
+            _bind(workspaces.activate(target.workspace_id))
+        finally:
+            _gate.release()
         return {"active": settings.workspace_id, "workspace": workspaces.describe(settings)}
     except WorkspaceError as exc:
         raise HTTPException(400, detail=str(exc)) from exc

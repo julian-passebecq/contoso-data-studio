@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import json
 import re
+import sqlite3
+from contextlib import closing
 import shutil
 import zipfile
 from datetime import datetime, timezone
@@ -244,8 +246,23 @@ class WorkspaceRegistry:
             except Exception:
                 shutil.rmtree(root, ignore_errors=True)
                 raise
+        self._relocate_catalog(Settings.named(settings.workspace_id, root))
         meta_path = root / META
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
         meta["restored_from"] = {"backup": backup, "workspace": manifest.get("workspace", {}).get("id")}
         meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
         return settings
+
+    @staticmethod
+    def _relocate_catalog(settings: Settings) -> None:
+        """Point the restored DuckLake catalog at its own data folder.
+
+        DuckLake stores data files relative to an absolute ``data_path`` kept in the catalog metadata; a
+        restored copy would otherwise keep reading (and writing) the source workspace's files.
+        """
+        if not settings.catalog_path.is_file():
+            return
+        target = settings.data_path.resolve().as_posix().rstrip("/") + "/"
+        with closing(sqlite3.connect(settings.catalog_path)) as con:
+            con.execute("UPDATE ducklake_metadata SET value = ? WHERE key = 'data_path'", (target,))
+            con.commit()

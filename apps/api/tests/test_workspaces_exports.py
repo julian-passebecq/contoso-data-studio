@@ -197,6 +197,9 @@ def test_two_workspaces_stay_isolated_and_export_backup_restore(registry):
     # Backup A, restore as a new workspace C, and reopen its Gold after "restart".
     backup = registry.backup("workspace-a")
     restored = registry.restore(backup["backup"], "Workspace C")
+    # The restored copy must be self-contained: remove A's data files before reading C.
+    moved = a.data_path.with_name("moved-away")
+    a.data_path.rename(moved)
     config.set_active(None)
     c = WorkspaceRegistry().activate(restored.workspace_id)
     gen_c, lake_c, _, _ = _services(c)
@@ -205,6 +208,13 @@ def test_two_workspaces_stay_isolated_and_export_backup_restore(registry):
     assert restored_revenue == gold_revenue
     active = gen_c.active_run()
     assert active and gen_c.run_files(str(active["run_id"]), verify_hashes=True)
+    moved.rename(a.data_path)
+    # Reloading Bronze after the last dbt build makes Gold stale: export must refuse to credit the new run.
+    rerun = gen_b.generate("logistics-delays", 1_000, 99)
+    lake_b.load_parquet_to_bronze(gen_b.run_files(str(rerun["run_id"]), verify_hashes=True))
+    gen_b.mark_bronze_loaded(str(rerun["run_id"]), int(lake_b.snapshots(1)[0]["snapshot_id"]))
+    with pytest.raises(ExportError, match="older than the active generator run"):
+        _services(b)[3].export("monthly_sales")
     # Restoring never touched A.
     assert _gold_scenarios(lake_a) == ["online-migration"]
 
@@ -214,3 +224,22 @@ def _default_has_no_gold():
         return "gold" not in {row["schema"] for row in DuckLakeService(Settings.default()).catalog()}
     except Exception:
         return True
+
+
+def test_switch_gate_waits_for_requests_and_times_out():
+    import threading
+    from app.main import _WorkspaceGate
+
+    gate = _WorkspaceGate()
+    gate.enter()
+    assert gate.exclusive(timeout=0.05) is False  # a request is still in flight
+    released = threading.Timer(0.1, gate.leave)
+    released.start()
+    assert gate.exclusive(timeout=5) is True
+    entered = threading.Event()
+    worker = threading.Thread(target=lambda: (gate.enter(), entered.set()))
+    worker.start()
+    assert not entered.wait(0.1)  # new requests wait while the switch rebinds
+    gate.release()
+    assert entered.wait(5)
+    gate.leave()

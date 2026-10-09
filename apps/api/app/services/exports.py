@@ -96,6 +96,16 @@ def _cell(value: Any) -> Any:
     return str(value)
 
 
+def _instant(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
 def _artifact_id(text: str) -> str:
     slug = re.sub(r"[^a-zA-Z0-9_-]+", "-", text).strip("-")
     slug = slug if slug[:1].isalpha() and slug[:1].islower() else f"c-{slug}"
@@ -169,6 +179,12 @@ class ExportService:
         if not active:
             raise ExportError("No active generator run in this workspace. Open a project or generate data first.")
         detail = self.generator.get_run(str(active["run_id"]))
+        loaded_at, built_at = _instant(active.get("active_loaded_at") or active.get("loaded_at")), _instant(run.get("generated_at"))
+        if loaded_at is None or built_at is None or built_at < loaded_at:
+            raise ExportError(
+                "Gold is older than the active generator run (Bronze was reloaded after the last dbt build). "
+                "Run dbt build in Transform before exporting."
+            )
 
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dt%H%M%Sz")
         export_id = f"{mart.replace('_', '-')}-{stamp}"
@@ -343,7 +359,7 @@ class ExportService:
                     items.append(json.loads(receipt.read_text(encoding="utf-8")))
                 except (OSError, ValueError):
                     continue
-        return items
+        return sorted(items, key=lambda item: str(item.get("exported_at") or ""), reverse=True)
 
     def file(self, export_id: str, name: str) -> Path:
         if not _EXPORT_ID.match(export_id) or Path(name).name != name:
