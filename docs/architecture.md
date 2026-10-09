@@ -27,6 +27,23 @@ DuckDB is the local query/compute engine.
 DuckLake owns managed analytical table storage. SQLite stores the local DuckLake metadata catalog so separate API/dbt clients can reconnect to the same lakehouse; managed table data remains Parquet.
 ```
 
+## Workspaces
+
+`WorkspaceRegistry` (`apps/api/app/services/workspaces.py`) resolves the active workspace; `Settings.load()` returns it
+everywhere. A workspace owns `contoso.ducklake.sqlite`, `contoso.ducklake.files/`, `staging/`, `imports/`, `exports/`,
+`fabric-apps/` and (named workspaces) `dbt-target/`. dbt and dct always receive the workspace's absolute catalog/data
+paths and target path through `Settings.dbt_env()`. The legacy `workspace/` folder is the `default` workspace and keeps
+`dbt/target` for compatibility. Switching waits for the current catalog lock (dbt/project open), rebinds every service
+and resets the app lab.
+
+## Result exports
+
+`ExportService` (`apps/api/app/services/exports.py`) turns a built Gold table into a `datapass.artifact` v1 bundle with
+the vendored MosaicStudio writer (`vendor/datapass-artifact`, pinned studio-v0.8.1). It is a view, not a computation:
+no dbt or generator run; a failed or missing latest model run blocks the export. Contract note: the published
+`artifact.schema.json` at studio-v0.8.1 predates the additive lineage fields (`producer`, `inputs`, `inputHash`) that
+Mosaic's TypeScript validator accepts; Contoso validates against the TypeScript validator and the Python mirror.
+
 ## Primary workbenches
 
 | Page | Current responsibility |
@@ -38,6 +55,7 @@ DuckLake owns managed analytical table storage. SQLite stores the local DuckLake
 | Explore | inspect generated/imported Parquet, JSON, CSV and XLSX |
 | Charts | preview Gold KPIs and validate the dbt Charts board |
 | Canvas | catalog-driven lineage/architecture whiteboard and local notes |
+| Apps | Fabric-style operational app lab and the Architecture concept (vendored concept viewer) |
 
 ## Data layers
 

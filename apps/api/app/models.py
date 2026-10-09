@@ -31,3 +31,18 @@ class QueryResult(BaseModel):
     rows: list[list[Any]]
     row_count: int
     truncated: bool
+
+
+class WorkspaceCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+
+
+class WorkspaceRestore(BaseModel):
+    backup: str = Field(min_length=5, max_length=200)
+    name: str = Field(min_length=1, max_length=80)
+
+
+class ArtifactExportRequest(BaseModel):
+    mart: str = Field(min_length=1, max_length=80)
+    columns: list[str] | None = Field(default=None, max_length=40)
+    max_rows: int = Field(default=5_000, ge=1, le=10_000)

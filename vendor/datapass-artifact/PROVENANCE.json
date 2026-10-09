@@ -1,0 +1,22 @@
+{
+  "artifact": "datapass.artifact v1 Python writer/validator and JSON Schema",
+  "upstream_repo": "julian-passebecq/datapass-mosaicstudio",
+  "upstream_tag": "studio-v0.8.1",
+  "upstream_sha": "8b22d9c121743d8cd5e78ca74098c5e332e4e45c",
+  "last_upstream_change": "fa59959211bb7efcd7829be30e4a3f71353cd5ec (2026-10-05T06:47:56+02:00)",
+  "vendored_on": "2026-10-09",
+  "files": [
+    {
+      "vendored_path": "vendor/datapass-artifact/datapass_artifact.py",
+      "upstream_path": "py/datapass_artifact.py",
+      "sha256": "b49d63196728d054b64585cfcf3944cbedbc0940c790a5745771af499474a289"
+    },
+    {
+      "vendored_path": "vendor/datapass-artifact/artifact.schema.json",
+      "upstream_path": "docs/contracts/artifact.schema.json",
+      "sha256": "c735d120186cbd73b61636adc4583d926fd3a364bd1cfb2853db4df2df948d07"
+    }
+  ],
+  "authority": "The TypeScript validator in datapass-mosaicstudio (src/framework/foundation/artifact.ts) stays the source of truth; this Python mirror fails early.",
+  "policy": "Unchanged copy (vendor/ is -text in .gitattributes). Do not edit; re-vendor from an upstream tag instead."
+}

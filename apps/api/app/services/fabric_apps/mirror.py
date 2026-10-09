@@ -24,16 +24,21 @@ import duckdb
 from app.config import Settings
 from app.services.catalog_lock import catalog_lock
 from app.services.ducklake import DuckLakeService
+from app.services.fabric_apps import mapping
+from app.services.fabric_apps.mapping import BRONZE_PREFIX, GOLD_MODEL, MIRROR_COLUMN
 from app.services.fabric_apps.model import Entity
 from app.services.fabric_apps.store import OperationalStore, now_iso
 
-BRONZE_PREFIX = "sfapp_"
-GOLD_MODEL = "forecast_vs_actual"
 COMMIT_AUTHOR = "fabric-app-mirror"
 
 
 def bronze_table(entity: Entity) -> str:
-    return f"{BRONZE_PREFIX}{entity.table.lower()}"
+    """Bronze target for an entity, from the declared mapping (mapping.APP_TO_BRONZE)."""
+    declared = mapping.bronze_table_for(entity.name)
+    expected = f"{BRONZE_PREFIX}{entity.table.lower()}"
+    if declared != expected:
+        raise ValueError(f"Declared Bronze table {declared} does not match the model table {expected}")
+    return declared
 
 
 class MirrorService:
@@ -63,6 +68,7 @@ class MirrorService:
         self._bronze_ready = False  # set after the first successful batch; skips catalog lookups
         self._con: duckdb.DuckDBPyConnection | None = None
         self._snapshot_cache: tuple[int, list[dict[str, Any]]] | None = None
+        self.last_batch: dict[str, Any] | None = None
 
     # ----- worker ---------------------------------------------------------------------
     def start(self) -> None:
@@ -161,12 +167,35 @@ class MirrorService:
         self._bronze_ready = True
         mirrored_at = now_iso()
         self.store.record_mirror(seqs, mirrored_at, mirrored_ns, int(snapshot_id) if snapshot_id is not None else None)
+        self.last_batch = {
+            "seqs": [seqs[0], seqs[-1]],
+            "full": full,
+            "snapshot_id": int(snapshot_id) if snapshot_id is not None else None,
+            "mirrored_at": mirrored_at,
+            "row_mirrored_at": mirrored_iso,
+        }
         return {
             "seqs": seqs,
             "full": full,
             "snapshot_id": snapshot_id,
             "mirrored_at": mirrored_at,
             "entities": {c["entity"] for c in changes},
+            "provenance": self.provenance(),
+        }
+
+    def provenance(self) -> dict[str, Any]:
+        """Where the mirrored copy comes from, and that it is a copy, not the analytical truth."""
+        return {
+            "kind": "copy",
+            "authoritative": False,
+            "authority": mapping.AUTHORITY["analytical_truth"],
+            "source": f"operational store {self.store.path.name} (local Fabric SQL database stand-in)",
+            "targets": {name: f"contoso.{mapping.BRONZE_SCHEMA}.{table}" for name, table in mapping.APP_TO_BRONZE.items()},
+            "row_provenance_column": MIRROR_COLUMN,
+            "commit_author": COMMIT_AUTHOR,
+            "last_mirrored_seq": self.store.last_mirrored_seq(),
+            "last_batch": self.last_batch,
+            "app_gold": {"table": f"contoso.gold.{GOLD_MODEL}", "last_build": self.last_gold},
         }
 
     def _worker_connection(self) -> duckdb.DuckDBPyConnection:
@@ -209,7 +238,7 @@ class MirrorService:
     @staticmethod
     def _select_list(entity: Entity, mirrored_iso: str) -> str:
         parts = [f'CAST("{c.name}" AS {c.duckdb_type}) AS "{c.name}"' for c in entity.columns]
-        parts.append(f"TIMESTAMPTZ '{mirrored_iso}' AS _mirrored_at")
+        parts.append(f"TIMESTAMPTZ '{mirrored_iso}' AS {MIRROR_COLUMN}")
         return ", ".join(parts)
 
     def _check_endpoint(self, seqs: list[int]) -> None:
@@ -230,8 +259,8 @@ class MirrorService:
             "--select", GOLD_MODEL,
             "--vars", '{"fabric_apps_enabled": true}',
             # Keep the Transform page's own run_results/manifest untouched.
-            "--target-path", "target/fabric-apps",
-            "--log-path", "logs/fabric-apps",
+            "--target-path", str(self.settings.dbt_target_path / "fabric-apps"),
+            "--log-path", str(self.settings.dbt_target_path.parent / ("logs" if self.settings.is_default else "dbt-logs") / "fabric-apps"),
             "--no-use-colors",
         ]
         # Same absolute catalog/data paths as the API, so dbt attaches the very same DuckLake.

@@ -1,0 +1,149 @@
+{
+  "state": "QUALIFIED_LOCAL_CI_PENDING",
+  "repository": "https://github.com/julian-passebecq/contoso-data-studio",
+  "actual_worktree": "D:/PROJ/contoso-data-studio/.claude/worktrees/contoso-retail-v1",
+  "branch": "claude/contoso-retail-v1",
+  "qualified_commit": "d79e0b41794756c34f89127ee704632c30968553",
+  "latest_written_commit": null,
+  "native_session_id": null,
+  "observed_model": "claude-opus-5-5",
+  "observed_tokens": null,
+  "accepted_selection_revision": null,
+  "canonical_acceptance_results": [
+    {
+      "id": "07-contoso/F01",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F02",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F03",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F04",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F05",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F06",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F07",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F08",
+      "result": "MET_MAPPING_DISABLED_PENDING_PRODUCT_DECISION",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F09",
+      "result": "MET_2_TRACES_PARTIAL_LABELLED",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F10",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F11",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/F12",
+      "result": "MET_SOURCE_INSTALL_NO_DESKTOP_INSTALLER",
+      "evidence": "handoff/ACCEPTANCE.md"
+    }
+  ],
+  "producer_vector": [
+    {
+      "contract": "datapass.artifact/1",
+      "receipt": "handoff/READY-artifact.json",
+      "sha256": "dbabdb8d3a6768c5ed8f9966fc3db44e4441cfc4e4aa842ac47b035a89d183ef"
+    },
+    {
+      "contract": "datapass.concept-spec/1.0.0",
+      "receipt": "handoff/READY-concept.json",
+      "sha256": "d653d94f80738bdb5d66c5068e6158d5d6c1b1bab894d1935ccebe7c5bddc5db"
+    }
+  ],
+  "consumer_vector": [
+    {
+      "repository": "datapass-mosaicstudio",
+      "ref": "studio-v0.8.1",
+      "sha": "8b22d9c121743d8cd5e78ca74098c5e332e4e45c"
+    }
+  ],
+  "ci": {
+    "run_id": null,
+    "attempt": null,
+    "runner": "ubuntu-latest (GitHub-hosted)",
+    "os": "Ubuntu",
+    "url": "https://github.com/julian-passebecq/contoso-data-studio/pull/14/checks",
+    "status": "PENDING",
+    "artifacts": [
+      "retail-journey-evidence"
+    ]
+  },
+  "user_journeys": [
+    {
+      "id": "07-contoso/UX01",
+      "result": "PASS",
+      "os": "Windows 11 Pro 10.0.26300",
+      "commit": "d79e0b41794756c34f89127ee704632c30968553",
+      "evidence": "handoff/evidence/evidence.json"
+    },
+    {
+      "id": "07-contoso/UX02",
+      "result": "PASS",
+      "os": "Windows 11 Pro 10.0.26300",
+      "commit": "d79e0b41794756c34f89127ee704632c30968553",
+      "evidence": "handoff/evidence/evidence.json"
+    },
+    {
+      "id": "07-contoso/UX03",
+      "result": "PASS",
+      "os": "Windows 11 Pro 10.0.26300",
+      "commit": "d79e0b41794756c34f89127ee704632c30968553",
+      "evidence": "handoff/evidence/evidence.json"
+    },
+    {
+      "id": "07-contoso/UX04",
+      "result": "PASS",
+      "os": "Windows 11 Pro 10.0.26300",
+      "commit": "d79e0b41794756c34f89127ee704632c30968553",
+      "evidence": "handoff/evidence/evidence.json"
+    }
+  ],
+  "release_artifacts": [
+    "docs/release/v1.md (source install)",
+    "apps/web production build (vite)"
+  ],
+  "merge_state": "NOT_EXECUTED",
+  "cloud_runtime": "NOT_AUTHORIZED_UNAVAILABLE",
+  "blockers": [],
+  "omissions": [
+    "Fabric/cloud runtime",
+    "desktop installer",
+    "retail-to-app mapping (product decision)",
+    "Mosaic import UI click-through (validators used)",
+    "Mosaic artifact.schema.json lineage drift reported, not fixed (peer repo)"
+  ],
+  "next_safe_action": "PM: merge PR #14 on green CI (squash); route handoff/PEER-FINDINGS.md item 1 to the Mosaic lane and item 2 to Julian as a product choice"
+}

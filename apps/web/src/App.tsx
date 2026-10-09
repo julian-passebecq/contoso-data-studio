@@ -12,7 +12,8 @@ import {
   Home24Regular,
 } from "@fluentui/react-icons";
 
-import { getJson, postJson } from "./api";
+import { API_UNAVAILABLE, getJson, postJson } from "./api";
+import WorkspaceSwitcher from "./components/WorkspaceSwitcher";
 import { PageSkeleton, RouteReady } from "./motion";
 import { THEME_OPTIONS, useThemeChoice, type ThemeChoice } from "./theme";
 import { PROJECTS, groupFor, groupName, type ProjectPreset } from "./projects";
@@ -26,6 +27,7 @@ import QueryPage from "./pages/QueryPage";
 import TransformPage from "./pages/TransformPage";
 import type { Page, Scenario, WorkspaceProjectState } from "./types";
 import "./projects.css";
+import { scopedKey } from "./workspaceScope";
 
 const ProjectsPage=lazy(()=>import("./pages/ProjectsPage"));
 const AppsPage=lazy(()=>import("./pages/AppsPage"));
@@ -52,12 +54,24 @@ export default function App() {
   const [workspaceLoading,setWorkspaceLoading] = useState(true);
   const [opening,setOpening] = useState("");
   const [projectError,setProjectError] = useState("");
+  const [apiDown,setApiDown] = useState(false);
   const openingRef=useRef(false);
   const {theme,setTheme}=useThemeChoice();
 
   useEffect(() => {
     getJson<Scenario[]>("/api/scenarios").then(setScenarios).catch(()=>setScenarios([]));
   }, []);
+
+  // Surface a stopped or unreachable API instead of silently showing empty pages.
+  useEffect(()=>{
+    let alive=true;
+    const check=()=>getJson<{status:string}>("/api/health")
+      .then(()=>{ if(alive) setApiDown(was=>{ if(was) setRefreshToken(v=>v+1); return false; }); })
+      .catch(()=>{ if(alive) setApiDown(true); });
+    void check();
+    const timer=window.setInterval(check,15000);
+    return ()=>{ alive=false; window.clearInterval(timer); };
+  },[]);
 
   useEffect(()=>{
     let current=true;
@@ -83,7 +97,7 @@ export default function App() {
       setWorkspace(result.state);
       setSelectedProjectScenario(project.scenario);
       completeTutorialStep("prepare",project.scenario);
-      localStorage.setItem("contoso-project-group",groupFor(project.scenario));
+      localStorage.setItem(scopedKey("contoso-project-group"),groupFor(project.scenario));
       setQuerySeed(sql ?? project.query);
       setRefreshToken(value=>value+1);
       setPage(destination);
@@ -143,6 +157,7 @@ export default function App() {
         <Badge appearance="outline">DuckDB</Badge>
         <Badge appearance="outline">DuckLake</Badge>
         <Badge appearance="outline">dbt</Badge>
+        <WorkspaceSwitcher disabled={Boolean(opening)} onChanged={()=>setRefreshToken(value=>value+1)}/>
         <label className="themePicker">Theme <select aria-label="Theme" value={theme} onChange={event=>setTheme(event.target.value as ThemeChoice)}>
           {THEME_OPTIONS.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
         </select></label>
@@ -178,6 +193,7 @@ export default function App() {
           </select></label>
           <Button disabled={Boolean(opening)} onClick={()=>setPage("Projects")}>Portfolio & architecture</Button>
         </div>}
+        {apiDown && <div className="errorText apiDown" role="alert">{API_UNAVAILABLE} <Button size="small" onClick={()=>{setApiDown(false);setRefreshToken(value=>value+1);}}>Retry</Button></div>}
         {projectError && <div className="errorText" role="alert">{projectError} <Button size="small" onClick={()=>setPage("Transform")}>Inspect Transform</Button></div>}
         {opening ? <div className="projectOpening" role="status" aria-live="polite"><Spinner/><Title2>Opening {PROJECTS.find(p=>p.scenario===opening)?.title}</Title2><Text>Activating project data, rebuilding analytical layers and checking quality.</Text><Text className="muted">Your dashboard will open automatically when everything is ready.</Text></div>
           : <div key={`${refreshToken}:${page}`} className="pageTransition" data-route={page}><Suspense fallback={<PageSkeleton label="Loading project portfolio…"/>}>{renderPage()}<RouteReady route={page}/></Suspense></div>}

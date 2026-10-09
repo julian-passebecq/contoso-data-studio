@@ -12,6 +12,7 @@ import type {
 } from "../types";
 import "../canvas.css";
 import { completeTutorialStep } from "../tutorialProgress";
+import { scopedKey } from "../workspaceScope";
 
 type CanvasNode = {
   id:string;
@@ -34,7 +35,7 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
   const [lineage,setLineage] = useState<DbtLineage|null>(null);
   const [quality,setQuality] = useState<DbtQuality|null>(null);
   const [activeRun,setActiveRun] = useState<GenerationRunDetail|null>(null);
-  const [note,setNote] = useState(()=>localStorage.getItem("contoso-canvas-note") ?? "Active scenario → Bronze → dbt → Gold KPIs");
+  const [note,setNote] = useState(()=>localStorage.getItem(scopedKey("contoso-canvas-note")) ?? "Active scenario → Bronze → dbt → Gold KPIs");
   const [saved,setSaved] = useState(false);
 
   useEffect(()=>{
@@ -163,7 +164,7 @@ export default function CanvasPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
   ];
 
   function saveNote() {
-    localStorage.setItem("contoso-canvas-note",note);
+    localStorage.setItem(scopedKey("contoso-canvas-note"),note);
     setSaved(true);
     window.setTimeout(()=>setSaved(false),1200);
   }

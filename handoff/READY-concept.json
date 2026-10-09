@@ -1,0 +1,18 @@
+{
+  "state": "ISSUED",
+  "producer_repository": "https://github.com/julian-passebecq/contoso-data-studio",
+  "producer_commit": "d79e0b41794756c34f89127ee704632c30968553",
+  "canonical_contract_id": "datapass.concept-spec",
+  "contract_version": "1.0.0",
+  "artifact_path": "handoff/evidence/contoso-sales-forecasting.concept.json (Apps -> Architecture export)",
+  "artifact_sha256": "d653d94f80738bdb5d66c5068e6158d5d6c1b1bab894d1935ccebe7c5bddc5db",
+  "compatible_consumer_versions": ["datapass-mosaicstudio studio-v0.8.1 (8b22d9c121743d8cd5e78ca74098c5e332e4e45c) concept viewer and schema"],
+  "validation_evidence": [
+    "handoff/evidence/mosaic-validation.log: checkConceptSpec OK, 6 layers / 13 nodes / 17 flows, 0 warnings (zod 3.24.2)",
+    "apps/api/tests/test_vendor_contracts.py: vendored schema and viewer bytes equal the tag"
+  ],
+  "source_omissions": [],
+  "author_surface": "CLAUDE CODE",
+  "native_session_id": null,
+  "consumers_not_automatically_started": true
+}

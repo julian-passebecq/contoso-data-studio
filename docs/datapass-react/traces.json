@@ -1,0 +1,610 @@
+{
+ "format": "contoso.datapass-react-traces",
+ "version": 1,
+ "source_commit": "6b822576a91861190be4232832a2035569fcdc4f",
+ "traces": [
+  {
+   "id": "charts-kpi-revenue",
+   "title": "Charts KPIs: Revenue card and monthly revenue chart (Gold monthly_sales.revenue)",
+   "status": "RESOLVED",
+   "steps": [
+    {
+     "layer": "react",
+     "path": "apps/web/src/pages/ChartsPage.tsx",
+     "start": 286,
+     "end": 295,
+     "symbol": "contoso.gold.monthly_sales",
+     "note": "Default (retail-baseline) branch posts two literal SQL strings to /api/query"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/api.ts",
+     "start": 32,
+     "end": 38,
+     "symbol": "postJson",
+     "note": "POST JSON helper wrapping fetch"
+    },
+    {
+     "layer": "http",
+     "path": "apps/web/src/pages/ChartsPage.tsx",
+     "start": 286,
+     "end": 286,
+     "symbol": "\"/api/query\"",
+     "note": "POST /api/query body {sql,limit}"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/main.py",
+     "start": 502,
+     "end": 515,
+     "symbol": "def query",
+     "note": "FastAPI route POST /api/query -> ducklake.query"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/ducklake.py",
+     "start": 305,
+     "end": 329,
+     "symbol": "def query",
+     "note": "Read-only validation, executes statement on DuckLake read-only connection"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/pages/ChartsPage.tsx",
+     "start": 297,
+     "end": 301,
+     "symbol": "label:\"Revenue\"",
+     "note": "rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card"
+    },
+    {
+     "layer": "sql",
+     "path": "apps/web/src/pages/ChartsPage.tsx",
+     "start": 287,
+     "end": 287,
+     "symbol": "sum(revenue)",
+     "note": "select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/gold/monthly_sales.sql",
+     "start": 8,
+     "end": 8,
+     "symbol": "as revenue",
+     "note": "revenue = round(sum(net_revenue),2) grouped by scenario, order_month, channel"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/gold/monthly_sales.sql",
+     "start": 12,
+     "end": 12,
+     "symbol": "ref('stg_sales')",
+     "note": "Gold reads Silver"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/silver/stg_sales.sql",
+     "start": 20,
+     "end": 20,
+     "symbol": "as net_revenue",
+     "note": "net_revenue = cast(net_revenue as decimal(18,2))"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/silver/stg_sales.sql",
+     "start": 23,
+     "end": 23,
+     "symbol": "source('bronze','sales')",
+     "note": "Silver reads Bronze contoso.bronze.sales"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/ducklake.py",
+     "start": 138,
+     "end": 147,
+     "symbol": "def load_parquet_to_bronze",
+     "note": "Bronze table created from run parquet via read_parquet"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/generator.py",
+     "start": 655,
+     "end": 655,
+     "symbol": "AS net_revenue",
+     "note": "Parquet net_revenue = round(net_revenue_local*exchange_rate_to_usd,2)"
+    },
+    {
+     "layer": "gold",
+     "path": "dbt/models/gold/monthly_sales.sql",
+     "start": 8,
+     "end": 8,
+     "symbol": "revenue",
+     "note": "FIELD contoso.gold.monthly_sales.revenue"
+    }
+   ],
+   "unresolved": []
+  },
+  {
+   "id": "query-page",
+   "title": "Query page: run user SQL",
+   "status": "PARTIAL",
+   "steps": [
+    {
+     "layer": "react",
+     "path": "apps/web/src/pages/QueryPage.tsx",
+     "start": 66,
+     "end": 70,
+     "symbol": "\"/api/query\"",
+     "note": "run() posts the editor SQL with limit 500"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/api.ts",
+     "start": 32,
+     "end": 38,
+     "symbol": "postJson",
+     "note": "POST JSON helper wrapping fetch"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/main.py",
+     "start": 502,
+     "end": 515,
+     "symbol": "def query",
+     "note": "POST /api/query"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/ducklake.py",
+     "start": 305,
+     "end": 329,
+     "symbol": "def query",
+     "note": "Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation"
+    }
+   ],
+   "unresolved": [
+    "SQL text is user input (editor state, or ProjectPreset.query from apps/web/src/projects.ts via ProjectsPage): table and column targets cannot be resolved statically. Preset queries in projects.ts are literal and can each be traced separately.",
+    "Result columns are only known at run time from cursor.description."
+   ]
+  },
+  {
+   "id": "lakehouse-catalog",
+   "title": "Lakehouse catalog: bronze/silver/gold table list",
+   "status": "RESOLVED",
+   "steps": [
+    {
+     "layer": "react",
+     "path": "apps/web/src/pages/LakehousePage.tsx",
+     "start": 40,
+     "end": 45,
+     "symbol": "\"/api/lakehouse/catalog\"",
+     "note": "load() fetches catalog with snapshots, quality, project state"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/api.ts",
+     "start": 28,
+     "end": 30,
+     "symbol": "getJson",
+     "note": "GET helper"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/main.py",
+     "start": 319,
+     "end": 324,
+     "symbol": "def catalog",
+     "note": "GET /api/lakehouse/catalog -> {tables}"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/ducklake.py",
+     "start": 153,
+     "end": 171,
+     "symbol": "def catalog",
+     "note": "Reads the DuckLake SQLite metadata catalog, schemas bronze/silver/gold"
+    },
+    {
+     "layer": "sql",
+     "path": "apps/api/app/services/ducklake.py",
+     "start": 156,
+     "end": 165,
+     "symbol": "FROM ducklake_table",
+     "note": "Metadata SQL; table names come from the catalog at run time"
+    }
+   ],
+   "unresolved": [
+    "Names of returned tables are catalog data, not statically known; dbt/models/gold/*.sql and silver/stg_sales.sql define the expected ones."
+   ]
+  },
+  {
+   "id": "transform-dbt-build",
+   "title": "Transform page: dbt build",
+   "status": "PARTIAL",
+   "steps": [
+    {
+     "layer": "react",
+     "path": "apps/web/src/pages/TransformPage.tsx",
+     "start": 118,
+     "end": 127,
+     "symbol": "/api/dbt/${command}",
+     "note": "execute('build'|'test', selector?) posts to /api/dbt/{command}[?selector=]"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/api.ts",
+     "start": 32,
+     "end": 38,
+     "symbol": "postJson",
+     "note": "POST JSON helper wrapping fetch"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/main.py",
+     "start": 453,
+     "end": 467,
+     "symbol": "def dbt_run",
+     "note": "POST /api/dbt/{command}"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 407,
+     "end": 456,
+     "symbol": "def run",
+     "note": "Runs dbt CLI subprocess with --project-dir dbt/, returns run_results"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 13,
+     "end": 13,
+     "symbol": "ALLOWED_COMMANDS",
+     "note": "build|run|test|parse"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/silver/stg_sales.sql",
+     "start": 1,
+     "end": 23,
+     "symbol": "source(",
+     "note": "Silver model built from bronze.sales"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/gold/monthly_sales.sql",
+     "start": 1,
+     "end": 12,
+     "symbol": "ref('stg_sales')",
+     "note": "Gold models built from Silver"
+    }
+   ],
+   "unresolved": [
+    "URL is a template literal with dynamic `command` and optional `selector`; static analysis resolves it to /api/dbt/{command} only (callers pass 'build' or 'test').",
+    "Models actually built depend on _foil_active() (runtime workspace state) and the selector; foil and fabric_apps model sets are not traced here."
+   ]
+  },
+  {
+   "id": "projects-open",
+   "title": "Projects open: open a project scenario",
+   "status": "RESOLVED",
+   "steps": [
+    {
+     "layer": "react",
+     "path": "apps/web/src/pages/ProjectsPage.tsx",
+     "start": 121,
+     "end": 127,
+     "symbol": "prepareProject",
+     "note": "Button handler calls onOpenProject"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/App.tsx",
+     "start": 88,
+     "end": 98,
+     "symbol": "/api/projects/${project.scenario}/open",
+     "note": "openProject posts to the open route"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/api.ts",
+     "start": 32,
+     "end": 38,
+     "symbol": "postJson",
+     "note": "POST JSON helper wrapping fetch"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/main.py",
+     "start": 180,
+     "end": 189,
+     "symbol": "def open_project",
+     "note": "POST /api/projects/{scenario}/open"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/projects.py",
+     "start": 42,
+     "end": 51,
+     "symbol": "def open",
+     "note": "Lock, catalog lock, then _open"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/projects.py",
+     "start": 70,
+     "end": 70,
+     "symbol": "self.generator.generate",
+     "note": "Generates parquet for scenario"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/projects.py",
+     "start": 81,
+     "end": 81,
+     "symbol": "load_parquet_to_bronze",
+     "note": "Loads parquet into bronze"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/ducklake.py",
+     "start": 138,
+     "end": 147,
+     "symbol": "def load_parquet_to_bronze",
+     "note": "CREATE OR REPLACE TABLE contoso.bronze.{table}"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/projects.py",
+     "start": 84,
+     "end": 84,
+     "symbol": "self.dbt.run(\"build\")",
+     "note": "dbt build to produce Silver/Gold"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 407,
+     "end": 456,
+     "symbol": "def run",
+     "note": "dbt subprocess"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/gold/monthly_sales.sql",
+     "start": 1,
+     "end": 12,
+     "symbol": "date_trunc",
+     "note": "Gold output of the build"
+    }
+   ],
+   "unresolved": []
+  },
+  {
+   "id": "apps-architecture-concept",
+   "title": "Apps / Architecture: concept spec load and download",
+   "status": "RESOLVED",
+   "steps": [
+    {
+     "layer": "react",
+     "path": "apps/web/src/fabricApps/conceptViewer.ts",
+     "start": 5,
+     "end": 6,
+     "symbol": "CONCEPT_URL",
+     "note": "Constant URL /api/fabric-apps/concept and ?download=true"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/fabricApps/ConceptPanel.tsx",
+     "start": 34,
+     "end": 34,
+     "symbol": "fetch(CONCEPT_URL)",
+     "note": "Panel fetches the concept document"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/routers/fabric_apps.py",
+     "start": 26,
+     "end": 34,
+     "symbol": "def concept",
+     "note": "GET /api/fabric-apps/concept (download flag sets Content-Disposition)"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/routers/fabric_apps.py",
+     "start": 32,
+     "end": 32,
+     "symbol": "load_model",
+     "note": "Model loaded from project_root model.json"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/fabric_apps/concept.py",
+     "start": 180,
+     "end": 181,
+     "symbol": "def concept_bytes",
+     "note": "Canonical JSON serialisation of build_concept(model)"
+    }
+   ],
+   "unresolved": [
+    "Concept content comes from the compiled model file (data); no SQL or Gold field is involved.",
+    "Viewer iframe URL /vendor/concept-viewer/concept-viewer.html is served by vite.config.ts, not traced."
+   ]
+  },
+  {
+   "id": "charts-export-mosaic",
+   "title": "Charts export for Mosaic: Gold mart artifact (monthly_sales.revenue, unit USD)",
+   "status": "RESOLVED",
+   "steps": [
+    {
+     "layer": "react",
+     "path": "apps/web/src/components/ExportPanel.tsx",
+     "start": 49,
+     "end": 54,
+     "symbol": "\"/api/exports/artifact\"",
+     "note": "exportNow() posts {mart}; mart is chosen from gold_tables returned by GET /api/exports"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/api.ts",
+     "start": 32,
+     "end": 38,
+     "symbol": "postJson",
+     "note": "POST JSON helper wrapping fetch"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/main.py",
+     "start": 523,
+     "end": 528,
+     "symbol": "def export_artifact",
+     "note": "POST /api/exports/artifact -> exports.export(mart, columns, max_rows)"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/main.py",
+     "start": 77,
+     "end": 77,
+     "symbol": "ExportService(settings",
+     "note": "exports service bound per workspace in _bind"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/exports.py",
+     "start": 172,
+     "end": 175,
+     "symbol": "def export",
+     "note": "Mart must match _MART and be in gold_tables() (catalog gold schema)"
+    },
+    {
+     "layer": "sql",
+     "path": "apps/api/app/services/exports.py",
+     "start": 199,
+     "end": 199,
+     "symbol": "DESCRIBE contoso.gold.",
+     "note": "DESCRIBE the Gold mart for column names and types"
+    },
+    {
+     "layer": "sql",
+     "path": "apps/api/app/services/exports.py",
+     "start": 209,
+     "end": 210,
+     "symbol": "SELECT count(*) FROM contoso.gold.",
+     "note": "Row count then bounded SELECT of columns ORDER BY"
+    },
+    {
+     "layer": "sql",
+     "path": "apps/api/app/services/exports.py",
+     "start": 213,
+     "end": 213,
+     "symbol": "COPY (SELECT * FROM contoso.gold.",
+     "note": "COPY mart to parquet artifact"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/exports.py",
+     "start": 42,
+     "end": 44,
+     "symbol": "\"revenue\": \"USD\"",
+     "note": "UNITS declares unit USD for the revenue column"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/exports.py",
+     "start": 237,
+     "end": 238,
+     "symbol": "column[\"unit\"] = UNITS[name]",
+     "note": "Unit attached to exported column"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/gold/monthly_sales.sql",
+     "start": 8,
+     "end": 8,
+     "symbol": "as revenue",
+     "note": "revenue = round(sum(net_revenue),2)"
+    },
+    {
+     "layer": "dbt",
+     "path": "dbt/models/silver/stg_sales.sql",
+     "start": 20,
+     "end": 20,
+     "symbol": "as net_revenue",
+     "note": "net_revenue is USD-normalised in Silver"
+    },
+    {
+     "layer": "gold",
+     "path": "dbt/models/gold/monthly_sales.sql",
+     "start": 8,
+     "end": 8,
+     "symbol": "revenue",
+     "note": "FIELD contoso.gold.monthly_sales.revenue, unit USD"
+    }
+   ],
+   "unresolved": []
+  },
+  {
+   "id": "workspace-switch",
+   "title": "Workspace switch: activate a named workspace",
+   "status": "RESOLVED",
+   "steps": [
+    {
+     "layer": "react",
+     "path": "apps/web/src/components/WorkspaceSwitcher.tsx",
+     "start": 79,
+     "end": 85,
+     "symbol": "/api/workspaces/${encodeURIComponent(id)}/activate",
+     "note": "activate(id) posts then reloads the page"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/api.ts",
+     "start": 32,
+     "end": 38,
+     "symbol": "postJson",
+     "note": "POST JSON helper wrapping fetch"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/main.py",
+     "start": 153,
+     "end": 155,
+     "symbol": "def activate_workspace",
+     "note": "POST /api/workspaces/{workspace_id}/activate -> _switch"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/main.py",
+     "start": 130,
+     "end": 148,
+     "symbol": "def _switch",
+     "note": "Takes switch lock and catalog lock, then _bind(workspaces.activate(...))"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/main.py",
+     "start": 66,
+     "end": 77,
+     "symbol": "def _bind",
+     "note": "Recreates every workspace-scoped service from the new Settings"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/workspaces.py",
+     "start": 129,
+     "end": 134,
+     "symbol": "def activate",
+     "note": "settings_for(id), config.set_active, writes pointer file"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/config.py",
+     "start": 67,
+     "end": 74,
+     "symbol": "def catalog_path",
+     "note": "Settings.catalog_path = workspace/contoso.ducklake.sqlite (or CONTOSO_DUCKLAKE_CATALOG for the default workspace)"
+    }
+   ],
+   "unresolved": []
+  }
+ ]
+}

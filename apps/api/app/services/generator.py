@@ -135,6 +135,11 @@ class GeneratorService:
             if not candidate.is_absolute():
                 candidate = directory / candidate
             candidate = candidate.resolve()
+            if not candidate.is_relative_to(directory) and Path(raw).is_absolute():
+                # A restored/relocated workspace keeps the file beside its manifest; hashes still apply.
+                relocated = (directory / candidate.name).resolve()
+                if relocated.is_relative_to(directory) and relocated.is_file():
+                    candidate = relocated
             if not candidate.is_relative_to(directory):
                 raise ValueError(f"Run file must stay inside its run directory: {name}")
             if not candidate.exists() or not candidate.is_file():

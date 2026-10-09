@@ -6,6 +6,7 @@ import type { GenerationRunDetail, QueryResult } from "../types";
 import { completeTutorialStep } from "../tutorialProgress";
 import { CountUp, SkeletonCards } from "../motion";
 import "../charts.css";
+import ExportPanel from "../components/ExportPanel";
 const FoilDashboard = lazy(()=>import("../components/FoilDashboard"));
 
 type ChartsStatus = {
@@ -95,6 +96,7 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
   const [boardDetail,setBoardDetail] = useState<BoardDetail|null>(null);
   const [boardError,setBoardError] = useState("");
   const [dashboardError,setDashboardError] = useState("");
+  const [dashboardLoading,setDashboardLoading] = useState(true);
   const [validationError,setValidationError] = useState("");
   const [validating,setValidating] = useState(false);
 
@@ -132,6 +134,11 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
   }
 
   async function loadDashboard() {
+    setDashboardLoading(true);
+    try { await loadDashboardData(); } finally { setDashboardLoading(false); }
+  }
+
+  async function loadDashboardData() {
     setDashboardError("");
     setKpis([]);
     setChartItems([]);
@@ -323,8 +330,8 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
   return <div className="chartsStack">
     <Card className="scenarioContextCard">
       <CardHeader
-        header={<Title3>{activeRun?.scenario_name ?? "No active Bronze scenario"}</Title3>}
-        description={activeRun?.business_focus ?? "Generate or reload a Contoso run to establish the active scenario."}
+        header={<Title3>{activeRun?.scenario_name ?? (dashboardLoading ? "Loading active scenario…" : "No active Bronze scenario")}</Title3>}
+        description={activeRun?.business_focus ?? (dashboardLoading ? "Reading the active run and its Gold tables." : "Generate or reload a Contoso run to establish the active scenario.")}
         action={<div className="buttonRow">
           {activeRun?.active_snapshot_id!=null && <Badge appearance="outline">Bronze #{activeRun.active_snapshot_id}</Badge>}
           {activeRun && <Badge appearance="outline" color={goldCurrent?"success":"warning"}>
@@ -367,7 +374,7 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
       </Card>
     </>}
 
-    {!goldCurrent && !dashboardError && <Card>
+    {!goldCurrent && !dashboardError && !dashboardLoading && <Card>
       <CardHeader header={<Title3>Scenario KPIs unavailable</Title3>} description="Gold must be rebuilt from the active Bronze run."/>
       <Text className="muted">Generate or reload Bronze, then open Transform and run dbt Build. The dashboard refuses to mix KPIs from a previous scenario with the current Bronze data.</Text>
     </Card>}
@@ -457,5 +464,6 @@ export default function ChartsPage({onOpenQuery}:{onOpenQuery:(sql:string)=>void
       {validation?.output && <details className="consoleDetails"><summary>Validation output</summary><pre>{validation.output}</pre></details>}
       <div className="serveHint"><Text className="muted tiny">Live dbt Charts renderer:</Text><code>dct serve --project-dir . --dbt-project-dir dbt</code></div>
     </Card>
+    <ExportPanel/>
   </div>;
 }

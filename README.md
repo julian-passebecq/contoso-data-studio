@@ -18,7 +18,10 @@ Generate -> Inspect -> Bronze (DuckLake) -> dbt Silver -> dbt Gold -> SQL / KPI 
 - starter Silver and Gold models with dbt data tests
 - dbt Charts 0.8 project + validated Executive Sales board
 - Gold KPI preview and dbt Charts validation status in the Charts tab
-- React + Fluent UI shell for Projects, Generate, Lakehouse, Transform, Query, Explore, Charts and Canvas
+- React + Fluent UI shell for Projects, Generate, Lakehouse, Transform, Query, Explore, Charts, Canvas and Apps (Architecture)
+- isolated local **workspaces** (own catalog, runs, imports, dbt results, exports and query history) with backup and restore
+- **Export for Mosaic**: any Gold table as a `datapass.artifact` v1 bundle (units, lineage, source hashes, full-table Parquet)
+- architecture concept export (`datapass.concept-spec` 1.0.0) shown in the vendored standalone concept viewer
 
 ## Scope
 
@@ -94,6 +97,42 @@ The app detects `dct` on PATH and exposes board validation in **Charts**. The li
 7. **Charts** → inspect Gold KPIs and validate/open the dbt Charts board.
 
 See `docs/architecture.md`.
+
+## Workspaces, backup and recovery
+
+The header **Workspace** picker switches between local workspaces. The original `workspace/` folder is the
+*Default workspace* and is adopted in place (nothing is moved on upgrade). **Manage** creates a named workspace
+(stored in `workspaces/<id>/`, or under `$CONTOSO_HOME`), writes a backup zip to `workspaces/_backups/`, and restores a
+backup **as a new workspace** (a restore never overwrites an existing one). Each workspace has its own DuckLake
+catalog and data files, staging runs, imports, dbt `target`, exports, query history and guided progress; switching
+reloads the page so no result of another workspace stays on screen. The API remembers the active workspace across
+restarts (`workspaces/active-workspace.json`).
+
+Manual backup without the UI: stop the API and copy the workspace folder (for the default workspace also the
+catalog/data paths if `CONTOSO_DUCKLAKE_*` point elsewhere). See `docs/release/v1.md` for the tested recovery route.
+
+## Export for Mosaic and DataPass
+
+- **Charts → Export for Mosaic** writes `<workspace>/exports/<id>/`: a validated `datapass.artifact` v1 JSON (bounded,
+  <= 10 000 rows), `manifest.json` (`datapass.artifact-manifest`), `contoso-export.json` (`contoso.result-export` v1:
+  dbt invocation, DuckLake snapshot, generator run/seed, staging file hashes, units) and the full Gold table as Parquet.
+  The export only reads the built Gold table and is refused when the model's latest dbt run did not succeed.
+- `node tools/validate_with_mosaic.mjs --mosaic <datapass-mosaicstudio checkout> --export <bundle> --concept <file>`
+  checks a bundle and the architecture concept with MosaicStudio's own validators (read-only, pinned tag).
+- `docs/datapass-react/` holds source-backed React -> API -> dbt -> Gold traces for the DataPass React analyzer;
+  `docs/fabric-apps/GOLD-MAPPING.md` documents the Gold-to-app boundary (DuckLake/dbt stays analytical truth).
+
+## Real local journey (release evidence)
+
+```bash
+# API environment active, Node 22 LTS, apps/web installed, plus: npm --prefix apps/web install --no-save playwright@1.56.1
+python tools/qa_retail_journey.py --mosaic ../datapass-mosaicstudio
+```
+
+It archives `HEAD` into a disposable fixture, serves the production web build, and drives: two workspaces ->
+project prepared to Gold -> Parquet/Lakehouse/Transform/Query/Charts -> export -> architecture viewer -> API restart
+and catalog reopen -> broken dbt model, refused export, repair, new successful run -> API-down banner -> keyboard,
+reduced motion and phone width. Evidence lands in `qa-evidence/retail-journey/evidence.json` (ignored by Git).
 
 ## Themes and recorded product tour (prototype)
 

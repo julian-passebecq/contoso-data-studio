@@ -20,3 +20,12 @@ Thumbs.db
 qa/video/*.mp4
 qa/video/frames/
 qa/video/failure.png
+
+# Named local workspaces, backups and the active-workspace pointer (apps/api/app/services/workspaces.py)
+workspaces/
+.qa-tmp/
+*.egg-info/
+apps/web/package-lock.json
+*.tsbuildinfo
+dbt/.user.yml
+qa-evidence/

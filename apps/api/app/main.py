@@ -1,11 +1,15 @@
 import subprocess
 from pathlib import Path
+from threading import Condition, Lock
+
+import anyio
 
 from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import Settings
-from app.models import GenerateRequest, QueryRequest, QueryResult
+from app.models import ArtifactExportRequest, GenerateRequest, QueryRequest, QueryResult, WorkspaceCreate, WorkspaceRestore
 from app.services.charts import ChartsService
 from app.services.dbt_runner import DbtService
 from app.services.ducklake import DuckLakeService
@@ -13,15 +17,67 @@ from app.services.explorer import ExplorerService
 from app.services.generator import GeneratorService, SCENARIOS
 from app.services.workspace_state import WorkspaceStateService
 from app.services.projects import ProjectService, ProjectBusyError
+from app.services.workspaces import WorkspaceError, WorkspaceRegistry
+from app.services.exports import ExportError, ExportService
+from app.services.fabric_apps import set_lab
 
-settings = Settings.load()
-ducklake = DuckLakeService(settings)
-explorer = ExplorerService(settings)
-generator = GeneratorService(settings)
-dbt = DbtService(settings)
-charts = ChartsService(settings)
-workspace_state = WorkspaceStateService(generator, ducklake, dbt)
-projects = ProjectService(generator, ducklake, dbt, workspace_state)
+workspaces = WorkspaceRegistry()
+_switch_lock = Lock()
+
+
+class _WorkspaceGate:
+    """Requests share the active workspace; a switch waits until none is in flight, then rebinds alone."""
+
+    def __init__(self) -> None:
+        self._cond = Condition()
+        self._readers = 0
+        self._writing = False
+
+    def enter(self) -> None:
+        with self._cond:
+            while self._writing:
+                self._cond.wait()
+            self._readers += 1
+
+    def leave(self) -> None:
+        with self._cond:
+            self._readers -= 1
+            self._cond.notify_all()
+
+    def exclusive(self, timeout: float) -> bool:
+        with self._cond:
+            self._writing = True
+            if not self._cond.wait_for(lambda: self._readers == 0, timeout=timeout):
+                self._writing = False
+                self._cond.notify_all()
+                return False
+            return True
+
+    def release(self) -> None:
+        with self._cond:
+            self._writing = False
+            self._cond.notify_all()
+
+
+_gate = _WorkspaceGate()
+SWITCH_WAIT_SECONDS = 60
+
+
+def _bind(active: Settings) -> None:
+    """(Re)create every workspace-scoped service; nothing from the previous workspace survives."""
+    global settings, ducklake, explorer, generator, dbt, charts, workspace_state, projects, exports
+    settings = active
+    ducklake = DuckLakeService(settings)
+    explorer = ExplorerService(settings)
+    generator = GeneratorService(settings)
+    dbt = DbtService(settings)
+    charts = ChartsService(settings)
+    workspace_state = WorkspaceStateService(generator, ducklake, dbt)
+    projects = ProjectService(generator, ducklake, dbt, workspace_state)
+    exports = ExportService(settings, generator, ducklake, dbt)
+
+
+_bind(workspaces.activate(workspaces.remembered_id(), remember=False))
 
 app = FastAPI(title="Contoso Data Studio API", version="0.4.0")
 app.add_middleware(
@@ -40,9 +96,79 @@ app.include_router(fabric_apps_router)
 app.include_router(fabric_concept_router)
 
 
+@app.middleware("http")
+async def workspace_gate(request: Request, call_next):
+    # Every API request runs against one workspace from start to end; the switch itself is the writer.
+    if not request.url.path.startswith("/api/") or request.url.path.endswith("/activate"):
+        return await call_next(request)
+    await anyio.to_thread.run_sync(_gate.enter)
+    try:
+        return await call_next(request)
+    finally:
+        _gate.leave()
+
+
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "workspace": str(settings.workspace)}
+    return {"status": "ok", "workspace": str(settings.workspace), "workspace_id": settings.workspace_id}
+
+
+@app.get("/api/workspaces")
+def list_workspaces():
+    return {**workspaces.list(), "backups": workspaces.list_backups()}
+
+
+@app.post("/api/workspaces")
+def create_workspace(request: WorkspaceCreate):
+    try:
+        created = workspaces.create(request.name)
+    except WorkspaceError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    return workspaces.describe(created)
+
+
+def _switch(workspace_id: str) -> dict:
+    if not _switch_lock.acquire(blocking=False):
+        raise HTTPException(409, detail="Another workspace switch is in progress.")
+    try:
+        target = workspaces.settings_for(workspace_id)
+        # Every service is rebuilt for the target workspace. Work still in flight (a dbt run, an app-lab
+        # mirror batch) keeps the Settings it started with, so it only ever writes its own workspace's
+        # catalog; nothing has to wait for it. The old mirror stops in the background.
+        if not _gate.exclusive(SWITCH_WAIT_SECONDS):
+            raise HTTPException(409, detail="The current workspace is still busy (for example a dbt build). Try again when it finishes.")
+        try:
+            set_lab(None, wait=False)
+            _bind(workspaces.activate(target.workspace_id))
+        finally:
+            _gate.release()
+        return {"active": settings.workspace_id, "workspace": workspaces.describe(settings)}
+    except WorkspaceError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    finally:
+        _switch_lock.release()
+
+
+@app.post("/api/workspaces/{workspace_id}/activate")
+def activate_workspace(workspace_id: str):
+    return _switch(workspace_id)
+
+
+@app.post("/api/workspaces/{workspace_id}/backup")
+def backup_workspace(workspace_id: str):
+    try:
+        return workspaces.backup(workspace_id)
+    except WorkspaceError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+
+
+@app.post("/api/workspaces/restore")
+def restore_workspace(request: WorkspaceRestore):
+    try:
+        restored = workspaces.restore(request.backup, request.name)
+    except WorkspaceError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    return workspaces.describe(restored)
 
 
 @app.get("/api/scenarios")
@@ -386,3 +512,26 @@ def query(request: QueryRequest):
         raise HTTPException(400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(500, detail=str(exc)) from exc
+
+
+@app.get("/api/exports")
+def list_exports():
+    return {"exports": exports.list(), "gold_tables": exports.gold_tables()}
+
+
+@app.post("/api/exports/artifact")
+def export_artifact(request: ArtifactExportRequest):
+    try:
+        return exports.export(request.mart, request.columns, request.max_rows)
+    except (ExportError, ValueError) as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+
+
+@app.get("/api/exports/{export_id}/{name}")
+def export_file(export_id: str, name: str):
+    try:
+        path = exports.file(export_id, name)
+    except ExportError as exc:
+        raise HTTPException(404, detail=str(exc)) from exc
+    media = "application/json" if path.suffix == ".json" else "application/vnd.apache.parquet"
+    return FileResponse(path, media_type=media, filename=path.name)
