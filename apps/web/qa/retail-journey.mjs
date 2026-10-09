@@ -230,11 +230,14 @@ try {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.reload({ waitUntil: "networkidle" });
     await nav("Charts");
+    await page.locator(".kpiGrid").waitFor({ timeout: 60000 });
     await snap("reduced-motion", "F11 reduced-motion rendering");
     await page.setViewportSize({ width: 390, height: 844 });
     await nav("Charts");
+    await page.locator(".kpiGrid").waitFor({ timeout: 60000 });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     record.phoneOverflowPx = overflow;
+    assert.ok(overflow <= 1, `page overflows the 390px phone viewport by ${overflow}px`);
     await snap("phone", `F11 phone width 390px (horizontal overflow ${overflow}px)`);
   }
 

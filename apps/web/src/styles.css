@@ -197,3 +197,20 @@ main{padding:28px 32px;min-width:0}
 .exportLatest { display: grid; gap: 6px; padding-top: 4px; }
 .exportHistory { margin: 6px 0 0; padding-left: 18px; }
 .apiDown { margin-bottom: 12px; }
+
+/* Phone and narrow tablet: header wraps, navigation becomes a horizontal strip above the page. */
+@media (max-width: 760px) {
+  header { height: auto; flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+  .brand { flex-direction: column; gap: 2px; }
+  .badges { flex-wrap: wrap; gap: 6px; align-items: center; }
+  .layout { grid-template-columns: 1fr; min-height: 0; }
+  aside { display: flex; overflow-x: auto; gap: 4px; padding: 8px 12px; border-right: 0; border-bottom: 1px solid #e1e1e3; }
+  aside > button { flex: 0 0 auto; width: auto; }
+  aside .navSection, aside .pipelineMini { display: none; }
+  main { padding: 16px; }
+  .pageTitle { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .workspaceProjectBar { flex-wrap: wrap; }
+  .exportPanel .buttonRow, .buttonRow { flex-wrap: wrap; }
+  table { display: block; overflow-x: auto; max-width: 100%; }
+  pre, code { white-space: pre-wrap; overflow-wrap: anywhere; }
+}
