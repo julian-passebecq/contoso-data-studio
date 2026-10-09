@@ -2,8 +2,8 @@
 
 - Surface: Claude Code desktop, model claude-opus-5-5; native session id not exposed (null).
 - Repo/worktree: `D:\PROJ\contoso-data-studio\.claude\worktrees\contoso-retail-v1`, branch `claude/contoso-retail-v1`,
-  PR https://github.com/julian-passebecq/contoso-data-studio/pull/14. Qualified commit in `OUTCOME.json`; later
-  commits on the branch are receipts/docs only.
+  PR https://github.com/julian-passebecq/contoso-data-studio/pull/14. Qualified commit in `OUTCOME.json`; the later
+  commit adds receipts/docs and makes the journey record the dbt-core version (evidence field only).
 - Contracts: producer of `datapass.artifact` v1 and `datapass.concept-spec` 1.0.0, consumer pinned to
   datapass-mosaicstudio `studio-v0.8.1` (8b22d9c). Vendored copies under `vendor/datapass-artifact/` are byte-exact.
 - Acceptance: all F01-F12 and UX01-UX04 recorded in `ACCEPTANCE.md` with evidence; partials are labelled there.
