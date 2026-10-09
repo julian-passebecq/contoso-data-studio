@@ -87,7 +87,10 @@ async function exportGold() {
   await panel.getByRole("combobox", { name: "Gold table to export" }).selectOption("monthly_sales");
   const before = (await api("/api/exports")).body.exports.length;
   await panel.getByRole("button", { name: "Export artifact" }).click();
-  await page.waitForFunction(async n => (await (await fetch("/api/exports")).json()).exports.length > n, before, { timeout: 120000 });
+  for (let i = 0; (await api("/api/exports")).body.exports.length <= before; i++) {
+    if (i > 240) throw new Error("export did not appear within 120 s");
+    await page.waitForTimeout(500);
+  }
   await panel.locator(".exportLatest").waitFor();
   return (await api("/api/exports")).body.exports[0];
 }
@@ -162,11 +165,13 @@ try {
     await nav("Transform");
     expectFailure = true;
     await page.getByRole("button", { name: "Build", exact: true }).click();
-    await page.getByRole("button", { name: "Build", exact: true }).waitFor({ timeout: 300000 });
-    await page.waitForFunction(async () => {
-      const status = await (await fetch("/api/dbt/status")).json();
-      return status.latest_run && status.latest_run.results.some(r => r.unique_id.endsWith(".monthly_sales") && r.status === "error");
-    }, null, { timeout: 120000 });
+    await page.getByRole("button", { name: "Building...", exact: true }).waitFor({ state: "detached", timeout: 300000 });
+    for (let i = 0; ; i++) {
+      const status = (await api("/api/dbt/status")).body;
+      if (status.latest_run?.results.some(r => r.unique_id.endsWith(".monthly_sales") && r.status === "error")) break;
+      if (i > 240) throw new Error("failed monthly_sales run not reported within 120 s");
+      await page.waitForTimeout(500);
+    }
     await snap("transform-failed", "UX03 failed dbt build visible with model error");
     await nav("Charts");
     await page.locator(".exportPanel").getByRole("button", { name: "Export artifact" }).click();
@@ -178,7 +183,7 @@ try {
   if (phase === "fault-repaired") {
     await nav("Transform");
     await page.getByRole("button", { name: "Build", exact: true }).click();
-    await page.getByRole("button", { name: "Build", exact: true }).waitFor({ timeout: 300000 });
+    await page.getByRole("button", { name: "Building...", exact: true }).waitFor({ state: "detached", timeout: 300000 });
     const repaired = await exportGold();
     assert.equal(repaired.lineage.dbt_run.status, "success");
     assert.notEqual(repaired.lineage.dbt_run.invocation_id, state.workspaceA.invocation);
