@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Validate Contoso export bundles with MosaicStudio's own TypeScript validators (read-only consumer check).
 //
-//   node tools/validate_with_mosaic.mjs --mosaic <datapass-mosaicstudio checkout> [--ref studio-v0.8.1] \
+//   node tools/validate_with_mosaic.mjs --mosaic <datapass-mosaicstudio checkout> [--ref <sha>] \
 //        [--export <workspace>/exports/<id>] [--concept <concept.json>]
 //
 // The Mosaic sources are extracted with `git archive <ref>` into a temporary folder; the Mosaic checkout is
@@ -16,10 +16,13 @@ import {pathToFileURL} from 'node:url';
 const args = Object.fromEntries(process.argv.slice(2).reduce((pairs, value, index, all) =>
   value.startsWith('--') ? [...pairs, [value.slice(2), all[index + 1]]] : pairs, []));
 if (!args.mosaic || (!args.export && !args.concept)) {
-  console.error('usage: --mosaic <checkout> [--ref <tag>] --export <bundle dir> | --concept <file>');
+  console.error('usage: --mosaic <checkout> [--ref <sha or tag>] --export <bundle dir> | --concept <file>');
   process.exit(2);
 }
-const ref = args.ref ?? 'studio-v0.8.1';
+// Default: the Mosaic commit Contoso is verified against (main, version 0.9.0; a commit, not a tag). Keep in sync
+// with PINNED_MOSAIC_SHA in tools/open_in_mosaic.mjs and MOSAIC_SHA in .github/workflows/qa-browser.yml.
+const PINNED_MOSAIC_SHA = '6f45dd06e95ee66d693fc08fb4369c2a6379e84c';
+const ref = args.ref ?? PINNED_MOSAIC_SHA;
 const sha = execFileSync('git', ['-C', args.mosaic, 'rev-parse', `${ref}^{commit}`], {encoding: 'utf8'}).trim();
 const scratch = mkdtempSync(join(tmpdir(), 'contoso-mosaic-'));
 const report = {mosaic_ref: ref, mosaic_sha: sha, checks: []};
