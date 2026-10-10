@@ -1,23 +1,23 @@
 {
   "state": "ISSUED",
   "producer_repository": "https://github.com/julian-passebecq/contoso-data-studio",
-  "producer_commit": "d79e0b41794756c34f89127ee704632c30968553",
+  "producer_commit": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
   "canonical_contract_id": "datapass.artifact",
   "contract_version": "1",
   "artifact_path": "workspace exports/<export-id>/contoso-monthly-sales.json (+ .full.parquet, manifest.json, contoso-export.json) via POST /api/exports/artifact",
-  "artifact_sha256": "dbabdb8d3a6768c5ed8f9966fc3db44e4441cfc4e4aa842ac47b035a89d183ef",
+  "artifact_sha256": "bd5e19c704745ec6325f6b7547e198c44807aca3c34ffaa84865357d9b7c2e51",
   "bulk_data_sha256": "983b9a067f945980df4732f84dfd11453e9ec1375140ec0b5b16034f5ab62210",
-  "artifact_note": "sha256 of the journey export at this commit (synthetic retail-baseline, seed 42, 48 rows); a new export has a new runId/timestamp and therefore a new hash",
-  "compatible_consumer_versions": ["datapass-mosaicstudio studio-v0.8.1 (8b22d9c121743d8cd5e78ca74098c5e332e4e45c)"],
+  "artifact_note": "sha256 of the Windows journey export at fe83dbd (synthetic retail-baseline, seed 42, 48 rows); a new export has a new runId/timestamp and therefore a new hash",
+  "compatible_consumer_versions": [
+    "datapass-mosaicstudio main f3a02bca98efb56ac219db46edb6275088a20192 (0.9.0, no tag): strict JSON Schema, TypeScript validator, Python mirror, UI render",
+    "vendored writer studio-v0.8.1 (8b22d9c)"
+  ],
   "validation_evidence": [
-    "handoff/evidence/mosaic-validation.log: validateArtifact + artifactDefinition OK (Mosaic TypeScript validator, read-only git archive of the tag)",
-    "apps/api/tests/test_workspaces_exports.py: Python mirror + base JSON schema, units, lineage, staging sha256, no DuckLake write",
-    "handoff/evidence/evidence.json (journey PASS, Windows 11 10.0.26300)"
+    "handoff/evidence/open-in-mosaic-2026-10-10.json: structural_strict PASS (ajv 2020-12), structural_ts PASS, semantic PASS, concept PASS; table/chart/metric rendered in Mosaic UI",
+    "handoff/evidence/journey-2026-10-10-windows.json: journey PASS on Windows 11 10.0.26300 at fe83dbd",
+    "apps/api/tests/test_workspaces_exports.py"
   ],
-  "source_omissions": [
-    "Mosaic docs/contracts/artifact.schema.json at studio-v0.8.1 lacks the additive lineage fields (producer/inputs/inputHash) that artifact.ts accepts: base schema is checked without them; see handoff/PEER-FINDINGS.md",
-    "Not clicked through the Mosaic import UI; validated with Mosaic's own validators"
-  ],
+  "source_omissions": [],
   "author_surface": "CLAUDE CODE",
   "native_session_id": null,
   "consumers_not_automatically_started": true

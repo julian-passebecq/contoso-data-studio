@@ -1,0 +1,38 @@
+{
+  "source": "CI run 38019921342 job open-in-mosaic (ubuntu-latest), PR #20 head 3b5d5d7 = tree of fe83dbd0805fb787f4beb0d7485827ec059e8578",
+  "mosaic_sha": "f3a02bca98efb56ac219db46edb6275088a20192",
+  "result": "PASS",
+  "gates": {
+    "structural_strict": {
+      "ok": true,
+      "fatal": true,
+      "validator": "ajv@8.17.1 (https://json-schema.org/draft/2020-12/schema)",
+      "schema": "docs/contracts/artifact.schema.json@f3a02bca98efb56ac219db46edb6275088a20192",
+      "schema_sha256": "74aee5fe7d5b4fc7bab2e51620e9a5948aefa793a59b14c08ae221bf5fb4cb05",
+      "status": "PASS",
+      "errors": []
+    },
+    "structural_ts": {
+      "ok": true,
+      "fatal": true,
+      "validator": "src/framework/foundation/artifact.ts@f3a02bca98efb56ac219db46edb6275088a20192 validateArtifact+artifactDefinition"
+    },
+    "semantic": {
+      "ok": true,
+      "fatal": true
+    },
+    "concept": {
+      "ok": true,
+      "fatal": true
+    }
+  },
+  "screenshots": [
+    "mosaic-artifact-table.png",
+    "mosaic-artifact-chart.png",
+    "mosaic-artifact-metric.png",
+    "mosaic-artifact-page.png",
+    "mosaic-concept-embed-1000x600.png",
+    "mosaic-concept-embed-resized-720x480.png",
+    "mosaic-concept-embed-layered.png"
+  ]
+}

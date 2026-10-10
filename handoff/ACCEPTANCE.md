@@ -51,3 +51,18 @@ Reconciliation of stale statements (the originals above are kept as history):
 Omissions: Fabric/cloud runtime and real Entra login (not authorized), tag/release/publication (not authorized),
 desktop installer (not promised), React analyzer cross-check (NOT_RUN), E2E-08 cross-product clean-release set (owned by
 the release-set coordinator; Contoso supplies its package and install receipt).
+
+### Post-merge receipt (2026-10-10)
+
+- Final main `fe83dbd0805fb787f4beb0d7485827ec059e8578` (#20; earlier #17 a671b36, #16 d23949f, #18 d2056c1, #19 3d257a0).
+- CI on final main: run 38020549227 attempt 1, ubuntu-latest: api, web, charts, fabric-app-model, package success.
+  `qa-browser.yml` runs on pull requests: PR #20 head `3b5d5d7` (same tree as `fe83dbd`, empty diff) passed
+  browser-smoke (journey) and open-in-mosaic (structural_strict, structural_ts, semantic, concept all PASS at MosaicStudio `f3a02bc`).
+- Native journey on Windows 11 Pro 10.0.26300 at `fe83dbd` (Python 3.12.10, Node 26.9.0, dbt-core 1.12.5): PASS, 9 phases
+  (build, reopen, fault-broken, fault-repaired, mapping, backup, restore, api-down, ux); mapping 72 items, Gold = app
+  total 4,424,416.84 (0 cents), 10/10 pairs covered once; restore `journey-a-restored` same revenue and 2 export ids.
+  Export sha256 `bd5e19c7...2e51` passes MosaicStudio's strict JSON Schema, TypeScript validator and Python mirror at `f3a02bc`.
+  Evidence: `handoff/evidence/journey-2026-10-10-windows.json`, `handoff/evidence/open-in-mosaic-2026-10-10.json`.
+- Package: `contoso-data-studio-0.2.0-fe83dbd.zip`, 2,963,772 bytes, sha256 `c065671d0acbe4520860fcd6dca93842aa1a75bd7ee7808d56106a8e58b0fbd1`,
+  clean-venv install receipt PASS (CI, final main); Windows install PASS at #17 head. Kept locally, not published.
+- Gates: LOCAL (this repo) PASS; PUBLIC_DISTRIBUTION and tags NOT_AUTHORIZED; FABRIC_AUTHENTICATED BLOCKED (not authorized).
