@@ -118,7 +118,10 @@ catalog/data paths if `CONTOSO_DUCKLAKE_*` point elsewhere). See `docs/release/v
   dbt invocation, DuckLake snapshot, generator run/seed, staging file hashes, units) and the full Gold table as Parquet.
   The export only reads the built Gold table and is refused when the model's latest dbt run did not succeed.
 - `node tools/validate_with_mosaic.mjs --mosaic <datapass-mosaicstudio checkout> --export <bundle> --concept <file>`
-  checks a bundle and the architecture concept with MosaicStudio's own validators (read-only, pinned tag).
+  checks a bundle and the architecture concept with MosaicStudio's own validators (read-only, pinned commit);
+  `node tools/open_in_mosaic.mjs` opens them in Mosaic's own UI and concept viewer and reports each gate.
+- `python tools/package_release.py` builds the local release zip (source + prebuilt web, `SHA256SUMS`); unpack it,
+  `pip install -e "apps/api[dbt]"` in a venv and run `contoso-studio` (see `docs/release/v1.md`).
 - `docs/datapass-react/` holds source-backed React -> API -> dbt -> Gold traces for the DataPass React analyzer;
   `docs/fabric-apps/GOLD-MAPPING.md` documents the Gold-to-app boundary (DuckLake/dbt stays analytical truth).
 
@@ -132,7 +135,8 @@ python tools/qa_retail_journey.py --mosaic ../datapass-mosaicstudio
 It archives `HEAD` into a disposable fixture, serves the production web build, and drives: two workspaces ->
 project prepared to Gold -> Parquet/Lakehouse/Transform/Query/Charts -> export -> architecture viewer -> API restart
 and catalog reopen -> broken dbt model, refused export, repair, new successful run -> API-down banner -> keyboard,
-reduced motion and phone width. Evidence lands in `qa-evidence/retail-journey/evidence.json` (ignored by Git).
+reduced motion and phone width, plus the retail Gold -> app department mapping check and
+backup -> API restart -> restore. Evidence lands in `qa-evidence/retail-journey/evidence.json` (ignored by Git).
 
 ## Themes and recorded product tour (prototype)
 

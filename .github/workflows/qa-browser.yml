@@ -7,7 +7,7 @@ on:
 env:
   # MosaicStudio commit the export is verified against (main, version 0.9.0; a commit, not a tag).
   # Keep in sync with PINNED_MOSAIC_SHA in tools/validate_with_mosaic.mjs and tools/open_in_mosaic.mjs.
-  MOSAIC_SHA: 6f45dd06e95ee66d693fc08fb4369c2a6379e84c
+  MOSAIC_SHA: f3a02bca98efb56ac219db46edb6275088a20192
 
 jobs:
   browser-smoke:

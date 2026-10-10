@@ -43,6 +43,9 @@ the vendored MosaicStudio writer (`vendor/datapass-artifact`, pinned studio-v0.8
 no dbt or generator run; a failed or missing latest model run blocks the export. Contract note: the published
 `artifact.schema.json` at studio-v0.8.1 predates the additive lineage fields (`producer`, `inputs`, `inputHash`) that
 Mosaic's TypeScript validator accepts; Contoso validates against the TypeScript validator and the Python mirror.
+Since MosaicStudio `f3a02bc` (#46) the published schema declares those fields: `tools/open_in_mosaic.mjs` checks the
+export strictly against it (required gate), next to the TypeScript, semantic and concept-viewer gates, and opens the
+bundle in Mosaic's UI. The vendored copies under `vendor/` stay at studio-v0.8.1.
 
 ## Primary workbenches
 
