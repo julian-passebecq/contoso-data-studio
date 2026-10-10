@@ -29,3 +29,25 @@ acceptance for the owner to adopt.
 
 Omissions: Fabric/cloud runtime (not authorized), desktop installer, retail-to-app mapping (product decision),
 Mosaic import UI click-through (validated with Mosaic's own validators instead; Mosaic repo not modified).
+
+## Full release 2026-10-10 (packet `galaxy-full-release-2026-10-10/07-contoso`, revision 1)
+
+Baseline `f2d0c759b2362b94db0cd73c3a9d901ed4aed9f0` (CI run 37960928179). The rows above stay as recorded at
+`d79e0b4`; this section appends the two completion deltas and reconciles stale statements. Data is synthetic.
+
+| Delta | Maps to | Status | Evidence |
+| --- | --- | --- | --- |
+| 07-contoso/FR-01 exported data and traces in the actual consumers | F06, F07, F09, UX02 | MET | #18 `tools/open_in_mosaic.mjs` (CI job `open-in-mosaic`): the journey's Gold artifact opened in MosaicStudio's own UI (table 48 rows, bar chart, metric 123,166.82 USD from the artifact) and the concept spec in Mosaic's standalone viewer by postMessage embed (13/13 nodes, 17/17 flows, fit after resize, non-parent message ignored). Gates reported separately: strict JSON Schema, Mosaic TypeScript, semantic (ids, references, self-dependency/cycles, sha256 of artifact/manifest/Parquet), concept. Strict schema now PASS at MosaicStudio `f3a02bc` (its #46 schema repair) and required; lineage keeps dbt invocation, model checksum, DuckLake snapshot, generator and staging sha256. #16 traces: 20 traces, 277 steps, every step labelled verified 207 / inferred 67 / unresolved 3; `query-page` split into 8 preset sub-traces and `transform-dbt-build` into retail/foil/selector branches, both RESOLVED; only `query-page/free-sql` stays PARTIAL (user SQL, history replay, runtime result columns, listed). React analyzer cross-check NOT_RUN (needs a workspace install in the private React repo; analyzer not edited) |
+| 07-contoso/FR-02 retail product and release notes | F03, F08, F10, F12, UX01, UX03, UX04 | MET | #19 journey phases `mapping` (72 items, ONLINE/NORD/SOUTH non-empty, unmapped [], app total = Gold total at the pinned snapshot, all 10 channel/country pairs in exactly one department, Gold digest unchanged by the read, copy/non-authoritative provenance) and `backup` -> API process restart -> `restore` (new workspace, Gold revenue and both export ids equal journey-a); injected dbt failure/repair kept (`fault-broken`/`fault-repaired`); workspace A/B kept. #17 package: `tools/package_release.py` zip (source + prebuilt web) + SHA256SUMS, `contoso-studio` one-process loopback run, `tools/qa_install_package.py` clean-venv install -> health -> UI -> retail project to Gold (Windows 11 local and Ubuntu CI job `package`). Release notes corrected (`docs/release/v1.md`) |
+
+Reconciliation of stale statements (the originals above are kept as history):
+- F08 "mapping disabled" and the omission "retail-to-app mapping (product decision)": superseded by #15 (2026-10-09), the
+  NORD/SOUTH/ONLINE mapping in `mapping.py` (single owner), on by default, qualified by the journey `mapping` phase.
+- F12 "No desktop installer (omission)": still true; the release is the source/prebuilt-web zip with `contoso-studio`.
+- UX02 / `mosaic-validation.log` "studio-v0.8.1 (8b22d9c)": consumer pin is now MosaicStudio `f3a02bc` (main, 0.9.0, no
+  tag); vendored `vendor/` copies stay byte-exact at studio-v0.8.1 (`test_vendor_contracts.py`).
+- "Mosaic import UI click-through" omission: closed by FR-01 (Mosaic UI and viewer opened by Playwright).
+
+Omissions: Fabric/cloud runtime and real Entra login (not authorized), tag/release/publication (not authorized),
+desktop installer (not promised), React analyzer cross-check (NOT_RUN), E2E-08 cross-product clean-release set (owned by
+the release-set coordinator; Contoso supplies its package and install receipt).

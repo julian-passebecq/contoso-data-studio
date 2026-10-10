@@ -33,7 +33,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 WEB = REPO / "apps" / "web"
 BROKEN_MARKER = "-- qa_retail_journey: deliberately broken"
-MOSAIC_REF = "6f45dd06e95ee66d693fc08fb4369c2a6379e84c"
+MOSAIC_REF = "f3a02bca98efb56ac219db46edb6275088a20192"
 
 
 def run(cmd: list[str], cwd: Path, env: dict | None = None, check: bool = True, timeout: int = 900) -> subprocess.CompletedProcess:

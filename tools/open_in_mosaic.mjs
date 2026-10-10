@@ -15,11 +15,12 @@
 //    parent page and driven through its embed API (postMessage load/ready, fit option, resize); a message from a
 //    sibling frame (not the direct parent) must be ignored.
 // 4. Gates are reported separately in <out>/evidence.json:
-//    structural_strict  ajv against docs/contracts/artifact.schema.json at the ref, no field stripped (non-fatal)
+//    structural_strict  ajv against docs/contracts/artifact.schema.json at the ref, no field stripped (fatal since
+//                       Mosaic f3a02bc repaired the schema; --allow-schema-drift reports it as non-fatal for older refs)
 //    structural_ts      Mosaic validateArtifact + artifactDefinition (TypeScript, at the ref)
 //    semantic           ids, references, self-dependency/cycles, sha256 of artifact, manifest and bulk Parquet
 //    concept            Mosaic checkConceptSpec + viewer render
-// Exit code is non-zero only for real consumer failures (not for structural_strict).
+// Exit code is non-zero for any failed gate (structural_strict too, unless --allow-schema-drift).
 // Requires Node >= 22.18 (built-in TypeScript type stripping), git, npm and network access for npm/GitHub.
 import {execFileSync, spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
@@ -29,7 +30,7 @@ import {tmpdir} from 'node:os';
 import {basename, join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
-export const PINNED_MOSAIC_SHA = '6f45dd06e95ee66d693fc08fb4369c2a6379e84c';
+export const PINNED_MOSAIC_SHA = 'f3a02bca98efb56ac219db46edb6275088a20192';
 const AJV_VERSION = '8.17.1';
 const CLIENT_ID = 'contoso-consumer';
 const WIN = process.platform === 'win32';
@@ -131,13 +132,14 @@ try {
     const errors = ok ? [] : validate.errors.map(({instancePath, schemaPath, keyword, params, message}) => ({instancePath, schemaPath, keyword, params, message}));
     const provenanceExtras = Object.keys(artifact.provenance ?? {}).filter((k) => !(k in (schema.properties?.provenance?.properties ?? {})));
     gate('structural_strict', {
-      ok, fatal: false, validator: `ajv@${AJV_VERSION} (${draft || 'default draft'})`,
+      ok, fatal: !args['allow-schema-drift'], validator: `ajv@${AJV_VERSION} (${draft || 'default draft'})`,
       schema: `docs/contracts/artifact.schema.json@${sha}`, schema_sha256: sha256(schemaText), stripped_fields: [],
-      status: ok ? 'PASS' : 'PENDING_PEER 01-mosaicstudio schema repair',
+      status: ok ? 'PASS' : (args['allow-schema-drift'] ? 'FAIL_ALLOWED schema drift (--allow-schema-drift)' : 'FAIL'),
       note: ok ? undefined : `Mosaic's published JSON Schema lacks provenance fields its own TS validator accepts: ${provenanceExtras.join(', ') || '(see errors)'}`,
       errors,
     });
-    log(`structural_strict: ${ok ? 'PASS' : `FAIL (${errors.length} ajv errors, non-fatal)`}`);
+    if (!ok && !args['allow-schema-drift']) failures.push('structural_strict');
+    log(`structural_strict: ${ok ? 'PASS' : `FAIL (${errors.length} ajv errors${args['allow-schema-drift'] ? ', allowed' : ''})`}`);
   }
 
   // ---------- gate (b) structural_ts: Mosaic validateArtifact (TypeScript) ---------------------------------------

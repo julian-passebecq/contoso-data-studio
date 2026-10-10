@@ -1,11 +1,11 @@
 # Peer findings from lane 07-contoso (not applied: no peer repo writes)
 
-1. **01-mosaicstudio** — at `studio-v0.8.1`, `docs/contracts/artifact.schema.json` does not declare the additive
-   provenance lineage fields (`producer`, `inputs`, `inputHash`) that `artifact.ts` and the Python mirror
-   `datapass_artifact.py` accept. A strict JSON-schema consumer rejects valid lineage-carrying artifacts.
-   Proposed: add the three optional fields to the schema. Contoso checks the base contract without them and
-   relies on the TypeScript validator for the full artifact.
-2. **Product decision (owner)** — the operational lab's Gold-to-app mapping for retail channels to app
-   departments is declared but disabled (`docs/fabric-apps/GOLD-MAPPING.md`). It needs a product choice of
-   the mapping before it can be enabled.
-3. **02-datapass-react** — two traces stay partial (`docs/datapass-react/TRACES.md`); the analyzer was not edited.
+1. **01-mosaicstudio** - RESOLVED 2026-10-10 by MosaicStudio #46 (`f3a02bc`): `artifact.schema.json` now declares the
+   provenance lineage fields; Contoso exports pass it strictly and the gate is required.
+2. **Product decision (owner)** - RESOLVED 2026-10-09 by #15 (NORD/SOUTH/ONLINE mapping, `GOLD-MAPPING.md` section 3).
+3. **02-datapass-react** - traces completed on the Contoso side with verified/inferred/unresolved labels (#16); one
+   trace stays PARTIAL because its SQL is user input. No headless analyzer CLI at React 2e922ea; a cross-check needs
+   a wrapper around `analyzeWorkspace` in the React repo (React lane's choice).
+4. Noted, not changed (product behaviour, see `docs/datapass-react/TRACES.md`): on a retail project the Transform
+   selector accepts `forecast_vs_actual`, which builds nothing unless `fabric_apps_enabled` is passed; on a FOIL project
+   `dbt build` rebuilds only the FOIL models and retail Gold keeps its last build.

@@ -21,7 +21,7 @@ if (!args.mosaic || (!args.export && !args.concept)) {
 }
 // Default: the Mosaic commit Contoso is verified against (main, version 0.9.0; a commit, not a tag). Keep in sync
 // with PINNED_MOSAIC_SHA in tools/open_in_mosaic.mjs and MOSAIC_SHA in .github/workflows/qa-browser.yml.
-const PINNED_MOSAIC_SHA = '6f45dd06e95ee66d693fc08fb4369c2a6379e84c';
+const PINNED_MOSAIC_SHA = 'f3a02bca98efb56ac219db46edb6275088a20192';
 const ref = args.ref ?? PINNED_MOSAIC_SHA;
 const sha = execFileSync('git', ['-C', args.mosaic, 'rev-parse', `${ref}^{commit}`], {encoding: 'utf8'}).trim();
 const scratch = mkdtempSync(join(tmpdir(), 'contoso-mosaic-'));
