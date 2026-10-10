@@ -4,6 +4,11 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  # MosaicStudio commit the export is verified against (main, version 0.9.0; a commit, not a tag).
+  # Keep in sync with PINNED_MOSAIC_SHA in tools/validate_with_mosaic.mjs and tools/open_in_mosaic.mjs.
+  MOSAIC_SHA: 6f45dd06e95ee66d693fc08fb4369c2a6379e84c
+
 jobs:
   browser-smoke:
     runs-on: ubuntu-latest
@@ -76,9 +81,10 @@ jobs:
 
       - name: Validate journey export with MosaicStudio's own validators
         run: |
-          git clone --quiet --depth 1 --branch studio-v0.8.1 https://github.com/julian-passebecq/datapass-mosaicstudio.git /tmp/mosaic
-          git -C /tmp/mosaic fetch --quiet --depth 1 origin tag studio-v0.8.1
-          node tools/validate_with_mosaic.mjs --mosaic /tmp/mosaic --ref studio-v0.8.1 \
+          git init --quiet /tmp/mosaic
+          git -C /tmp/mosaic fetch --quiet --depth 1 https://github.com/julian-passebecq/datapass-mosaicstudio.git "$MOSAIC_SHA"
+          test "$(git -C /tmp/mosaic rev-parse FETCH_HEAD)" = "$MOSAIC_SHA"
+          node tools/validate_with_mosaic.mjs --mosaic /tmp/mosaic --ref "$MOSAIC_SHA" \
             --export qa-evidence/retail-journey/export --concept qa-evidence/retail-journey/contoso-sales-forecasting.concept.json
 
       - name: Upload journey evidence
@@ -90,5 +96,47 @@ jobs:
             qa-evidence/retail-journey/evidence.json
             qa-evidence/retail-journey/screenshots/
             qa-evidence/retail-journey/export/
+            qa-evidence/retail-journey/*.concept.json
             qa-evidence/retail-journey/*.log
+          if-no-files-found: warn
+
+  open-in-mosaic:
+    # The journey export opened in MosaicStudio's own UI (client:dev + standalone concept viewer) at MOSAIC_SHA.
+    needs: browser-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Download journey export
+        uses: actions/download-artifact@v4
+        with:
+          name: retail-journey-evidence
+          path: qa-evidence/retail-journey
+
+      - name: Fetch MosaicStudio at the pinned commit
+        run: |
+          git init --quiet /tmp/mosaic
+          git -C /tmp/mosaic fetch --quiet --depth 1 https://github.com/julian-passebecq/datapass-mosaicstudio.git "$MOSAIC_SHA"
+          test "$(git -C /tmp/mosaic rev-parse FETCH_HEAD)" = "$MOSAIC_SHA"
+
+      - name: Open the export and concept in MosaicStudio
+        run: |
+          node tools/open_in_mosaic.mjs --mosaic /tmp/mosaic --ref "$MOSAIC_SHA" --with-deps \
+            --export qa-evidence/retail-journey/export \
+            --concept qa-evidence/retail-journey/contoso-sales-forecasting.concept.json \
+            --out qa-evidence/open-in-mosaic --port 21250
+
+      - name: Upload open-in-Mosaic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: open-in-mosaic-evidence
+          path: |
+            qa-evidence/open-in-mosaic/evidence.json
+            qa-evidence/open-in-mosaic/screenshots/
+            qa-evidence/open-in-mosaic/*.log
           if-no-files-found: warn
