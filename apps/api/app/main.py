@@ -535,3 +535,9 @@ def export_file(export_id: str, name: str):
         raise HTTPException(404, detail=str(exc)) from exc
     media = "application/json" if path.suffix == ".json" else "application/vnd.apache.parquet"
     return FileResponse(path, media_type=media, filename=path.name)
+
+
+# FR-02 local package (app/web_dist.py): version from apps/api/pyproject.toml, built web bundle served last.
+from app.web_dist import install as _install_web_bundle  # noqa: E402
+
+_install_web_bundle(app, settings.project_root)
