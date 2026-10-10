@@ -1,7 +1,7 @@
 {
  "format": "contoso.datapass-react-traces",
- "version": 1,
- "source_commit": "6b822576a91861190be4232832a2035569fcdc4f",
+ "version": 2,
+ "source_commit": "f2d0c759b2362b94db0cd73c3a9d901ed4aed9f0",
  "traces": [
   {
    "id": "charts-kpi-revenue",
@@ -14,7 +14,9 @@
      "start": 286,
      "end": 295,
      "symbol": "contoso.gold.monthly_sales",
-     "note": "Default (retail-baseline) branch posts two literal SQL strings to /api/query"
+     "note": "Default (retail-baseline) branch posts two literal SQL strings to /api/query",
+     "confidence": "inferred",
+     "confidence_reason": "Reached only when the active scenario falls through the scenario-specific branches of loadDashboard (candidates: the scenario ids in projects.ts); SQL itself is literal."
     },
     {
      "layer": "react",
@@ -22,7 +24,8 @@
      "start": 32,
      "end": 38,
      "symbol": "postJson",
-     "note": "POST JSON helper wrapping fetch"
+     "note": "POST JSON helper wrapping fetch",
+     "confidence": "verified"
     },
     {
      "layer": "http",
@@ -30,7 +33,8 @@
      "start": 286,
      "end": 286,
      "symbol": "\"/api/query\"",
-     "note": "POST /api/query body {sql,limit}"
+     "note": "POST /api/query body {sql,limit}",
+     "confidence": "verified"
     },
     {
      "layer": "api",
@@ -38,7 +42,8 @@
      "start": 502,
      "end": 515,
      "symbol": "def query",
-     "note": "FastAPI route POST /api/query -> ducklake.query"
+     "note": "FastAPI route POST /api/query -> ducklake.query",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -46,7 +51,8 @@
      "start": 305,
      "end": 329,
      "symbol": "def query",
-     "note": "Read-only validation, executes statement on DuckLake read-only connection"
+     "note": "Read-only validation, executes statement on DuckLake read-only connection",
+     "confidence": "verified"
     },
     {
      "layer": "react",
@@ -54,7 +60,8 @@
      "start": 297,
      "end": 301,
      "symbol": "label:\"Revenue\"",
-     "note": "rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card"
+     "note": "rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card",
+     "confidence": "verified"
     },
     {
      "layer": "sql",
@@ -62,7 +69,8 @@
      "start": 287,
      "end": 287,
      "symbol": "sum(revenue)",
-     "note": "select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales"
+     "note": "select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales",
+     "confidence": "verified"
     },
     {
      "layer": "dbt",
@@ -70,7 +78,8 @@
      "start": 8,
      "end": 8,
      "symbol": "as revenue",
-     "note": "revenue = round(sum(net_revenue),2) grouped by scenario, order_month, channel"
+     "note": "revenue = round(sum(net_revenue),2) grouped by scenario, order_month, channel",
+     "confidence": "verified"
     },
     {
      "layer": "dbt",
@@ -78,7 +87,8 @@
      "start": 12,
      "end": 12,
      "symbol": "ref('stg_sales')",
-     "note": "Gold reads Silver"
+     "note": "Gold reads Silver",
+     "confidence": "verified"
     },
     {
      "layer": "dbt",
@@ -86,7 +96,8 @@
      "start": 20,
      "end": 20,
      "symbol": "as net_revenue",
-     "note": "net_revenue = cast(net_revenue as decimal(18,2))"
+     "note": "net_revenue = cast(net_revenue as decimal(18,2))",
+     "confidence": "verified"
     },
     {
      "layer": "dbt",
@@ -94,7 +105,8 @@
      "start": 23,
      "end": 23,
      "symbol": "source('bronze','sales')",
-     "note": "Silver reads Bronze contoso.bronze.sales"
+     "note": "Silver reads Bronze contoso.bronze.sales",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -102,7 +114,9 @@
      "start": 138,
      "end": 147,
      "symbol": "def load_parquet_to_bronze",
-     "note": "Bronze table created from run parquet via read_parquet"
+     "note": "Bronze table created from run parquet via read_parquet",
+     "confidence": "inferred",
+     "confidence_reason": "Table name is the f-string key of run_files(): one of customer|product|store|currency_exchange|sales for retail runs."
     },
     {
      "layer": "service",
@@ -110,7 +124,8 @@
      "start": 655,
      "end": 655,
      "symbol": "AS net_revenue",
-     "note": "Parquet net_revenue = round(net_revenue_local*exchange_rate_to_usd,2)"
+     "note": "Parquet net_revenue = round(net_revenue_local*exchange_rate_to_usd,2)",
+     "confidence": "verified"
     },
     {
      "layer": "gold",
@@ -118,15 +133,16 @@
      "start": 8,
      "end": 8,
      "symbol": "revenue",
-     "note": "FIELD contoso.gold.monthly_sales.revenue"
+     "note": "FIELD contoso.gold.monthly_sales.revenue",
+     "confidence": "verified"
     }
    ],
    "unresolved": []
   },
   {
    "id": "query-page",
-   "title": "Query page: run user SQL",
-   "status": "PARTIAL",
+   "title": "Query page: run SQL (8 preset sub-traces + free SQL)",
+   "status": "RESOLVED",
    "steps": [
     {
      "layer": "react",
@@ -134,7 +150,8 @@
      "start": 66,
      "end": 70,
      "symbol": "\"/api/query\"",
-     "note": "run() posts the editor SQL with limit 500"
+     "note": "run() posts the editor SQL with limit 500",
+     "confidence": "verified"
     },
     {
      "layer": "react",
@@ -142,7 +159,8 @@
      "start": 32,
      "end": 38,
      "symbol": "postJson",
-     "note": "POST JSON helper wrapping fetch"
+     "note": "POST JSON helper wrapping fetch",
+     "confidence": "verified"
     },
     {
      "layer": "api",
@@ -150,7 +168,8 @@
      "start": 502,
      "end": 515,
      "symbol": "def query",
-     "note": "POST /api/query"
+     "note": "POST /api/query",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -158,12 +177,1740 @@
      "start": 305,
      "end": 329,
      "symbol": "def query",
-     "note": "Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation"
+     "note": "Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation",
+     "confidence": "verified"
     }
    ],
    "unresolved": [
-    "SQL text is user input (editor state, or ProjectPreset.query from apps/web/src/projects.ts via ProjectsPage): table and column targets cannot be resolved statically. Preset queries in projects.ts are literal and can each be traced separately.",
-    "Result columns are only known at run time from cursor.description."
+    "Free user SQL is traced separately as sub-trace query-page/free-sql (PARTIAL, unresolved edges listed there)."
+   ],
+   "subtraces": [
+    {
+     "id": "query-page/preset/retail-baseline",
+     "title": "Preset 'Retail Sales 101': country revenue and gross margin (gold.store_performance)",
+     "steps": [
+      {
+       "layer": "react",
+       "path": "apps/web/src/projects.ts",
+       "start": 18,
+       "end": 25,
+       "symbol": "from contoso.gold.store_performance",
+       "note": "ProjectPreset 'retail-baseline'.query is a literal SQL string",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/ProjectsPage.tsx",
+       "start": 258,
+       "end": 258,
+       "symbol": "onOpenProject(selected,\"Query\",selected.query)",
+       "note": "'Open this query' opens the project then the Query page with this SQL",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 101,
+       "end": 101,
+       "symbol": "setQuerySeed(sql ?? project.query)",
+       "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 142,
+       "end": 142,
+       "symbol": "initialSql={querySeed}",
+       "note": "Query page receives the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 53,
+       "end": 53,
+       "symbol": "setSql(initialSql)",
+       "note": "Editor state takes the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 70,
+       "end": 70,
+       "symbol": "\"/api/query\"",
+       "note": "run() posts {sql,limit:500}",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/api.ts",
+       "start": 32,
+       "end": 38,
+       "symbol": "postJson",
+       "note": "POST JSON helper wrapping fetch",
+       "confidence": "verified"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/main.py",
+       "start": 502,
+       "end": 515,
+       "symbol": "def query",
+       "note": "POST /api/query -> ducklake.query",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 305,
+       "end": 329,
+       "symbol": "def query",
+       "note": "Read-only validation, executes on the DuckLake read-only connection",
+       "confidence": "verified"
+      },
+      {
+       "layer": "sql",
+       "path": "apps/web/src/projects.ts",
+       "start": 19,
+       "end": 22,
+       "symbol": "store_country as country",
+       "note": "Columns country, revenue, gross_margin, margin_rate (margin_rate computed in the preset)",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/store_performance.sql",
+       "start": 5,
+       "end": 5,
+       "symbol": "s.store_country",
+       "note": "store_country passed through from Silver",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/store_performance.sql",
+       "start": 9,
+       "end": 9,
+       "symbol": "as revenue",
+       "note": "revenue = round(sum(net_revenue),2)",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/store_performance.sql",
+       "start": 10,
+       "end": 10,
+       "symbol": "as gross_margin",
+       "note": "gross_margin = round(sum(gross_margin),2)",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/store_performance.sql",
+       "start": 13,
+       "end": 14,
+       "symbol": "ref('stg_sales')",
+       "note": "Gold reads Silver and joins source bronze.store",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 10,
+       "end": 10,
+       "symbol": "store_country",
+       "note": "Silver store_country",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 20,
+       "end": 22,
+       "symbol": "as gross_margin",
+       "note": "net_revenue cast; gross_margin = net_revenue - total_cost",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 23,
+       "end": 23,
+       "symbol": "source('bronze','sales')",
+       "note": "Silver reads Bronze contoso.bronze.sales",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 143,
+       "end": 147,
+       "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
+       "note": "Bronze tables created from the run parquet files",
+       "confidence": "inferred",
+       "confidence_reason": "f-string on the run_files() keys: customer|product|store|currency_exchange|sales."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 624,
+       "end": 624,
+       "symbol": "s.country AS store_country",
+       "note": "Generator: store_country from the store parquet",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 655,
+       "end": 656,
+       "symbol": "AS net_revenue",
+       "note": "net_revenue and total_cost in USD",
+       "confidence": "verified"
+      }
+     ],
+     "gold_fields": [
+      "contoso.gold.store_performance.store_country",
+      "contoso.gold.store_performance.revenue",
+      "contoso.gold.store_performance.gross_margin"
+     ],
+     "status": "RESOLVED",
+     "unresolved": []
+    },
+    {
+     "id": "query-page/preset/online-migration",
+     "title": "Preset 'Online Channel Shift': channel mix per year (gold.channel_performance)",
+     "steps": [
+      {
+       "layer": "react",
+       "path": "apps/web/src/projects.ts",
+       "start": 34,
+       "end": 41,
+       "symbol": "from contoso.gold.channel_performance",
+       "note": "ProjectPreset 'online-migration'.query is a literal SQL string",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/ProjectsPage.tsx",
+       "start": 258,
+       "end": 258,
+       "symbol": "onOpenProject(selected,\"Query\",selected.query)",
+       "note": "'Open this query' opens the project then the Query page with this SQL",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 101,
+       "end": 101,
+       "symbol": "setQuerySeed(sql ?? project.query)",
+       "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 142,
+       "end": 142,
+       "symbol": "initialSql={querySeed}",
+       "note": "Query page receives the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 53,
+       "end": 53,
+       "symbol": "setSql(initialSql)",
+       "note": "Editor state takes the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 70,
+       "end": 70,
+       "symbol": "\"/api/query\"",
+       "note": "run() posts {sql,limit:500}",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/api.ts",
+       "start": 32,
+       "end": 38,
+       "symbol": "postJson",
+       "note": "POST JSON helper wrapping fetch",
+       "confidence": "verified"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/main.py",
+       "start": 502,
+       "end": 515,
+       "symbol": "def query",
+       "note": "POST /api/query -> ducklake.query",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 305,
+       "end": 329,
+       "symbol": "def query",
+       "note": "Read-only validation, executes on the DuckLake read-only connection",
+       "confidence": "verified"
+      },
+      {
+       "layer": "sql",
+       "path": "apps/web/src/projects.ts",
+       "start": 35,
+       "end": 39,
+       "symbol": "revenue_share",
+       "note": "Columns order_year, channel, revenue, revenue_share, gross_margin",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/channel_performance.sql",
+       "start": 4,
+       "end": 5,
+       "symbol": "as order_year",
+       "note": "order_year = year(order_date); channel",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/channel_performance.sql",
+       "start": 9,
+       "end": 10,
+       "symbol": "as revenue",
+       "note": "revenue and gross_margin per scenario/year/channel",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/channel_performance.sql",
+       "start": 24,
+       "end": 27,
+       "symbol": "as revenue_share",
+       "note": "revenue_share = revenue / yearly total",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/channel_performance.sql",
+       "start": 11,
+       "end": 11,
+       "symbol": "ref('stg_sales')",
+       "note": "Gold reads Silver",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 12,
+       "end": 12,
+       "symbol": "channel",
+       "note": "Silver channel",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 20,
+       "end": 22,
+       "symbol": "as gross_margin",
+       "note": "net_revenue, total_cost, gross_margin",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 23,
+       "end": 23,
+       "symbol": "source('bronze','sales')",
+       "note": "Silver reads Bronze contoso.bronze.sales",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 143,
+       "end": 147,
+       "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
+       "note": "Bronze tables created from the run parquet files",
+       "confidence": "inferred",
+       "confidence_reason": "f-string on the run_files() keys: customer|product|store|currency_exchange|sales."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 490,
+       "end": 500,
+       "symbol": "if scenario == \"online-migration\":",
+       "note": "channel_expr: online share 22% -> 68% in year two for this scenario, 38% otherwise",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 608,
+       "end": 608,
+       "symbol": "{channel_expr} AS channel",
+       "note": "channel column of the sales parquet",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 655,
+       "end": 656,
+       "symbol": "AS net_revenue",
+       "note": "net_revenue and total_cost in USD",
+       "confidence": "verified"
+      }
+     ],
+     "gold_fields": [
+      "contoso.gold.channel_performance.order_year",
+      "contoso.gold.channel_performance.channel",
+      "contoso.gold.channel_performance.revenue",
+      "contoso.gold.channel_performance.revenue_share",
+      "contoso.gold.channel_performance.gross_margin"
+     ],
+     "status": "RESOLVED",
+     "unresolved": []
+    },
+    {
+     "id": "query-page/preset/margin-pressure",
+     "title": "Preset 'Margin Crisis': yearly margin rate vs discount (gold.monthly_sales)",
+     "steps": [
+      {
+       "layer": "react",
+       "path": "apps/web/src/projects.ts",
+       "start": 50,
+       "end": 57,
+       "symbol": "from contoso.gold.monthly_sales",
+       "note": "ProjectPreset 'margin-pressure'.query is a literal SQL string",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/ProjectsPage.tsx",
+       "start": 258,
+       "end": 258,
+       "symbol": "onOpenProject(selected,\"Query\",selected.query)",
+       "note": "'Open this query' opens the project then the Query page with this SQL",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 101,
+       "end": 101,
+       "symbol": "setQuerySeed(sql ?? project.query)",
+       "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 142,
+       "end": 142,
+       "symbol": "initialSql={querySeed}",
+       "note": "Query page receives the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 53,
+       "end": 53,
+       "symbol": "setSql(initialSql)",
+       "note": "Editor state takes the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 70,
+       "end": 70,
+       "symbol": "\"/api/query\"",
+       "note": "run() posts {sql,limit:500}",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/api.ts",
+       "start": 32,
+       "end": 38,
+       "symbol": "postJson",
+       "note": "POST JSON helper wrapping fetch",
+       "confidence": "verified"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/main.py",
+       "start": 502,
+       "end": 515,
+       "symbol": "def query",
+       "note": "POST /api/query -> ducklake.query",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 305,
+       "end": 329,
+       "symbol": "def query",
+       "note": "Read-only validation, executes on the DuckLake read-only connection",
+       "confidence": "verified"
+      },
+      {
+       "layer": "sql",
+       "path": "apps/web/src/projects.ts",
+       "start": 51,
+       "end": 54,
+       "symbol": "avg(avg_discount_rate)",
+       "note": "Columns year, margin_rate, avg_discount_rate, revenue",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/monthly_sales.sql",
+       "start": 3,
+       "end": 3,
+       "symbol": "as order_month",
+       "note": "order_month = month of order_date",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/monthly_sales.sql",
+       "start": 7,
+       "end": 8,
+       "symbol": "as avg_discount_rate",
+       "note": "avg_discount_rate and revenue",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/monthly_sales.sql",
+       "start": 10,
+       "end": 10,
+       "symbol": "as gross_margin",
+       "note": "gross_margin",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/monthly_sales.sql",
+       "start": 12,
+       "end": 12,
+       "symbol": "ref('stg_sales')",
+       "note": "Gold reads Silver",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 16,
+       "end": 16,
+       "symbol": "discount_rate",
+       "note": "Silver discount_rate",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 20,
+       "end": 22,
+       "symbol": "as gross_margin",
+       "note": "net_revenue, total_cost, gross_margin",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 23,
+       "end": 23,
+       "symbol": "source('bronze','sales')",
+       "note": "Silver reads Bronze contoso.bronze.sales",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 143,
+       "end": 147,
+       "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
+       "note": "Bronze tables created from the run parquet files",
+       "confidence": "inferred",
+       "confidence_reason": "f-string on the run_files() keys: customer|product|store|currency_exchange|sales."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 502,
+       "end": 513,
+       "symbol": "if scenario == \"margin-pressure\":",
+       "note": "discount_expr and cost_multiplier_expr: heavier discount and +20% cost in year two for this scenario",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 609,
+       "end": 609,
+       "symbol": "{discount_expr} AS discount_rate",
+       "note": "discount_rate column",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 623,
+       "end": 623,
+       "symbol": "o.cost_multiplier",
+       "note": "unit_cost scaled by the cost multiplier",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 655,
+       "end": 656,
+       "symbol": "AS total_cost",
+       "note": "net_revenue and total_cost in USD",
+       "confidence": "verified"
+      }
+     ],
+     "gold_fields": [
+      "contoso.gold.monthly_sales.order_month",
+      "contoso.gold.monthly_sales.avg_discount_rate",
+      "contoso.gold.monthly_sales.revenue",
+      "contoso.gold.monthly_sales.gross_margin"
+     ],
+     "status": "RESOLVED",
+     "unresolved": []
+    },
+    {
+     "id": "query-page/preset/logistics-delays",
+     "title": "Preset 'Logistics SLA Investigation': delivery days per channel (gold.delivery_metrics)",
+     "steps": [
+      {
+       "layer": "react",
+       "path": "apps/web/src/projects.ts",
+       "start": 66,
+       "end": 73,
+       "symbol": "from contoso.gold.delivery_metrics",
+       "note": "ProjectPreset 'logistics-delays'.query is a literal SQL string",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/ProjectsPage.tsx",
+       "start": 258,
+       "end": 258,
+       "symbol": "onOpenProject(selected,\"Query\",selected.query)",
+       "note": "'Open this query' opens the project then the Query page with this SQL",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 101,
+       "end": 101,
+       "symbol": "setQuerySeed(sql ?? project.query)",
+       "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 142,
+       "end": 142,
+       "symbol": "initialSql={querySeed}",
+       "note": "Query page receives the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 53,
+       "end": 53,
+       "symbol": "setSql(initialSql)",
+       "note": "Editor state takes the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 70,
+       "end": 70,
+       "symbol": "\"/api/query\"",
+       "note": "run() posts {sql,limit:500}",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/api.ts",
+       "start": 32,
+       "end": 38,
+       "symbol": "postJson",
+       "note": "POST JSON helper wrapping fetch",
+       "confidence": "verified"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/main.py",
+       "start": 502,
+       "end": 515,
+       "symbol": "def query",
+       "note": "POST /api/query -> ducklake.query",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 305,
+       "end": 329,
+       "symbol": "def query",
+       "note": "Read-only validation, executes on the DuckLake read-only connection",
+       "confidence": "verified"
+      },
+      {
+       "layer": "sql",
+       "path": "apps/web/src/projects.ts",
+       "start": 67,
+       "end": 70,
+       "symbol": "avg(p90_delivery_days)",
+       "note": "Columns channel, avg_delivery_days, p90_delivery_days, over_7_day_rate",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/delivery_metrics.sql",
+       "start": 4,
+       "end": 4,
+       "symbol": "channel",
+       "note": "channel",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/delivery_metrics.sql",
+       "start": 6,
+       "end": 7,
+       "symbol": "as p90_delivery_days",
+       "note": "avg_delivery_days and quantile_cont(delivery_days,0.90)",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/delivery_metrics.sql",
+       "start": 9,
+       "end": 12,
+       "symbol": "as over_7_day_rate",
+       "note": "share of lines with delivery_days > 7",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/delivery_metrics.sql",
+       "start": 13,
+       "end": 13,
+       "symbol": "ref('stg_sales')",
+       "note": "Gold reads Silver",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 6,
+       "end": 6,
+       "symbol": "delivery_days",
+       "note": "Silver delivery_days",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 12,
+       "end": 12,
+       "symbol": "channel",
+       "note": "Silver channel",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 23,
+       "end": 23,
+       "symbol": "source('bronze','sales')",
+       "note": "Silver reads Bronze contoso.bronze.sales",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 143,
+       "end": 147,
+       "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
+       "note": "Bronze tables created from the run parquet files",
+       "confidence": "inferred",
+       "confidence_reason": "f-string on the run_files() keys: customer|product|store|currency_exchange|sales."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 515,
+       "end": 521,
+       "symbol": "if scenario == \"logistics-delays\":",
+       "note": "delivery_expr: Online 5-20 days for this scenario, 1-6 days otherwise",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 615,
+       "end": 615,
+       "symbol": "AS delivery_days",
+       "note": "delivery_days column",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 608,
+       "end": 608,
+       "symbol": "{channel_expr} AS channel",
+       "note": "channel column",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      }
+     ],
+     "gold_fields": [
+      "contoso.gold.delivery_metrics.channel",
+      "contoso.gold.delivery_metrics.avg_delivery_days",
+      "contoso.gold.delivery_metrics.p90_delivery_days",
+      "contoso.gold.delivery_metrics.over_7_day_rate"
+     ],
+     "status": "RESOLVED",
+     "unresolved": []
+    },
+    {
+     "id": "query-page/preset/currency-exposure",
+     "title": "Preset 'FX Exposure': exchange-rate spread per currency (gold.currency_exposure)",
+     "steps": [
+      {
+       "layer": "react",
+       "path": "apps/web/src/projects.ts",
+       "start": 82,
+       "end": 90,
+       "symbol": "from contoso.gold.currency_exposure",
+       "note": "ProjectPreset 'currency-exposure'.query is a literal SQL string",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/ProjectsPage.tsx",
+       "start": 258,
+       "end": 258,
+       "symbol": "onOpenProject(selected,\"Query\",selected.query)",
+       "note": "'Open this query' opens the project then the Query page with this SQL",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 101,
+       "end": 101,
+       "symbol": "setQuerySeed(sql ?? project.query)",
+       "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 142,
+       "end": 142,
+       "symbol": "initialSql={querySeed}",
+       "note": "Query page receives the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 53,
+       "end": 53,
+       "symbol": "setSql(initialSql)",
+       "note": "Editor state takes the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 70,
+       "end": 70,
+       "symbol": "\"/api/query\"",
+       "note": "run() posts {sql,limit:500}",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/api.ts",
+       "start": 32,
+       "end": 38,
+       "symbol": "postJson",
+       "note": "POST JSON helper wrapping fetch",
+       "confidence": "verified"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/main.py",
+       "start": 502,
+       "end": 515,
+       "symbol": "def query",
+       "note": "POST /api/query -> ducklake.query",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 305,
+       "end": 329,
+       "symbol": "def query",
+       "note": "Read-only validation, executes on the DuckLake read-only connection",
+       "confidence": "verified"
+      },
+      {
+       "layer": "sql",
+       "path": "apps/web/src/projects.ts",
+       "start": 83,
+       "end": 87,
+       "symbol": "sum(revenue_usd)",
+       "note": "Columns currency, min_rate, max_rate, rate_spread, revenue_usd",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/currency_exposure.sql",
+       "start": 5,
+       "end": 6,
+       "symbol": "as avg_exchange_rate_to_usd",
+       "note": "currency and monthly average rate",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/currency_exposure.sql",
+       "start": 8,
+       "end": 8,
+       "symbol": "as revenue_usd",
+       "note": "revenue_usd = round(sum(net_revenue),2)",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/currency_exposure.sql",
+       "start": 10,
+       "end": 10,
+       "symbol": "ref('stg_sales')",
+       "note": "Gold reads Silver",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 11,
+       "end": 11,
+       "symbol": "currency",
+       "note": "Silver currency",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 17,
+       "end": 17,
+       "symbol": "exchange_rate_to_usd",
+       "note": "Silver exchange_rate_to_usd",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 20,
+       "end": 20,
+       "symbol": "as net_revenue",
+       "note": "net_revenue (USD)",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 23,
+       "end": 23,
+       "symbol": "source('bronze','sales')",
+       "note": "Silver reads Bronze contoso.bronze.sales",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 143,
+       "end": 147,
+       "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
+       "note": "Bronze tables created from the run parquet files",
+       "confidence": "inferred",
+       "confidence_reason": "f-string on the run_files() keys: customer|product|store|currency_exchange|sales."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 523,
+       "end": 530,
+       "symbol": "if scenario == \"currency-exposure\":",
+       "note": "fx_expr: wider monthly rate band for this scenario",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 587,
+       "end": 587,
+       "symbol": "AS exchange_rate_to_usd",
+       "note": "currency_exchange parquet rate",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 625,
+       "end": 626,
+       "symbol": "fx.exchange_rate_to_usd",
+       "note": "sales gets store currency and the monthly rate",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 655,
+       "end": 655,
+       "symbol": "AS net_revenue",
+       "note": "net_revenue = net_revenue_local * exchange_rate_to_usd",
+       "confidence": "verified"
+      }
+     ],
+     "gold_fields": [
+      "contoso.gold.currency_exposure.currency",
+      "contoso.gold.currency_exposure.avg_exchange_rate_to_usd",
+      "contoso.gold.currency_exposure.revenue_usd"
+     ],
+     "status": "RESOLVED",
+     "unresolved": []
+    },
+    {
+     "id": "query-page/preset/foil-energy-risk",
+     "title": "Preset 'FOIL AEP & P50/P90' (gold.foil_energy_risk)",
+     "steps": [
+      {
+       "layer": "react",
+       "path": "apps/web/src/projects.ts",
+       "start": 97,
+       "end": 97,
+       "symbol": "contoso.gold.foil_energy_risk",
+       "note": "ProjectPreset 'foil-energy-risk'.query is a literal SQL string",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/ProjectsPage.tsx",
+       "start": 258,
+       "end": 258,
+       "symbol": "onOpenProject(selected,\"Query\",selected.query)",
+       "note": "Open this query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 101,
+       "end": 101,
+       "symbol": "setQuerySeed(sql ?? project.query)",
+       "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 142,
+       "end": 142,
+       "symbol": "initialSql={querySeed}",
+       "note": "Query page receives the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 53,
+       "end": 53,
+       "symbol": "setSql(initialSql)",
+       "note": "Editor state takes the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 70,
+       "end": 70,
+       "symbol": "\"/api/query\"",
+       "note": "run() posts {sql,limit:500}",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/api.ts",
+       "start": 32,
+       "end": 38,
+       "symbol": "postJson",
+       "note": "POST JSON helper wrapping fetch",
+       "confidence": "verified"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/main.py",
+       "start": 502,
+       "end": 515,
+       "symbol": "def query",
+       "note": "POST /api/query -> ducklake.query",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 305,
+       "end": 329,
+       "symbol": "def query",
+       "note": "Read-only validation, executes on the DuckLake read-only connection",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_energy_risk.sql",
+       "start": 2,
+       "end": 6,
+       "symbol": "as aep_p90_mwh",
+       "note": "draw_count, aep_p50 (0.5), aep_p90 (0.1 quantile), aep_p10 (0.9 quantile)",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_energy_risk.sql",
+       "start": 13,
+       "end": 14,
+       "symbol": "ref('foil_experiment_metrics')",
+       "note": "monte_carlo samples only",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_experiment_metrics.sql",
+       "start": 3,
+       "end": 3,
+       "symbol": "aep_year1_mwh",
+       "note": "aep_year1_mwh passed through",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_experiment_metrics.sql",
+       "start": 9,
+       "end": 9,
+       "symbol": "ref('foil_cashflows')",
+       "note": "metrics read Silver cashflows",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/silver/foil_cashflows.sql",
+       "start": 10,
+       "end": 10,
+       "symbol": "ref('foil_experiments')",
+       "note": "cashflows read Silver experiments",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/silver/foil_experiments.sql",
+       "start": 3,
+       "end": 6,
+       "symbol": "source('foil', 'foil_trials')",
+       "note": "monte_carlo arm from bronze.foil_trials",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/foil.py",
+       "start": 45,
+       "end": 45,
+       "symbol": "'aep_year1_mwh'",
+       "note": "trial aep_year1_mwh from reference AEP x resource x availability",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/sources.yml",
+       "start": 3,
+       "end": 7,
+       "symbol": "var('foil_enabled', false)",
+       "note": "foil sources (schema bronze) exist only when the runner passes foil_enabled",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 143,
+       "end": 147,
+       "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
+       "note": "Bronze tables from FOIL_FILES parquet",
+       "confidence": "inferred",
+       "confidence_reason": "f-string on FOIL_FILES keys."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/foil.py",
+       "start": 14,
+       "end": 14,
+       "symbol": "FOIL_FILES",
+       "note": "foil_cases, foil_trials, foil_sensitivity",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 465,
+       "end": 466,
+       "symbol": "generate_foil",
+       "note": "Generator takes the FOIL branch for foil-* scenarios",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      }
+     ],
+     "gold_fields": [
+      "contoso.gold.foil_energy_risk.draw_count",
+      "contoso.gold.foil_energy_risk.aep_p50_mwh",
+      "contoso.gold.foil_energy_risk.aep_p90_mwh",
+      "contoso.gold.foil_energy_risk.aep_p10_mwh"
+     ],
+     "status": "RESOLVED",
+     "unresolved": []
+    },
+    {
+     "id": "query-page/preset/foil-investment",
+     "title": "Preset 'FOIL LCOE & Investment' (gold.foil_project_summary)",
+     "steps": [
+      {
+       "layer": "react",
+       "path": "apps/web/src/projects.ts",
+       "start": 104,
+       "end": 104,
+       "symbol": "contoso.gold.foil_project_summary",
+       "note": "ProjectPreset 'foil-investment'.query is a literal SQL string",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/ProjectsPage.tsx",
+       "start": 258,
+       "end": 258,
+       "symbol": "onOpenProject(selected,\"Query\",selected.query)",
+       "note": "Open this query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 101,
+       "end": 101,
+       "symbol": "setQuerySeed(sql ?? project.query)",
+       "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 142,
+       "end": 142,
+       "symbol": "initialSql={querySeed}",
+       "note": "Query page receives the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 53,
+       "end": 53,
+       "symbol": "setSql(initialSql)",
+       "note": "Editor state takes the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 70,
+       "end": 70,
+       "symbol": "\"/api/query\"",
+       "note": "run() posts {sql,limit:500}",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/api.ts",
+       "start": 32,
+       "end": 38,
+       "symbol": "postJson",
+       "note": "POST JSON helper wrapping fetch",
+       "confidence": "verified"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/main.py",
+       "start": 502,
+       "end": 515,
+       "symbol": "def query",
+       "note": "POST /api/query -> ducklake.query",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 305,
+       "end": 329,
+       "symbol": "def query",
+       "note": "Read-only validation, executes on the DuckLake read-only connection",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_project_summary.sql",
+       "start": 3,
+       "end": 5,
+       "symbol": "as break_even_price_eur_mwh",
+       "note": "capex, opex, npv, lcoe and break_even = lcoe from reference experiments",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_project_summary.sql",
+       "start": 7,
+       "end": 7,
+       "symbol": "r.positive_npv_probability",
+       "note": "positive_npv_probability from foil_energy_risk",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_project_summary.sql",
+       "start": 10,
+       "end": 13,
+       "symbol": "ref('foil_experiment_metrics')",
+       "note": "reads metrics (reference), energy risk and source foil_cases",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_experiment_metrics.sql",
+       "start": 7,
+       "end": 8,
+       "symbol": "as lcoe_eur_mwh",
+       "note": "npv_eur and lcoe_eur_mwh as discounted sums",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/silver/foil_cashflows.sql",
+       "start": 13,
+       "end": 15,
+       "symbol": "as net_cashflow_eur",
+       "note": "annual revenue, cost and net cashflow",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/silver/foil_experiments.sql",
+       "start": 8,
+       "end": 10,
+       "symbol": "source('foil', 'foil_cases')",
+       "note": "reference arm from bronze.foil_cases",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/foil.py",
+       "start": 31,
+       "end": 36,
+       "symbol": "1.3 if stress",
+       "note": "foil-investment stresses CAPEX x1.3 and OPEX x1.2 (scenario branch)",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/sources.yml",
+       "start": 3,
+       "end": 7,
+       "symbol": "var('foil_enabled', false)",
+       "note": "foil sources (schema bronze) exist only when the runner passes foil_enabled",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 143,
+       "end": 147,
+       "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
+       "note": "Bronze tables from FOIL_FILES parquet",
+       "confidence": "inferred",
+       "confidence_reason": "f-string on FOIL_FILES keys."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/foil.py",
+       "start": 14,
+       "end": 14,
+       "symbol": "FOIL_FILES",
+       "note": "foil_cases, foil_trials, foil_sensitivity",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 465,
+       "end": 466,
+       "symbol": "generate_foil",
+       "note": "Generator takes the FOIL branch for foil-* scenarios",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      }
+     ],
+     "gold_fields": [
+      "contoso.gold.foil_project_summary.capex_eur",
+      "contoso.gold.foil_project_summary.opex_eur_year",
+      "contoso.gold.foil_project_summary.lcoe_eur_mwh",
+      "contoso.gold.foil_project_summary.npv_eur",
+      "contoso.gold.foil_project_summary.break_even_price_eur_mwh",
+      "contoso.gold.foil_project_summary.positive_npv_probability"
+     ],
+     "status": "RESOLVED",
+     "unresolved": []
+    },
+    {
+     "id": "query-page/preset/foil-sensitivity",
+     "title": "Preset 'FOIL Sensitivity Lab' (gold.foil_sensitivity)",
+     "steps": [
+      {
+       "layer": "react",
+       "path": "apps/web/src/projects.ts",
+       "start": 111,
+       "end": 111,
+       "symbol": "contoso.gold.foil_sensitivity",
+       "note": "ProjectPreset 'foil-sensitivity'.query, filtered on case_id FOIL-WIND-A-N-R0",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/ProjectsPage.tsx",
+       "start": 258,
+       "end": 258,
+       "symbol": "onOpenProject(selected,\"Query\",selected.query)",
+       "note": "Open this query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 101,
+       "end": 101,
+       "symbol": "setQuerySeed(sql ?? project.query)",
+       "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
+       "confidence": "inferred",
+       "confidence_reason": "The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/App.tsx",
+       "start": 142,
+       "end": 142,
+       "symbol": "initialSql={querySeed}",
+       "note": "Query page receives the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 53,
+       "end": 53,
+       "symbol": "setSql(initialSql)",
+       "note": "Editor state takes the seed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 70,
+       "end": 70,
+       "symbol": "\"/api/query\"",
+       "note": "run() posts {sql,limit:500}",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/api.ts",
+       "start": 32,
+       "end": 38,
+       "symbol": "postJson",
+       "note": "POST JSON helper wrapping fetch",
+       "confidence": "verified"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/main.py",
+       "start": 502,
+       "end": 515,
+       "symbol": "def query",
+       "note": "POST /api/query -> ducklake.query",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 305,
+       "end": 329,
+       "symbol": "def query",
+       "note": "Read-only validation, executes on the DuckLake read-only connection",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_sensitivity.sql",
+       "start": 2,
+       "end": 4,
+       "symbol": "as npv_delta_eur",
+       "note": "driver, relative_change, npv_delta and lcoe_delta vs the reference experiment",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_sensitivity.sql",
+       "start": 5,
+       "end": 7,
+       "symbol": "ref('foil_experiment_metrics')",
+       "note": "sensitivity rows joined to reference rows",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/silver/foil_cashflows.sql",
+       "start": 10,
+       "end": 10,
+       "symbol": "ref('foil_experiments')",
+       "note": "cashflows read Silver experiments",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/silver/foil_experiments.sql",
+       "start": 12,
+       "end": 15,
+       "symbol": "source('foil', 'foil_sensitivity')",
+       "note": "sensitivity arm from bronze.foil_sensitivity",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/foil.py",
+       "start": 51,
+       "end": 59,
+       "symbol": "for driver in",
+       "note": "five drivers x {-0.2, 0, +0.2} per case",
+       "confidence": "verified"
+      },
+      {
+       "layer": "data",
+       "path": "data/foil/reference_cases.json",
+       "start": 44,
+       "end": 44,
+       "symbol": "FOIL-WIND-A-N-R0",
+       "note": "case_id literal of the preset filter exists in the committed reference cases",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/sources.yml",
+       "start": 3,
+       "end": 7,
+       "symbol": "var('foil_enabled', false)",
+       "note": "foil sources (schema bronze) exist only when the runner passes foil_enabled",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 143,
+       "end": 147,
+       "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
+       "note": "Bronze tables from FOIL_FILES parquet",
+       "confidence": "inferred",
+       "confidence_reason": "f-string on FOIL_FILES keys."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/foil.py",
+       "start": 14,
+       "end": 14,
+       "symbol": "FOIL_FILES",
+       "note": "foil_cases, foil_trials, foil_sensitivity",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/generator.py",
+       "start": 465,
+       "end": 466,
+       "symbol": "generate_foil",
+       "note": "Generator takes the FOIL branch for foil-* scenarios",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active scenario; each branch is enumerated in code."
+      }
+     ],
+     "gold_fields": [
+      "contoso.gold.foil_sensitivity.driver",
+      "contoso.gold.foil_sensitivity.relative_change",
+      "contoso.gold.foil_sensitivity.npv_eur",
+      "contoso.gold.foil_sensitivity.npv_delta_eur",
+      "contoso.gold.foil_sensitivity.lcoe_delta_eur_mwh"
+     ],
+     "status": "RESOLVED",
+     "unresolved": []
+    },
+    {
+     "id": "query-page/free-sql",
+     "title": "Free SQL typed or edited in the Query editor",
+     "status": "PARTIAL",
+     "steps": [
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 137,
+       "end": 137,
+       "symbol": "setSql(event.target.value)",
+       "note": "Editor text is user input",
+       "confidence": "unresolved"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 122,
+       "end": 122,
+       "symbol": "setSql(example.sql)",
+       "note": "Example buttons: EXAMPLES or FOIL_EXAMPLES literals",
+       "confidence": "inferred",
+       "confidence_reason": "Candidates are the literal EXAMPLES / FOIL_EXAMPLES in QueryPage.tsx:12-31."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 94,
+       "end": 94,
+       "symbol": "from contoso.${table.schema}.${table.name}",
+       "note": "Catalog click seeds select * from a catalog table",
+       "confidence": "inferred",
+       "confidence_reason": "schema is bronze|silver|gold; names are catalog tables produced by the generator and the dbt models."
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 169,
+       "end": 169,
+       "symbol": "setSql(item.sql)",
+       "note": "History entries replay earlier SQL from localStorage",
+       "confidence": "unresolved"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 70,
+       "end": 70,
+       "symbol": "\"/api/query\"",
+       "note": "run() posts {sql,limit:500}",
+       "confidence": "verified"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/main.py",
+       "start": 502,
+       "end": 515,
+       "symbol": "def query",
+       "note": "POST /api/query",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 315,
+       "end": 319,
+       "symbol": "FORBIDDEN_SQL",
+       "note": "Only one read-only statement; mutation rejected",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 323,
+       "end": 323,
+       "symbol": "cur.description",
+       "note": "Result columns known only at run time",
+       "confidence": "unresolved"
+      }
+     ],
+     "unresolved": [
+      "UNRESOLVED edge QueryPage.tsx:137: free SQL typed by the user; target tables and columns cannot be resolved statically (the server policy at ducklake.py:315-319 bounds it to one read-only statement).",
+      "UNRESOLVED edge QueryPage.tsx:169: query history replays SQL from browser storage (earlier user input).",
+      "UNRESOLVED edge ducklake.py:323: result columns come from cursor.description at run time."
+     ]
+    }
    ]
   },
   {
@@ -177,7 +1924,8 @@
      "start": 40,
      "end": 45,
      "symbol": "\"/api/lakehouse/catalog\"",
-     "note": "load() fetches catalog with snapshots, quality, project state"
+     "note": "load() fetches catalog with snapshots, quality, project state",
+     "confidence": "verified"
     },
     {
      "layer": "react",
@@ -185,7 +1933,8 @@
      "start": 28,
      "end": 30,
      "symbol": "getJson",
-     "note": "GET helper"
+     "note": "GET helper",
+     "confidence": "verified"
     },
     {
      "layer": "api",
@@ -193,7 +1942,8 @@
      "start": 319,
      "end": 324,
      "symbol": "def catalog",
-     "note": "GET /api/lakehouse/catalog -> {tables}"
+     "note": "GET /api/lakehouse/catalog -> {tables}",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -201,7 +1951,8 @@
      "start": 153,
      "end": 171,
      "symbol": "def catalog",
-     "note": "Reads the DuckLake SQLite metadata catalog, schemas bronze/silver/gold"
+     "note": "Reads the DuckLake SQLite metadata catalog, schemas bronze/silver/gold",
+     "confidence": "verified"
     },
     {
      "layer": "sql",
@@ -209,7 +1960,8 @@
      "start": 156,
      "end": 165,
      "symbol": "FROM ducklake_table",
-     "note": "Metadata SQL; table names come from the catalog at run time"
+     "note": "Metadata SQL; table names come from the catalog at run time",
+     "confidence": "verified"
     }
    ],
    "unresolved": [
@@ -218,16 +1970,56 @@
   },
   {
    "id": "transform-dbt-build",
-   "title": "Transform page: dbt build",
-   "status": "PARTIAL",
+   "title": "Transform page: dbt build/test (callers, route, runner branch, models built)",
+   "status": "RESOLVED",
    "steps": [
     {
      "layer": "react",
      "path": "apps/web/src/pages/TransformPage.tsx",
+     "start": 237,
+     "end": 237,
+     "symbol": "execute(\"test\")",
+     "note": "Test button: whole project",
+     "confidence": "verified"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/pages/TransformPage.tsx",
+     "start": 238,
+     "end": 238,
+     "symbol": "execute(\"build\")",
+     "note": "Build button: whole project",
+     "confidence": "verified"
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/pages/TransformPage.tsx",
+     "start": 299,
+     "end": 299,
+     "symbol": "execute(\"test\",nodeDetail.name)",
+     "note": "Test model button: selector = selected node name",
+     "confidence": "inferred",
+     "confidence_reason": "nodeDetail.name comes from GET /api/dbt/node (manifest); the server accepts it only if it equals one model of _models()."
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/pages/TransformPage.tsx",
+     "start": 305,
+     "end": 305,
+     "symbol": "execute(\"build\",nodeDetail.name)",
+     "note": "Build model button: selector = selected node name",
+     "confidence": "inferred",
+     "confidence_reason": "nodeDetail.name comes from GET /api/dbt/node (manifest); the server accepts it only if it equals one model of _models()."
+    },
+    {
+     "layer": "react",
+     "path": "apps/web/src/pages/TransformPage.tsx",
      "start": 118,
-     "end": 127,
-     "symbol": "/api/dbt/${command}",
-     "note": "execute('build'|'test', selector?) posts to /api/dbt/{command}[?selector=]"
+     "end": 123,
+     "symbol": "/api/dbt/${command}${suffix}",
+     "note": "Template URL: command in {build,test}, optional ?selector=",
+     "confidence": "inferred",
+     "confidence_reason": "command is typed \"build\"|\"test\" and the two callers pass literals; selector candidates are the model names (see branch-selector)."
     },
     {
      "layer": "react",
@@ -235,23 +2027,44 @@
      "start": 32,
      "end": 38,
      "symbol": "postJson",
-     "note": "POST JSON helper wrapping fetch"
+     "note": "POST JSON helper wrapping fetch",
+     "confidence": "verified"
+    },
+    {
+     "layer": "api",
+     "path": "apps/api/app/main.py",
+     "start": 452,
+     "end": 452,
+     "symbol": "@app.post(\"/api/dbt/{command}\")",
+     "note": "FastAPI route POST /api/dbt/{command}",
+     "confidence": "verified"
     },
     {
      "layer": "api",
      "path": "apps/api/app/main.py",
      "start": 453,
-     "end": 467,
-     "symbol": "def dbt_run",
-     "note": "POST /api/dbt/{command}"
+     "end": 458,
+     "symbol": "dbt.run(command, selector)",
+     "note": "selector query param 1..200 chars; ValueError -> 400, RuntimeError -> 409",
+     "confidence": "verified"
     },
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
      "start": 407,
-     "end": 456,
+     "end": 409,
      "symbol": "def run",
-     "note": "Runs dbt CLI subprocess with --project-dir dbt/, returns run_results"
+     "note": "Takes the catalog lock then _run",
+     "confidence": "verified"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 411,
+     "end": 413,
+     "symbol": "ALLOWED_COMMANDS",
+     "note": "command must be build|run|test|parse",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -259,28 +2072,376 @@
      "start": 13,
      "end": 13,
      "symbol": "ALLOWED_COMMANDS",
-     "note": "build|run|test|parse"
+     "note": "build|run|test|parse",
+     "confidence": "verified"
     },
     {
-     "layer": "dbt",
-     "path": "dbt/models/silver/stg_sales.sql",
-     "start": 1,
-     "end": 23,
-     "symbol": "source(",
-     "note": "Silver model built from bronze.sales"
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 420,
+     "end": 428,
+     "symbol": "\"--project-dir\"",
+     "note": "dbt <command> --project-dir dbt --profiles-dir dbt",
+     "confidence": "verified"
     },
     {
-     "layer": "dbt",
-     "path": "dbt/models/gold/monthly_sales.sql",
-     "start": 1,
-     "end": 12,
-     "symbol": "ref('stg_sales')",
-     "note": "Gold models built from Silver"
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 24,
+     "end": 27,
+     "symbol": "def _foil_active",
+     "note": "Branch flag: active generator run scenario starts with foil-",
+     "confidence": "inferred",
+     "confidence_reason": "Runtime workspace state; two outcomes (FOIL scenario or retail scenario), both enumerated."
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 430,
+     "end": 433,
+     "symbol": "path:models/foil",
+     "note": "FOIL branch: --vars foil_enabled, --select path:models/foil when no selector",
+     "confidence": "inferred",
+     "confidence_reason": "Taken only when _foil_active() is true."
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 434,
+     "end": 438,
+     "symbol": "_validate_model_selector",
+     "note": "Selector branch: --select <model>",
+     "confidence": "inferred",
+     "confidence_reason": "Taken only when a selector is given; candidates enumerated by _models()."
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 394,
+     "end": 405,
+     "symbol": "def _validate_model_selector",
+     "note": "Selector must equal exactly one model name of _models()",
+     "confidence": "verified"
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 29,
+     "end": 45,
+     "symbol": "def _models",
+     "note": "Model list = *.sql under dbt/models, foil folder only in the FOIL branch",
+     "confidence": "inferred",
+     "confidence_reason": "Filter depends on _foil_active(); both model lists are enumerated in the sub-traces."
+    },
+    {
+     "layer": "service",
+     "path": "apps/api/app/services/dbt_runner.py",
+     "start": 440,
+     "end": 448,
+     "symbol": "subprocess.run(",
+     "note": "dbt subprocess, timeout 300 s",
+     "confidence": "verified"
     }
    ],
-   "unresolved": [
-    "URL is a template literal with dynamic `command` and optional `selector`; static analysis resolves it to /api/dbt/{command} only (callers pass 'build' or 'test').",
-    "Models actually built depend on _foil_active() (runtime workspace state) and the selector; foil and fabric_apps model sets are not traced here."
+   "unresolved": [],
+   "subtraces": [
+    {
+     "id": "transform-dbt-build/branch-retail",
+     "title": "Retail branch (_foil_active() false, no selector): models built",
+     "status": "RESOLVED",
+     "steps": [
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/dbt_runner.py",
+       "start": 430,
+       "end": 430,
+       "symbol": "if self._foil_active():",
+       "note": "Condition false: no --vars, no --select, dbt builds every enabled model",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active run scenario; this sub-trace is the non-FOIL outcome."
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/dbt_project.yml",
+       "start": 9,
+       "end": 14,
+       "symbol": "+schema: gold",
+       "note": "silver and gold folders materialize as tables in schemas silver and gold",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/silver/stg_sales.sql",
+       "start": 23,
+       "end": 23,
+       "symbol": "source('bronze','sales')",
+       "note": "silver.stg_sales",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/channel_performance.sql",
+       "start": 11,
+       "end": 11,
+       "symbol": "ref('stg_sales')",
+       "note": "gold.channel_performance",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/currency_exposure.sql",
+       "start": 10,
+       "end": 10,
+       "symbol": "ref('stg_sales')",
+       "note": "gold.currency_exposure",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/delivery_metrics.sql",
+       "start": 13,
+       "end": 13,
+       "symbol": "ref('stg_sales')",
+       "note": "gold.delivery_metrics",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/monthly_sales.sql",
+       "start": 12,
+       "end": 12,
+       "symbol": "ref('stg_sales')",
+       "note": "gold.monthly_sales",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/monthly_sales_by_country.sql",
+       "start": 8,
+       "end": 8,
+       "symbol": "ref('stg_sales')",
+       "note": "gold.monthly_sales_by_country",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/product_performance.sql",
+       "start": 11,
+       "end": 12,
+       "symbol": "ref('stg_sales')",
+       "note": "gold.product_performance (joins bronze.product)",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/gold/store_performance.sql",
+       "start": 13,
+       "end": 14,
+       "symbol": "ref('stg_sales')",
+       "note": "gold.store_performance (joins bronze.store)",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_energy_risk.sql",
+       "start": 1,
+       "end": 1,
+       "symbol": "var('foil_enabled', false)",
+       "note": "FOIL models disabled (var default false)",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/fabric_apps/gold/schema.yml",
+       "start": 7,
+       "end": 7,
+       "symbol": "var('fabric_apps_enabled', false)",
+       "note": "fabric_apps forecast_vs_actual disabled; only the Fabric mirror (fabric_apps/mirror.py) enables it",
+       "confidence": "verified"
+      }
+     ],
+     "unresolved": [],
+     "models_built": [
+      "silver.stg_sales",
+      "gold.channel_performance",
+      "gold.currency_exposure",
+      "gold.delivery_metrics",
+      "gold.monthly_sales",
+      "gold.monthly_sales_by_country",
+      "gold.product_performance",
+      "gold.store_performance"
+     ]
+    },
+    {
+     "id": "transform-dbt-build/branch-foil",
+     "title": "FOIL branch (_foil_active() true, no selector): models built",
+     "status": "RESOLVED",
+     "steps": [
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/dbt_runner.py",
+       "start": 431,
+       "end": 431,
+       "symbol": "foil_enabled",
+       "note": "--vars {\"foil_enabled\": true}",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active run scenario; this sub-trace is the FOIL outcome."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/dbt_runner.py",
+       "start": 432,
+       "end": 433,
+       "symbol": "--select",
+       "note": "--select path:models/foil (not for parse, not with a selector)",
+       "confidence": "inferred",
+       "confidence_reason": "Runtime branch on the active run scenario; this sub-trace is the FOIL outcome."
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/sources.yml",
+       "start": 3,
+       "end": 7,
+       "symbol": "var('foil_enabled', false)",
+       "note": "foil sources enabled by the var",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/silver/foil_experiments.sql",
+       "start": 6,
+       "end": 6,
+       "symbol": "source('foil', 'foil_trials')",
+       "note": "silver.foil_experiments",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/silver/foil_cashflows.sql",
+       "start": 10,
+       "end": 10,
+       "symbol": "ref('foil_experiments')",
+       "note": "silver.foil_cashflows",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_experiment_metrics.sql",
+       "start": 9,
+       "end": 9,
+       "symbol": "ref('foil_cashflows')",
+       "note": "gold.foil_experiment_metrics",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_energy_risk.sql",
+       "start": 13,
+       "end": 13,
+       "symbol": "ref('foil_experiment_metrics')",
+       "note": "gold.foil_energy_risk",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_project_summary.sql",
+       "start": 10,
+       "end": 12,
+       "symbol": "ref('foil_energy_risk')",
+       "note": "gold.foil_project_summary",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_sensitivity.sql",
+       "start": 5,
+       "end": 6,
+       "symbol": "ref('foil_experiment_metrics')",
+       "note": "gold.foil_sensitivity",
+       "confidence": "verified"
+      },
+      {
+       "layer": "dbt",
+       "path": "dbt/models/foil/gold/foil_cashflow_schedule.sql",
+       "start": 5,
+       "end": 5,
+       "symbol": "ref('foil_cashflows')",
+       "note": "gold.foil_cashflow_schedule",
+       "confidence": "verified"
+      }
+     ],
+     "unresolved": [],
+     "models_built": [
+      "silver.foil_experiments",
+      "silver.foil_cashflows",
+      "gold.foil_experiment_metrics",
+      "gold.foil_energy_risk",
+      "gold.foil_project_summary",
+      "gold.foil_sensitivity",
+      "gold.foil_cashflow_schedule"
+     ],
+     "note": "Retail Silver/Gold models are not rebuilt in this branch (path selector); they keep their last materialization."
+    },
+    {
+     "id": "transform-dbt-build/branch-selector",
+     "title": "Selector branch (Build model / Test model): one model",
+     "status": "RESOLVED",
+     "steps": [
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/TransformPage.tsx",
+       "start": 299,
+       "end": 305,
+       "symbol": "nodeDetail.name",
+       "note": "Selected DAG node name",
+       "confidence": "inferred",
+       "confidence_reason": "Selector is a runtime value restricted to the model names enumerated by _models() for the active branch."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/dbt_runner.py",
+       "start": 164,
+       "end": 164,
+       "symbol": "_layer_for_dependency",
+       "note": "node_detail name comes from the dbt manifest",
+       "confidence": "inferred",
+       "confidence_reason": "Selector is a runtime value restricted to the model names enumerated by _models() for the active branch."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/dbt_runner.py",
+       "start": 434,
+       "end": 438,
+       "symbol": "args.extend([\"--select\", selected_model])",
+       "note": "--select <model> for build|run|test; parse rejects a selector",
+       "confidence": "inferred",
+       "confidence_reason": "Selector is a runtime value restricted to the model names enumerated by _models() for the active branch."
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/dbt_runner.py",
+       "start": 398,
+       "end": 404,
+       "symbol": "Unknown dbt model selector",
+       "note": "Exactly one model of _models() must match, else HTTP 400",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/dbt_runner.py",
+       "start": 37,
+       "end": 38,
+       "symbol": "(\"foil\" in relative.parts) != foil_active",
+       "note": "Candidates: retail models (incl. fabric_apps) or foil models, by branch",
+       "confidence": "inferred",
+       "confidence_reason": "Selector is a runtime value restricted to the model names enumerated by _models() for the active branch."
+      }
+     ],
+     "unresolved": [],
+     "models_built": [
+      "one of the models listed in branch-retail or branch-foil (plus fabric_apps.forecast_vs_actual, which is accepted by the validator in the retail branch but stays disabled without fabric_apps_enabled, so dbt selects nothing)"
+     ]
+    }
    ]
   },
   {
@@ -294,7 +2455,8 @@
      "start": 121,
      "end": 127,
      "symbol": "prepareProject",
-     "note": "Button handler calls onOpenProject"
+     "note": "Button handler calls onOpenProject",
+     "confidence": "verified"
     },
     {
      "layer": "react",
@@ -302,7 +2464,9 @@
      "start": 88,
      "end": 98,
      "symbol": "/api/projects/${project.scenario}/open",
-     "note": "openProject posts to the open route"
+     "note": "openProject posts to the open route",
+     "confidence": "inferred",
+     "confidence_reason": "Template URL; project.scenario is one of the PROJECTS entries in apps/web/src/projects.ts, so the route POST /api/projects/{scenario}/open is unique."
     },
     {
      "layer": "react",
@@ -310,7 +2474,8 @@
      "start": 32,
      "end": 38,
      "symbol": "postJson",
-     "note": "POST JSON helper wrapping fetch"
+     "note": "POST JSON helper wrapping fetch",
+     "confidence": "verified"
     },
     {
      "layer": "api",
@@ -318,7 +2483,8 @@
      "start": 180,
      "end": 189,
      "symbol": "def open_project",
-     "note": "POST /api/projects/{scenario}/open"
+     "note": "POST /api/projects/{scenario}/open",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -326,7 +2492,8 @@
      "start": 42,
      "end": 51,
      "symbol": "def open",
-     "note": "Lock, catalog lock, then _open"
+     "note": "Lock, catalog lock, then _open",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -334,7 +2501,8 @@
      "start": 70,
      "end": 70,
      "symbol": "self.generator.generate",
-     "note": "Generates parquet for scenario"
+     "note": "Generates parquet for scenario",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -342,7 +2510,8 @@
      "start": 81,
      "end": 81,
      "symbol": "load_parquet_to_bronze",
-     "note": "Loads parquet into bronze"
+     "note": "Loads parquet into bronze",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -350,7 +2519,9 @@
      "start": 138,
      "end": 147,
      "symbol": "def load_parquet_to_bronze",
-     "note": "CREATE OR REPLACE TABLE contoso.bronze.{table}"
+     "note": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
+     "confidence": "inferred",
+     "confidence_reason": "Table name is the f-string key of run_files(): retail tables or FOIL_FILES depending on the scenario."
     },
     {
      "layer": "service",
@@ -358,7 +2529,8 @@
      "start": 84,
      "end": 84,
      "symbol": "self.dbt.run(\"build\")",
-     "note": "dbt build to produce Silver/Gold"
+     "note": "dbt build to produce Silver/Gold",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -366,7 +2538,8 @@
      "start": 407,
      "end": 456,
      "symbol": "def run",
-     "note": "dbt subprocess"
+     "note": "dbt subprocess",
+     "confidence": "verified"
     },
     {
      "layer": "dbt",
@@ -374,7 +2547,9 @@
      "start": 1,
      "end": 12,
      "symbol": "date_trunc",
-     "note": "Gold output of the build"
+     "note": "Gold output of the build",
+     "confidence": "inferred",
+     "confidence_reason": "Gold output depends on the dbt runner branch (_foil_active): retail Gold models or gold.foil_* (see transform-dbt-build)."
     }
    ],
    "unresolved": []
@@ -390,7 +2565,8 @@
      "start": 5,
      "end": 6,
      "symbol": "CONCEPT_URL",
-     "note": "Constant URL /api/fabric-apps/concept and ?download=true"
+     "note": "Constant URL /api/fabric-apps/concept and ?download=true",
+     "confidence": "verified"
     },
     {
      "layer": "react",
@@ -398,7 +2574,8 @@
      "start": 34,
      "end": 34,
      "symbol": "fetch(CONCEPT_URL)",
-     "note": "Panel fetches the concept document"
+     "note": "Panel fetches the concept document",
+     "confidence": "verified"
     },
     {
      "layer": "api",
@@ -406,7 +2583,8 @@
      "start": 26,
      "end": 34,
      "symbol": "def concept",
-     "note": "GET /api/fabric-apps/concept (download flag sets Content-Disposition)"
+     "note": "GET /api/fabric-apps/concept (download flag sets Content-Disposition)",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -414,7 +2592,8 @@
      "start": 32,
      "end": 32,
      "symbol": "load_model",
-     "note": "Model loaded from project_root model.json"
+     "note": "Model loaded from project_root model.json",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -422,7 +2601,8 @@
      "start": 180,
      "end": 181,
      "symbol": "def concept_bytes",
-     "note": "Canonical JSON serialisation of build_concept(model)"
+     "note": "Canonical JSON serialisation of build_concept(model)",
+     "confidence": "verified"
     }
    ],
    "unresolved": [
@@ -441,7 +2621,9 @@
      "start": 49,
      "end": 54,
      "symbol": "\"/api/exports/artifact\"",
-     "note": "exportNow() posts {mart}; mart is chosen from gold_tables returned by GET /api/exports"
+     "note": "exportNow() posts {mart}; mart is chosen from gold_tables returned by GET /api/exports",
+     "confidence": "inferred",
+     "confidence_reason": "mart is one of gold_tables() returned by GET /api/exports; candidates are the Gold models in dbt/models/gold and dbt/models/foil/gold."
     },
     {
      "layer": "react",
@@ -449,7 +2631,8 @@
      "start": 32,
      "end": 38,
      "symbol": "postJson",
-     "note": "POST JSON helper wrapping fetch"
+     "note": "POST JSON helper wrapping fetch",
+     "confidence": "verified"
     },
     {
      "layer": "api",
@@ -457,7 +2640,8 @@
      "start": 523,
      "end": 528,
      "symbol": "def export_artifact",
-     "note": "POST /api/exports/artifact -> exports.export(mart, columns, max_rows)"
+     "note": "POST /api/exports/artifact -> exports.export(mart, columns, max_rows)",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -465,7 +2649,8 @@
      "start": 77,
      "end": 77,
      "symbol": "ExportService(settings",
-     "note": "exports service bound per workspace in _bind"
+     "note": "exports service bound per workspace in _bind",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -473,7 +2658,8 @@
      "start": 172,
      "end": 175,
      "symbol": "def export",
-     "note": "Mart must match _MART and be in gold_tables() (catalog gold schema)"
+     "note": "Mart must match _MART and be in gold_tables() (catalog gold schema)",
+     "confidence": "verified"
     },
     {
      "layer": "sql",
@@ -481,7 +2667,9 @@
      "start": 199,
      "end": 199,
      "symbol": "DESCRIBE contoso.gold.",
-     "note": "DESCRIBE the Gold mart for column names and types"
+     "note": "DESCRIBE the Gold mart for column names and types",
+     "confidence": "inferred",
+     "confidence_reason": "f-string on mart, validated by _MART and gold_tables() before use."
     },
     {
      "layer": "sql",
@@ -489,7 +2677,9 @@
      "start": 209,
      "end": 210,
      "symbol": "SELECT count(*) FROM contoso.gold.",
-     "note": "Row count then bounded SELECT of columns ORDER BY"
+     "note": "Row count then bounded SELECT of columns ORDER BY",
+     "confidence": "inferred",
+     "confidence_reason": "f-string on mart, validated by _MART and gold_tables() before use."
     },
     {
      "layer": "sql",
@@ -497,7 +2687,9 @@
      "start": 213,
      "end": 213,
      "symbol": "COPY (SELECT * FROM contoso.gold.",
-     "note": "COPY mart to parquet artifact"
+     "note": "COPY mart to parquet artifact",
+     "confidence": "inferred",
+     "confidence_reason": "f-string on mart, validated by _MART and gold_tables() before use."
     },
     {
      "layer": "service",
@@ -505,7 +2697,8 @@
      "start": 42,
      "end": 44,
      "symbol": "\"revenue\": \"USD\"",
-     "note": "UNITS declares unit USD for the revenue column"
+     "note": "UNITS declares unit USD for the revenue column",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -513,7 +2706,8 @@
      "start": 237,
      "end": 238,
      "symbol": "column[\"unit\"] = UNITS[name]",
-     "note": "Unit attached to exported column"
+     "note": "Unit attached to exported column",
+     "confidence": "verified"
     },
     {
      "layer": "dbt",
@@ -521,7 +2715,8 @@
      "start": 8,
      "end": 8,
      "symbol": "as revenue",
-     "note": "revenue = round(sum(net_revenue),2)"
+     "note": "revenue = round(sum(net_revenue),2)",
+     "confidence": "verified"
     },
     {
      "layer": "dbt",
@@ -529,7 +2724,8 @@
      "start": 20,
      "end": 20,
      "symbol": "as net_revenue",
-     "note": "net_revenue is USD-normalised in Silver"
+     "note": "net_revenue is USD-normalised in Silver",
+     "confidence": "verified"
     },
     {
      "layer": "gold",
@@ -537,7 +2733,8 @@
      "start": 8,
      "end": 8,
      "symbol": "revenue",
-     "note": "FIELD contoso.gold.monthly_sales.revenue, unit USD"
+     "note": "FIELD contoso.gold.monthly_sales.revenue, unit USD",
+     "confidence": "verified"
     }
    ],
    "unresolved": []
@@ -553,7 +2750,9 @@
      "start": 79,
      "end": 85,
      "symbol": "/api/workspaces/${encodeURIComponent(id)}/activate",
-     "note": "activate(id) posts then reloads the page"
+     "note": "activate(id) posts then reloads the page",
+     "confidence": "inferred",
+     "confidence_reason": "Template URL; id is a runtime workspace id but the route POST /api/workspaces/{workspace_id}/activate is unique."
     },
     {
      "layer": "react",
@@ -561,7 +2760,8 @@
      "start": 32,
      "end": 38,
      "symbol": "postJson",
-     "note": "POST JSON helper wrapping fetch"
+     "note": "POST JSON helper wrapping fetch",
+     "confidence": "verified"
     },
     {
      "layer": "api",
@@ -569,7 +2769,8 @@
      "start": 153,
      "end": 155,
      "symbol": "def activate_workspace",
-     "note": "POST /api/workspaces/{workspace_id}/activate -> _switch"
+     "note": "POST /api/workspaces/{workspace_id}/activate -> _switch",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -577,7 +2778,8 @@
      "start": 130,
      "end": 148,
      "symbol": "def _switch",
-     "note": "Takes switch lock and catalog lock, then _bind(workspaces.activate(...))"
+     "note": "Takes switch lock and catalog lock, then _bind(workspaces.activate(...))",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -585,7 +2787,8 @@
      "start": 66,
      "end": 77,
      "symbol": "def _bind",
-     "note": "Recreates every workspace-scoped service from the new Settings"
+     "note": "Recreates every workspace-scoped service from the new Settings",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -593,7 +2796,8 @@
      "start": 129,
      "end": 134,
      "symbol": "def activate",
-     "note": "settings_for(id), config.set_active, writes pointer file"
+     "note": "settings_for(id), config.set_active, writes pointer file",
+     "confidence": "verified"
     },
     {
      "layer": "service",
@@ -601,10 +2805,17 @@
      "start": 67,
      "end": 74,
      "symbol": "def catalog_path",
-     "note": "Settings.catalog_path = workspace/contoso.ducklake.sqlite (or CONTOSO_DUCKLAKE_CATALOG for the default workspace)"
+     "note": "Settings.catalog_path = workspace/contoso.ducklake.sqlite (or CONTOSO_DUCKLAKE_CATALOG for the default workspace)",
+     "confidence": "verified"
     }
    ],
    "unresolved": []
   }
- ]
+ ],
+ "confidence_vocabulary": {
+  "verified": "Hop read in code and literal (fixed string, fixed call, fixed column).",
+  "inferred": "Hop depends on a runtime branch or a template, but every candidate is enumerated from code.",
+  "unresolved": "Hop target depends on runtime data or user input that code does not enumerate."
+ },
+ "status_rule": "RESOLVED when every step is verified or inferred; PARTIAL when at least one step is unresolved (each such edge is also listed under 'unresolved')."
 }
