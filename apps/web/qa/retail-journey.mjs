@@ -96,6 +96,36 @@ async function exportGold() {
   return (await api("/api/exports")).body.exports[0];
 }
 const REVENUE_SQL = "select scenario, round(sum(revenue),2) as revenue from contoso.gold.monthly_sales group by 1";
+const RETAIL_GOLD = "contoso.gold.monthly_sales_by_country";
+const EXECUTIVE = { "X-Local-User": "u-eva" };
+function note(check) { record.checks.push(check); console.log(`[${phase}] ${check}`); }
+async function sql(statement, limit = 5000) {
+  const result = await api("/api/query", { method: "POST", data: { sql: statement, limit } });
+  assert.equal(result.status, 200, `query failed (${result.status}): ${JSON.stringify(result.body)} for ${statement}`);
+  assert.equal(result.body.truncated, false, `query truncated: ${statement}`);
+  return result.body.rows;
+}
+async function latestSnapshot() {
+  const result = await api("/api/lakehouse/snapshots?limit=1");
+  assert.equal(result.status, 200);
+  return Number(result.body.snapshots[0].snapshot_id);
+}
+const cents = value => Math.round(Number(value) * 100);
+// Content digest of retail Gold at one snapshot: equal digests = identical rows (no writeback).
+async function goldFingerprint(snapshot) {
+  const [row] = await sql(
+    `select count(*) as row_count, CAST(sum(revenue) AS DECIMAL(18,2)) as revenue, ` +
+    `md5(string_agg(concat_ws('|', scenario, order_month, channel, store_country, sales_lines, revenue), ';' ` +
+    `ORDER BY scenario, order_month, channel, store_country)) as digest from ${RETAIL_GOLD} AT (VERSION => ${snapshot})`);
+  return { snapshot, rows: Number(row[0]), revenue: String(row[1]), digest: row[2] };
+}
+async function exportIds() { return (await api("/api/exports")).body.exports.map(e => e.export_id).sort(); }
+async function openManage() {
+  await page.getByRole("button", { name: "Manage", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("list", { name: "Workspaces" }).waitFor();
+  return dialog;
+}
 
 try {
   await page.goto(base, { waitUntil: phase === "api-down" ? "load" : "networkidle" });
@@ -192,6 +222,121 @@ try {
     assert.ok(status.latest_run.results.every(r => r.status === "success" || r.status === "pass"));
     await snap("export-after-repair", "UX03 export after repair references the new successful dbt run");
     state.repairedExport = { exportId: repaired.export_id, invocation: repaired.lineage.dbt_run.invocation_id, path: null };
+  }
+
+  if (phase === "mapping") {
+    // FR-02: optional retail Gold -> app read (GOLD-MAPPING.md section 3) on the repaired journey-a Gold.
+    assert.equal((await api("/api/health")).body.workspace_id, "journey-a");
+    const before = await latestSnapshot();
+    const read = await api("/api/fabric-apps/sales-forecasting/retail-actuals", { headers: EXECUTIVE });
+    assert.equal(read.status, 200, JSON.stringify(read.body));
+    const actuals = read.body;
+    assert.equal(actuals.enabled, true);
+    assert.equal(actuals.ready, true, actuals.error);
+    assert.deepEqual(actuals.unmapped, []);
+    assert.equal(actuals.provenance.kind, "copy");
+    assert.equal(actuals.provenance.authoritative, false);
+    const snapshot = Number(actuals.provenance.snapshot_id);
+    assert.ok(Number.isInteger(snapshot) && snapshot >= before, `provenance snapshot ${snapshot} vs latest ${before}`);
+    const perDepartment = {};
+    for (const code of ["ONLINE", "NORD", "SOUTH"]) {
+      const items = actuals.items.filter(item => item.department_code === code);
+      assert.ok(items.length > 0, `department ${code} has no retail actuals`);
+      perDepartment[code] = { items: items.length, amount: items.reduce((sum, item) => sum + cents(item.amount), 0) / 100 };
+    }
+    assert.ok(actuals.items.every(item => item.department_code in perDepartment), "unexpected department code");
+    const appCents = actuals.items.reduce((sum, item) => sum + cents(item.amount), 0);
+
+    // Same snapshot, same per-group rounding as the app read: CAST(sum(revenue) AS DECIMAL(18,2)) per Gold group.
+    const [[groups, goldTotal]] = await sql(
+      `select count(*) as group_count, sum(amount) as total from (select CAST(sum(revenue) AS DECIMAL(18,2)) as amount ` +
+      `from ${RETAIL_GOLD} AT (VERSION => ${snapshot}) group by scenario, order_month, channel, store_country)`);
+    const goldCents = cents(goldTotal);
+    const diffCents = Math.abs(appCents - goldCents);
+    assert.ok(diffCents <= Number(groups), `app total ${appCents / 100} vs Gold total ${goldCents / 100} (${groups} groups)`);
+
+    // Every (channel, store_country) pair in Gold lands in exactly one department of the served mapping.
+    const departments = actuals.provenance.departments;
+    const pairs = await sql(`select channel, store_country, count(*) as months from ${RETAIL_GOLD} AT (VERSION => ${snapshot}) group by 1, 2 order by 1, 2`);
+    const coverage = pairs.map(([channel, country, months]) => {
+      const matches = Object.entries(departments)
+        .filter(([, slice]) => slice.channel === channel && (!slice.countries || slice.countries.includes(country)))
+        .map(([code]) => code);
+      return { channel, store_country: country, gold_rows: Number(months), departments: matches };
+    });
+    for (const pair of coverage) assert.equal(pair.departments.length, 1, `${pair.channel}/${pair.store_country} maps to ${pair.departments}`);
+
+    // No writeback: retail Gold content is identical before and after the read. The app-lab mirror writes its own
+    // bronze.sfapp_* snapshots meanwhile, so the global latest snapshot id may move; Gold must not.
+    await page.waitForTimeout(3000);
+    const after = await latestSnapshot();
+    const fingerprintBefore = await goldFingerprint(before);
+    const fingerprintAfter = await goldFingerprint(after);
+    assert.deepEqual({ ...fingerprintAfter, snapshot: 0 }, { ...fingerprintBefore, snapshot: 0 }, "retail Gold changed during the app read");
+    let compare = null;
+    if (after !== before) {
+      const result = await api(`/api/lakehouse/compare?schema=gold&table=monthly_sales_by_country&base=${before}&target=${after}`);
+      assert.equal(result.status, 200, JSON.stringify(result.body));
+      assert.equal(result.body.base.row_count, result.body.target.row_count);
+      compare = { base: result.body.base, target: result.body.target };
+    }
+    const later = (await api("/api/lakehouse/snapshots?limit=50")).body.snapshots
+      .filter(s => Number(s.snapshot_id) > before)
+      .map(s => ({ snapshot_id: s.snapshot_id, changes: s.changes, commit_message: s.commit_message }));
+    note(`FR-02 retail actuals: ONLINE/NORD/SOUTH non-empty, unmapped [], copy + non-authoritative, app total ${appCents / 100} = Gold ${goldCents / 100} at snapshot #${snapshot}`);
+    note(`FR-02 ${coverage.length} Gold (channel, store_country) pairs each map to exactly one department`);
+    note(`FR-02 no Gold writeback: monthly_sales_by_country digest equal at snapshots #${before} and #${after}`);
+    state.mapping = {
+      snapshot, items: actuals.items.length, perDepartment, appTotal: appCents / 100, goldTotal: goldCents / 100,
+      goldGroups: Number(groups), diffCents, coverage, departments,
+      noWriteback: { before: fingerprintBefore, after: fingerprintAfter, compare, snapshotsSinceRead: later },
+    };
+  }
+
+  if (phase === "backup") {
+    // FR-02: back up workspace journey-a from the UI (Manage -> Back up); the orchestrator then restarts the API.
+    assert.equal((await api("/api/health")).body.workspace_id, "journey-a");
+    const ids = await exportIds();
+    assert.ok(ids.includes(state.workspaceA.exportId) && ids.includes(state.repairedExport.exportId), `journey-a exports: ${ids}`);
+    const dialog = await openManage();
+    const row = dialog.getByRole("list", { name: "Workspaces" }).getByRole("listitem").filter({ has: page.locator("b", { hasText: /^Journey A$/ }) });
+    await row.getByRole("button", { name: "Back up", exact: true }).click();
+    const notice = dialog.getByText(/^Backup journey-a-\S+\.zip written/);
+    await notice.waitFor({ timeout: 300000 });
+    const backup = (await notice.textContent()).match(/^Backup (\S+\.zip) written/)[1];
+    assert.ok((await api("/api/workspaces")).body.backups.some(item => item.backup === backup), `backup ${backup} not listed`);
+    await snap("backup", `FR-02 workspace journey-a backed up from the UI (${backup})`);
+    await dialog.getByRole("button", { name: "Close", exact: true }).click();
+    state.backup = { backup, exportIds: ids };
+  }
+
+  if (phase === "restore") {
+    // FR-02: after an API restart, restore the backup as a NEW workspace and prove it holds the same Gold and exports.
+    assert.equal((await api("/api/health")).body.workspace_id, "journey-a");
+    const name = "Journey A restored";
+    const dialog = await openManage();
+    await dialog.getByLabel("Name for the restored workspace").fill(name);
+    const row = dialog.getByRole("list", { name: "Backups" }).getByRole("listitem").filter({ hasText: state.backup.backup });
+    await row.getByRole("button", { name: "Restore", exact: true }).click();
+    await dialog.getByText(`Restored into new workspace ${name}.`, { exact: false }).waitFor({ timeout: 300000 });
+    await snap("restore", `FR-02 backup ${state.backup.backup} restored as new workspace "${name}" after API restart`);
+    await dialog.getByRole("button", { name: "Close", exact: true }).click();
+    const restored = (await api("/api/workspaces")).body.workspaces.find(item => item.name === name);
+    assert.ok(restored, `restored workspace ${name} not listed`);
+    assert.notEqual(restored.id, "journey-a");
+    assert.equal(restored.restored_from?.backup, state.backup.backup);
+    await switchWorkspace(restored.id);
+    const revenue = await runQuery(REVENUE_SQL);
+    assert.equal(revenue[0][0], "retail-baseline");
+    assert.equal(revenue[0][1], state.workspaceA.revenue);
+    const ids = await exportIds();
+    assert.deepEqual(ids, state.backup.exportIds);
+    assert.ok(ids.includes(state.workspaceA.exportId) && ids.includes(state.repairedExport.exportId));
+    await snap("restored-query", `FR-02 restored workspace ${restored.id}: Gold revenue ${revenue[0][1]} and ${ids.length} export ids equal journey-a`);
+    await switchWorkspace("journey-a");
+    assert.deepEqual(await exportIds(), state.backup.exportIds);
+    note("FR-02 switched back to journey-a after the restore check");
+    state.restore = { workspace: restored.id, name, backup: state.backup.backup, revenue: revenue[0][1], exportIds: ids };
   }
 
   if (phase === "api-down") {
