@@ -1,14 +1,20 @@
 {
-  "state": "QUALIFIED_LOCAL_CI_PENDING",
+  "state": "MERGED_QUALIFIED_LOCAL",
+  "packet": "galaxy-full-release-2026-10-10/07-contoso rev 1",
   "repository": "https://github.com/julian-passebecq/contoso-data-studio",
-  "actual_worktree": "D:/PROJ/contoso-data-studio/.claude/worktrees/contoso-retail-v1",
-  "branch": "claude/contoso-retail-v1",
-  "qualified_commit": "d79e0b41794756c34f89127ee704632c30968553",
-  "latest_written_commit": null,
+  "actual_worktree": "contoso-data-studio/.claude/worktrees/contoso-full-release-2026-2ed217",
+  "source_sha": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
+  "final_main_sha": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
+  "merged_prs": {
+    "17": "a671b360317fa538fdc9720646d738c12bd78007",
+    "16": "d23949f1b043c5a4644de36b2c60c6c483d81eef",
+    "18": "d2056c18f08fd64a94b1bec2c4c0397a306f209e",
+    "19": "3d257a07205de41e31f9047f9eb7208838419bf0",
+    "20": "fe83dbd0805fb787f4beb0d7485827ec059e8578"
+  },
   "native_session_id": null,
+  "requested_model": "Opus",
   "observed_model": "claude-opus-5-5",
-  "observed_tokens": null,
-  "accepted_selection_revision": null,
   "canonical_acceptance_results": [
     {
       "id": "07-contoso/F01",
@@ -47,12 +53,12 @@
     },
     {
       "id": "07-contoso/F08",
-      "result": "MET_MAPPING_DISABLED_PENDING_PRODUCT_DECISION",
+      "result": "MET",
       "evidence": "handoff/ACCEPTANCE.md"
     },
     {
       "id": "07-contoso/F09",
-      "result": "MET_2_TRACES_PARTIAL_LABELLED",
+      "result": "MET_1_TRACE_PARTIAL_USER_SQL_LABELLED",
       "evidence": "handoff/ACCEPTANCE.md"
     },
     {
@@ -67,83 +73,140 @@
     },
     {
       "id": "07-contoso/F12",
-      "result": "MET_SOURCE_INSTALL_NO_DESKTOP_INSTALLER",
+      "result": "MET_LOCAL_PACKAGE_NO_DESKTOP_INSTALLER",
       "evidence": "handoff/ACCEPTANCE.md"
-    }
-  ],
-  "producer_vector": [
-    {
-      "contract": "datapass.artifact/1",
-      "receipt": "handoff/READY-artifact.json",
-      "sha256": "dbabdb8d3a6768c5ed8f9966fc3db44e4441cfc4e4aa842ac47b035a89d183ef"
     },
-    {
-      "contract": "datapass.concept-spec/1.0.0",
-      "receipt": "handoff/READY-concept.json",
-      "sha256": "d653d94f80738bdb5d66c5068e6158d5d6c1b1bab894d1935ccebe7c5bddc5db"
-    }
-  ],
-  "consumer_vector": [
-    {
-      "repository": "datapass-mosaicstudio",
-      "ref": "studio-v0.8.1",
-      "sha": "8b22d9c121743d8cd5e78ca74098c5e332e4e45c"
-    }
-  ],
-  "ci": {
-    "run_id": null,
-    "attempt": null,
-    "runner": "ubuntu-latest (GitHub-hosted)",
-    "os": "Ubuntu",
-    "url": "https://github.com/julian-passebecq/contoso-data-studio/pull/14/checks",
-    "status": "PENDING",
-    "artifacts": [
-      "retail-journey-evidence"
-    ]
-  },
-  "user_journeys": [
     {
       "id": "07-contoso/UX01",
       "result": "PASS",
-      "os": "Windows 11 Pro 10.0.26300",
-      "commit": "d79e0b41794756c34f89127ee704632c30968553",
-      "evidence": "handoff/evidence/evidence.json"
+      "evidence": "handoff/ACCEPTANCE.md"
     },
     {
       "id": "07-contoso/UX02",
       "result": "PASS",
-      "os": "Windows 11 Pro 10.0.26300",
-      "commit": "d79e0b41794756c34f89127ee704632c30968553",
-      "evidence": "handoff/evidence/evidence.json"
+      "evidence": "handoff/ACCEPTANCE.md"
     },
     {
       "id": "07-contoso/UX03",
       "result": "PASS",
-      "os": "Windows 11 Pro 10.0.26300",
-      "commit": "d79e0b41794756c34f89127ee704632c30968553",
-      "evidence": "handoff/evidence/evidence.json"
+      "evidence": "handoff/ACCEPTANCE.md"
     },
     {
       "id": "07-contoso/UX04",
       "result": "PASS",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/FR-01",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    },
+    {
+      "id": "07-contoso/FR-02",
+      "result": "MET",
+      "evidence": "handoff/ACCEPTANCE.md"
+    }
+  ],
+  "ci": {
+    "final_main": {
+      "run_id": 38020549227,
+      "attempt": 1,
+      "runner": "ubuntu-latest",
+      "head_sha": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
+      "status": "success",
+      "jobs": [
+        "api",
+        "web",
+        "charts",
+        "fabric-app-model",
+        "package"
+      ]
+    },
+    "pr_head_same_tree": {
+      "pr": 20,
+      "head_sha": "3b5d5d7fa0e5de8fbf53df33bbae75aa3dab5e3c",
+      "runs": [
+        38019921332,
+        38019921342
+      ],
+      "status": "success",
+      "jobs": [
+        "api",
+        "web",
+        "charts",
+        "fabric-app-model",
+        "package",
+        "browser-smoke",
+        "open-in-mosaic"
+      ],
+      "note": "qa-browser.yml runs on pull requests only; git diff 3b5d5d7 fe83dbd is empty"
+    }
+  },
+  "user_journeys": [
+    {
+      "journey": "retail journey (UX01-UX04, mapping, backup/restore)",
       "os": "Windows 11 Pro 10.0.26300",
-      "commit": "d79e0b41794756c34f89127ee704632c30968553",
-      "evidence": "handoff/evidence/evidence.json"
+      "source_sha": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
+      "result": "PASS",
+      "evidence": "handoff/evidence/journey-2026-10-10-windows.json"
+    },
+    {
+      "journey": "open in Mosaic UI and concept viewer",
+      "os": "ubuntu-latest (CI)",
+      "source_tree": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
+      "result": "PASS",
+      "evidence": "handoff/evidence/open-in-mosaic-2026-10-10.json"
+    },
+    {
+      "journey": "clean install from package",
+      "os": "ubuntu-latest (CI, final main)",
+      "result": "PASS",
+      "note": "also PASS on Windows 11 at PR #17 head 95b55e9"
+    }
+  ],
+  "adopted_source_vector": [
+    {
+      "lane": "01-mosaicstudio",
+      "repository": "julian-passebecq/datapass-mosaicstudio",
+      "sha": "f3a02bca98efb56ac219db46edb6275088a20192",
+      "use": "validators, schema, UI and concept viewer (read-only)"
+    },
+    {
+      "lane": "02-datapass-react",
+      "repository": "juliandatapass-group/datapass-react-vscode",
+      "sha": "2e922ea4fc4d991ba809e1d3d78a23da2fb586be",
+      "use": "confidence vocabulary only; analyzer cross-check NOT_RUN"
     }
   ],
   "release_artifacts": [
-    "docs/release/v1.md (source install)",
-    "apps/web production build (vite)"
+    {
+      "file": "contoso-data-studio-0.2.0-fe83dbd.zip",
+      "bytes": 2963772,
+      "sha256": "c065671d0acbe4520860fcd6dca93842aa1a75bd7ee7808d56106a8e58b0fbd1",
+      "source": "CI run 38020549227 artifact contoso-data-studio-package",
+      "state": "ARTIFACT_READY (local copy outside Git)"
+    },
+    {
+      "file": "contoso-monthly-sales.json (journey export)",
+      "sha256": "bd5e19c704745ec6325f6b7547e198c44807aca3c34ffaa84865357d9b7c2e51",
+      "receipt": "handoff/READY-artifact.json"
+    },
+    {
+      "file": "contoso-sales-forecasting.concept.json",
+      "sha256": "d653d94f80738bdb5d66c5068e6158d5d6c1b1bab894d1935ccebe7c5bddc5db",
+      "receipt": "handoff/READY-concept.json"
+    }
   ],
-  "merge_state": "NOT_EXECUTED",
-  "cloud_runtime": "NOT_AUTHORIZED_UNAVAILABLE",
+  "public_distribution": "NOT_AUTHORIZED",
+  "fabric_runtime": "NOT_AUTHORIZED",
+  "tags": "NOT_AUTHORIZED",
   "blockers": [],
   "omissions": [
-    "Fabric/cloud runtime",
-    "desktop installer",
-    "retail-to-app mapping (product decision)",
-    "Mosaic import UI click-through (validators used)",
-    "Mosaic artifact.schema.json lineage drift reported, not fixed (peer repo)"
+    "Desktop installer (not promised)",
+    "React analyzer cross-check NOT_RUN (no headless CLI at React 2e922ea)",
+    "E2E-08 cross-product clean-release set: owned by the release-set coordinator; Contoso supplies the package and install receipt",
+    "Fabric/cloud and real Entra login not run (not authorized)",
+    "Package install on Windows qualified at PR #17 head, on Linux at final main"
   ],
-  "next_safe_action": "PM: merge PR #14 on green CI (squash); route handoff/PEER-FINDINGS.md item 1 to the Mosaic lane and item 2 to Julian as a product choice"
+  "next_safe_action": "Owner: decide tag/public release of 0.2.0-fe83dbd and E2E-08 release-set assembly; nothing else pending in this repo."
 }

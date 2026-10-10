@@ -1,0 +1,659 @@
+{
+  "format": "contoso.journey-evidence",
+  "version": 1,
+  "source_commit": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
+  "started_at": "2026-10-10T03:28:06+00:00",
+  "os": "Windows 11 (10.0.26300)",
+  "machine": "AMD64",
+  "python": "3.12.10",
+  "node": "v26.9.0",
+  "dbt": "1.12.5",
+  "web_mode": "production build served by vite preview",
+  "phases": [
+    {
+      "phase": "build",
+      "ok": true,
+      "seconds": 385.7
+    },
+    {
+      "phase": "reopen",
+      "ok": true,
+      "seconds": 65.5
+    },
+    {
+      "phase": "fault-broken",
+      "ok": true,
+      "seconds": 123.0
+    },
+    {
+      "phase": "fault-repaired",
+      "ok": true,
+      "seconds": 47.6
+    },
+    {
+      "phase": "mapping",
+      "ok": true,
+      "seconds": 17.5
+    },
+    {
+      "phase": "backup",
+      "ok": true,
+      "seconds": 22.8
+    },
+    {
+      "phase": "restore",
+      "ok": true,
+      "seconds": 154.2
+    },
+    {
+      "phase": "api-down",
+      "ok": true,
+      "seconds": 8.3
+    },
+    {
+      "phase": "ux",
+      "ok": true,
+      "seconds": 78.6
+    }
+  ],
+  "retail_gold_to_app": {
+    "snapshot": 44,
+    "items": 72,
+    "perDepartment": {
+      "ONLINE": {
+        "items": 24,
+        "amount": 1676468.49
+      },
+      "NORD": {
+        "items": 24,
+        "amount": 1444971.3
+      },
+      "SOUTH": {
+        "items": 24,
+        "amount": 1302977.05
+      }
+    },
+    "appTotal": 4424416.84,
+    "goldTotal": 4424416.84,
+    "goldGroups": 240,
+    "diffCents": 0,
+    "coverage": [
+      {
+        "channel": "Online",
+        "store_country": "France",
+        "gold_rows": 24,
+        "departments": [
+          "ONLINE"
+        ]
+      },
+      {
+        "channel": "Online",
+        "store_country": "Germany",
+        "gold_rows": 24,
+        "departments": [
+          "ONLINE"
+        ]
+      },
+      {
+        "channel": "Online",
+        "store_country": "Norway",
+        "gold_rows": 24,
+        "departments": [
+          "ONLINE"
+        ]
+      },
+      {
+        "channel": "Online",
+        "store_country": "Switzerland",
+        "gold_rows": 24,
+        "departments": [
+          "ONLINE"
+        ]
+      },
+      {
+        "channel": "Online",
+        "store_country": "United Kingdom",
+        "gold_rows": 24,
+        "departments": [
+          "ONLINE"
+        ]
+      },
+      {
+        "channel": "Store",
+        "store_country": "France",
+        "gold_rows": 24,
+        "departments": [
+          "SOUTH"
+        ]
+      },
+      {
+        "channel": "Store",
+        "store_country": "Germany",
+        "gold_rows": 24,
+        "departments": [
+          "NORD"
+        ]
+      },
+      {
+        "channel": "Store",
+        "store_country": "Norway",
+        "gold_rows": 24,
+        "departments": [
+          "NORD"
+        ]
+      },
+      {
+        "channel": "Store",
+        "store_country": "Switzerland",
+        "gold_rows": 24,
+        "departments": [
+          "SOUTH"
+        ]
+      },
+      {
+        "channel": "Store",
+        "store_country": "United Kingdom",
+        "gold_rows": 24,
+        "departments": [
+          "NORD"
+        ]
+      }
+    ],
+    "departments": {
+      "ONLINE": {
+        "channel": "Online",
+        "countries": null
+      },
+      "NORD": {
+        "channel": "Store",
+        "countries": [
+          "Norway",
+          "Germany",
+          "United Kingdom"
+        ]
+      },
+      "SOUTH": {
+        "channel": "Store",
+        "countries": [
+          "France",
+          "Switzerland"
+        ]
+      }
+    },
+    "noWriteback": {
+      "before": {
+        "snapshot": 44,
+        "rows": 240,
+        "revenue": "4424416.84",
+        "digest": "d1447a15e0b86eb1dc1955379d28d326"
+      },
+      "after": {
+        "snapshot": 44,
+        "rows": 240,
+        "revenue": "4424416.84",
+        "digest": "d1447a15e0b86eb1dc1955379d28d326"
+      },
+      "compare": null,
+      "snapshotsSinceRead": []
+    }
+  },
+  "backup_restore": {
+    "workspace": "journey-a-restored",
+    "name": "Journey A restored",
+    "backup": "journey-a-20261010T034000Z.zip",
+    "revenue": "4424416.84",
+    "exportIds": [
+      "monthly-sales-20261010t033257z",
+      "monthly-sales-20261010t033933z"
+    ]
+  },
+  "latest_export": {
+    "format": "contoso.result-export",
+    "version": 1,
+    "export_id": "monthly-sales-20261010t033933z",
+    "exported_at": "2026-10-10T03:39:34+00:00",
+    "workspace_id": "journey-a",
+    "source_commit": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
+    "data_label": "SYNTHETIC",
+    "artifact": {
+      "file": "contoso-monthly-sales.json",
+      "sha256": "bd5e19c704745ec6325f6b7547e198c44807aca3c34ffaa84865357d9b7c2e51",
+      "bytes": 22007,
+      "contract": "datapass.artifact/1",
+      "contract_vendor": "vendor/datapass-artifact/PROVENANCE.json",
+      "rows": 48,
+      "total_rows": 48,
+      "truncated": false
+    },
+    "bulk_data": {
+      "file": "contoso-monthly-sales.full.parquet",
+      "sha256": "983b9a067f945980df4732f84dfd11453e9ec1375140ec0b5b16034f5ab62210",
+      "bytes": 3985,
+      "rows": 48,
+      "format": "parquet"
+    },
+    "columns": [
+      {
+        "gold": "scenario",
+        "artifact": "scenario",
+        "unit": null
+      },
+      {
+        "gold": "order_month",
+        "artifact": "order_month",
+        "unit": null
+      },
+      {
+        "gold": "channel",
+        "artifact": "channel",
+        "unit": null
+      },
+      {
+        "gold": "sales_lines",
+        "artifact": "sales_lines",
+        "unit": "lines"
+      },
+      {
+        "gold": "units",
+        "artifact": "units",
+        "unit": "units"
+      },
+      {
+        "gold": "avg_discount_rate",
+        "artifact": "avg_discount_rate",
+        "unit": "ratio"
+      },
+      {
+        "gold": "revenue",
+        "artifact": "revenue",
+        "unit": "USD"
+      },
+      {
+        "gold": "cost",
+        "artifact": "cost",
+        "unit": "USD"
+      },
+      {
+        "gold": "gross_margin",
+        "artifact": "gross_margin",
+        "unit": "USD"
+      },
+      {
+        "gold": "gross_margin_rate",
+        "artifact": "gross_margin_rate",
+        "unit": "ratio"
+      }
+    ],
+    "lineage": {
+      "gold_table": "contoso.gold.monthly_sales",
+      "dbt_model": "model.contoso_data_studio.monthly_sales",
+      "dbt_model_path": "dbt/models/gold/monthly_sales.sql",
+      "dbt_depends_on": [
+        "model.contoso_data_studio.stg_sales"
+      ],
+      "dbt_run": {
+        "invocation_id": "8db86db0-fe0b-4e42-88fa-e00ceff4409e",
+        "generated_at": "2026-10-10T03:39:20.747296Z",
+        "dbt_version": "1.12.5",
+        "status": "success"
+      },
+      "ducklake_snapshot_id": 44,
+      "generator_run": {
+        "run_id": "20261010T033004Z-2c34940f",
+        "scenario": "retail-baseline",
+        "seed": 42,
+        "scale": 10000,
+        "generator_sha256": "d3c5d2104ded06fa28cb2f1e9f3b5536e33229cc62743450e90b1d3bd797cf4b",
+        "file_sha256": {
+          "currency_exchange": "818ff485ce581af79e38b4b164f020f66d1e80d48826bbb0036f8c3b485e3923",
+          "customer": "f2ab85e48c1f8e83cde1cacd622ccb23ce6ae5846d83761263f15b89940e65c2",
+          "product": "1eb4810ec440705d5f13f701037e8e18091184a84575db8314571ab7c8400d62",
+          "sales": "dd9d6b50dc4e9a59dd766dc12fdd20ca341c3c846dec4f9295ca595028499d47",
+          "store": "7dcdd7bf85fafcb3a02cc73a353a591394931c9c806cf57c19ab269b6b7dd37f"
+        }
+      }
+    },
+    "recomputation": "none: the artifact is a bounded view of the already built Gold table"
+  },
+  "mosaic_validation": {
+    "mosaic_ref": "f3a02bca98efb56ac219db46edb6275088a20192",
+    "mosaic_sha": "f3a02bca98efb56ac219db46edb6275088a20192",
+    "checks": [
+      {
+        "check": "validateArtifact+artifactDefinition",
+        "file": "contoso-monthly-sales.json",
+        "sha256": "bd5e19c704745ec6325f6b7547e198c44807aca3c34ffaa84865357d9b7c2e51",
+        "rows": 48,
+        "representations": [
+          "table",
+          "chart",
+          "json"
+        ],
+        "ok": true
+      },
+      {
+        "check": "checkConceptSpec",
+        "specVersion": "1.0.0",
+        "zod": "3.24.2",
+        "file": "<journey>/\contoso-sales-forecasting.concept.json",
+        "sha256": "d653d94f80738bdb5d66c5068e6158d5d6c1b1bab894d1935ccebe7c5bddc5db",
+        "ok": true,
+        "counts": {
+          "layers": 6,
+          "nodes": 13,
+          "flows": 17
+        },
+        "warnings": []
+      }
+    ]
+  },
+  "journey": {
+    "phases": {
+      "build": {
+        "checks": [
+          "UX01 workspace A: Retail baseline prepared to Gold (generate, Bronze, dbt build, quality)",
+          "UX01 Parquet metadata and actual row count inspected",
+          "UX01 Bronze/Silver/Gold catalog visible",
+          "UX01 dbt lineage and run results visible",
+          "UX01 Gold queried through read-only SQL",
+          "UX02 datapass.artifact export from the UI with lineage receipt",
+          "UX02 architecture concept in the embedded viewer",
+          "UX04 workspace B has its own Gold, history and exports"
+        ],
+        "exceptions": [],
+        "httpErrors": [],
+        "allowedHttpErrors": [],
+        "ok": true
+      },
+      "reopen": {
+        "checks": [
+          "UX01 catalog, Gold result, history and exports reopened after API restart",
+          "UX01 chart over reopened Gold"
+        ],
+        "exceptions": [],
+        "httpErrors": [],
+        "allowedHttpErrors": [],
+        "ok": true
+      },
+      "fault-broken": {
+        "checks": [
+          "UX03 failed dbt build visible with model error",
+          "UX03 export refused while the latest model run failed"
+        ],
+        "exceptions": [],
+        "httpErrors": [],
+        "allowedHttpErrors": [
+          {
+            "url": "http://127.0.0.1:21480/api/exports/artifact",
+            "status": 400
+          }
+        ],
+        "ok": true
+      },
+      "fault-repaired": {
+        "checks": [
+          "UX03 export after repair references the new successful dbt run"
+        ],
+        "exceptions": [],
+        "httpErrors": [],
+        "allowedHttpErrors": [],
+        "ok": true
+      },
+      "mapping": {
+        "checks": [
+          "FR-02 retail actuals: ONLINE/NORD/SOUTH non-empty, unmapped [], copy + non-authoritative, app total 4424416.84 = Gold 4424416.84 at snapshot #44",
+          "FR-02 10 Gold (channel, store_country) pairs each map to exactly one department",
+          "FR-02 no Gold writeback: monthly_sales_by_country digest equal at snapshots #44 and #44"
+        ],
+        "exceptions": [],
+        "httpErrors": [],
+        "allowedHttpErrors": [],
+        "ok": true
+      },
+      "backup": {
+        "checks": [
+          "FR-02 workspace journey-a backed up from the UI (journey-a-20261010T034000Z.zip)"
+        ],
+        "exceptions": [],
+        "httpErrors": [],
+        "allowedHttpErrors": [],
+        "ok": true
+      },
+      "restore": {
+        "checks": [
+          "FR-02 backup journey-a-20261010T034000Z.zip restored as new workspace \"Journey A restored\" after API restart",
+          "FR-02 restored workspace journey-a-restored: Gold revenue 4424416.84 and 2 export ids equal journey-a",
+          "FR-02 switched back to journey-a after the restore check"
+        ],
+        "exceptions": [],
+        "httpErrors": [],
+        "allowedHttpErrors": [],
+        "ok": true
+      },
+      "api-down": {
+        "checks": [
+          "F11 disconnected API shown with recovery command"
+        ],
+        "exceptions": [],
+        "httpErrors": [],
+        "allowedHttpErrors": [
+          {
+            "url": "http://127.0.0.1:21480/api/workspaces",
+            "status": 500
+          },
+          {
+            "url": "http://127.0.0.1:21480/api/scenarios",
+            "status": 500
+          },
+          {
+            "url": "http://127.0.0.1:21480/api/health",
+            "status": 500
+          },
+          {
+            "url": "http://127.0.0.1:21480/api/workspace/project-state",
+            "status": 500
+          }
+        ],
+        "ok": true
+      },
+      "ux": {
+        "checks": [
+          "F11 navigation reachable and operable by keyboard",
+          "F01 Generate view with scenario library, seed and scale",
+          "F04 failed query shows the database error",
+          "F04 mutating SQL denied by the read-only workbench",
+          "F11 reduced-motion rendering",
+          "F11 phone width 390px (horizontal overflow 0px)"
+        ],
+        "exceptions": [],
+        "httpErrors": [],
+        "allowedHttpErrors": [
+          {
+            "url": "http://127.0.0.1:21480/api/query",
+            "status": 500
+          },
+          {
+            "url": "http://127.0.0.1:21480/api/query",
+            "status": 400
+          }
+        ],
+        "phoneOverflowPx": 0,
+        "ok": true
+      }
+    },
+    "workspaceA": {
+      "scenario": "retail-baseline",
+      "revenue": "4424416.84",
+      "exportId": "monthly-sales-20261010t033257z",
+      "invocation": "1b432eec-9750-4b02-8487-ac299ee2c15a"
+    },
+    "workspaceB": {
+      "revenue": "4424416.84"
+    },
+    "repairedExport": {
+      "exportId": "monthly-sales-20261010t033933z",
+      "invocation": "8db86db0-fe0b-4e42-88fa-e00ceff4409e",
+      "path": null
+    },
+    "mapping": {
+      "snapshot": 44,
+      "items": 72,
+      "perDepartment": {
+        "ONLINE": {
+          "items": 24,
+          "amount": 1676468.49
+        },
+        "NORD": {
+          "items": 24,
+          "amount": 1444971.3
+        },
+        "SOUTH": {
+          "items": 24,
+          "amount": 1302977.05
+        }
+      },
+      "appTotal": 4424416.84,
+      "goldTotal": 4424416.84,
+      "goldGroups": 240,
+      "diffCents": 0,
+      "coverage": [
+        {
+          "channel": "Online",
+          "store_country": "France",
+          "gold_rows": 24,
+          "departments": [
+            "ONLINE"
+          ]
+        },
+        {
+          "channel": "Online",
+          "store_country": "Germany",
+          "gold_rows": 24,
+          "departments": [
+            "ONLINE"
+          ]
+        },
+        {
+          "channel": "Online",
+          "store_country": "Norway",
+          "gold_rows": 24,
+          "departments": [
+            "ONLINE"
+          ]
+        },
+        {
+          "channel": "Online",
+          "store_country": "Switzerland",
+          "gold_rows": 24,
+          "departments": [
+            "ONLINE"
+          ]
+        },
+        {
+          "channel": "Online",
+          "store_country": "United Kingdom",
+          "gold_rows": 24,
+          "departments": [
+            "ONLINE"
+          ]
+        },
+        {
+          "channel": "Store",
+          "store_country": "France",
+          "gold_rows": 24,
+          "departments": [
+            "SOUTH"
+          ]
+        },
+        {
+          "channel": "Store",
+          "store_country": "Germany",
+          "gold_rows": 24,
+          "departments": [
+            "NORD"
+          ]
+        },
+        {
+          "channel": "Store",
+          "store_country": "Norway",
+          "gold_rows": 24,
+          "departments": [
+            "NORD"
+          ]
+        },
+        {
+          "channel": "Store",
+          "store_country": "Switzerland",
+          "gold_rows": 24,
+          "departments": [
+            "SOUTH"
+          ]
+        },
+        {
+          "channel": "Store",
+          "store_country": "United Kingdom",
+          "gold_rows": 24,
+          "departments": [
+            "NORD"
+          ]
+        }
+      ],
+      "departments": {
+        "ONLINE": {
+          "channel": "Online",
+          "countries": null
+        },
+        "NORD": {
+          "channel": "Store",
+          "countries": [
+            "Norway",
+            "Germany",
+            "United Kingdom"
+          ]
+        },
+        "SOUTH": {
+          "channel": "Store",
+          "countries": [
+            "France",
+            "Switzerland"
+          ]
+        }
+      },
+      "noWriteback": {
+        "before": {
+          "snapshot": 44,
+          "rows": 240,
+          "revenue": "4424416.84",
+          "digest": "d1447a15e0b86eb1dc1955379d28d326"
+        },
+        "after": {
+          "snapshot": 44,
+          "rows": 240,
+          "revenue": "4424416.84",
+          "digest": "d1447a15e0b86eb1dc1955379d28d326"
+        },
+        "compare": null,
+        "snapshotsSinceRead": []
+      }
+    },
+    "backup": {
+      "backup": "journey-a-20261010T034000Z.zip",
+      "exportIds": [
+        "monthly-sales-20261010t033257z",
+        "monthly-sales-20261010t033933z"
+      ]
+    },
+    "restore": {
+      "workspace": "journey-a-restored",
+      "name": "Journey A restored",
+      "backup": "journey-a-20261010T034000Z.zip",
+      "revenue": "4424416.84",
+      "exportIds": [
+        "monthly-sales-20261010t033257z",
+        "monthly-sales-20261010t033933z"
+      ]
+    }
+  },
+  "result": "PASS",
+  "finished_at": "2026-10-10T03:44:41+00:00"
+}
