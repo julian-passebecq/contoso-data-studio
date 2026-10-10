@@ -14,6 +14,9 @@ dependencies = [
   "uvicorn[standard]>=0.34,<1",
 ]
 
+[project.scripts]
+contoso-studio = "app.cli:main"
+
 [project.optional-dependencies]
 dbt = ["dbt-duckdb==1.11.0"]
 dev = ["httpx>=0.28,<1", "jsonschema>=4.18,<5", "pytest>=8,<9"]
