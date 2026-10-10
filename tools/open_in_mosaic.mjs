@@ -100,11 +100,11 @@ try {
   log('npm ci (Mosaic lockfile)');
   npm(['ci', '--no-audit', '--no-fund'], src);
   const requireMosaic = createRequire(join(src, 'package.json'));
-  const playwrightCli = requireMosaic.resolve('playwright/cli.js');
+  const playwrightDir = join(src, 'node_modules', 'playwright'), playwrightCli = join(playwrightDir, 'cli.js'); // not in its exports map
   log('playwright install chromium');
   execFileSync(process.execPath, [playwrightCli, 'install', ...(args['with-deps'] ? ['--with-deps'] : []), 'chromium'], {cwd: src, stdio: ['ignore', 'pipe', 'pipe'], timeout: 900_000});
   const {chromium} = requireMosaic('playwright');
-  evidence.playwright = requireMosaic('playwright/package.json').version;
+  evidence.playwright = readJson(join(playwrightDir, 'package.json')).version;
 
   // ---------- export bundle --------------------------------------------------------------------------------------
   const folder = resolve(args.export);
