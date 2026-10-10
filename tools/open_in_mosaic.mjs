@@ -62,7 +62,8 @@ const evidence = {
 const log = (...m) => console.error('[open_in_mosaic]', ...m);
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const readJson = (file) => { const t = readFileSync(file, 'utf8'); return JSON.parse(t.charCodeAt(0) === 0xfeff ? t.slice(1) : t); };
-const npm = (cmdArgs, cwd, timeout = 900_000) => execFileSync(WIN ? 'npm.cmd' : 'npm', cmdArgs, {cwd, stdio: ['ignore', 'pipe', 'pipe'], shell: WIN, timeout, maxBuffer: 1 << 26});
+// 30 min: npm ci of the full Mosaic tree is slow on a busy machine.
+const npm = (cmdArgs, cwd, timeout = 1_800_000) => execFileSync(WIN ? 'npm.cmd' : 'npm', cmdArgs, {cwd, stdio: ['ignore', 'pipe', 'pipe'], shell: WIN, timeout, maxBuffer: 1 << 26});
 const gate = (name, value) => { evidence.gates[name] = value; return value; };
 const shot = async (target, name, caption) => {
   const file = join(shots, name);
