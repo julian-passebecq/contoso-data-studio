@@ -7,8 +7,9 @@ What it does, against an exact committed revision:
 2. Builds the production web bundle and serves it with ``vite preview`` (proxying /api) on loopback.
 3. Starts the API from the fixture on loopback with fixture-local workspace/home folders.
 4. Drives ``apps/web/qa/retail-journey.mjs`` phases: build -> (API restart) reopen -> fault-broken
-   -> (repair) fault-repaired -> api-down -> ux, then validates the latest export and the concept
-   document with MosaicStudio's own validators when a Mosaic checkout is given.
+   -> (repair) fault-repaired -> mapping (retail Gold -> app read, FR-02) -> backup -> (API restart)
+   restore (as a new workspace, then back to journey-a) -> api-down -> ux, then validates the latest
+   export and the concept document with MosaicStudio's own validators when a Mosaic checkout is given.
 
 Requires: the API environment on PATH (python with apps/api[dev,dbt] installed, dbt), Node 22 LTS and
 ``npm --prefix apps/web install`` plus ``playwright`` with Chromium. Only processes it starts are stopped.
@@ -32,6 +33,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 WEB = REPO / "apps" / "web"
 BROKEN_MARKER = "-- qa_retail_journey: deliberately broken"
+MOSAIC_REF = "6f45dd06e95ee66d693fc08fb4369c2a6379e84c"
 
 
 def run(cmd: list[str], cwd: Path, env: dict | None = None, check: bool = True, timeout: int = 900) -> subprocess.CompletedProcess:
@@ -88,7 +90,8 @@ def main() -> int:
     parser.add_argument("--api-port", type=int, default=8010)
     parser.add_argument("--web-port", type=int, default=5180)
     parser.add_argument("--mosaic", default=os.getenv("MOSAIC_CHECKOUT"), help="datapass-mosaicstudio checkout (read-only)")
-    parser.add_argument("--mosaic-ref", default="studio-v0.8.1")
+    # Pinned MosaicStudio commit (main, version 0.9.0; not a tag).
+    parser.add_argument("--mosaic-ref", default=MOSAIC_REF)
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args()
 
@@ -177,6 +180,12 @@ def main() -> int:
             model.write_text(original, encoding="utf-8")
         phase("fault-repaired")
 
+        phase("mapping")
+        phase("backup")
+        stop(api)
+        api = start_api()
+        phase("restore")
+
         stop(api)
         api = None
         phase("api-down")
@@ -184,6 +193,8 @@ def main() -> int:
         phase("ux")
 
         state = json.loads(state_path.read_text(encoding="utf-8"))
+        evidence["retail_gold_to_app"] = state.get("mapping")
+        evidence["backup_restore"] = state.get("restore")
         exports_root = fixture / "workspaces" / "journey-a" / "exports"
         latest = exports_root / state["repairedExport"]["exportId"]
         evidence["latest_export"] = json.loads((latest / "contoso-export.json").read_text(encoding="utf-8"))
