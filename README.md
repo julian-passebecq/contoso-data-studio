@@ -46,7 +46,7 @@ apps/web/
 
 ## Run locally
 
-Python 3.11+ and Node.js are expected.
+Python 3.11+ and Node.js 22 LTS or 26 are expected (CI runs the web unit tests and build on both).
 
 ### API + dbt
 
