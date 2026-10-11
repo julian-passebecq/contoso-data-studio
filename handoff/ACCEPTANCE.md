@@ -76,3 +76,11 @@ Silver/Gold (invocation, model sha256, DuckLake snapshot 44) -> NORD/SOUTH/ONLIN
 -> React analyzer explanation of the Revenue KPI chain (7/14 steps confirmed, gaps listed) -> backup/restore. Negatives:
 dbt failure and stale Gold refused, unmapped channel reported, API down, private/public boundary. Windows 11 journey PASS
 (9 phases), 28 targeted tests PASS, PR CI 7/7 success.
+
+#### E2E-05 React leg re-run (2026-10-11): PASS_WITH_PARTIAL_LEG
+
+DataPass React `7f56479` headless CLI (`datapass-analyze.mjs --oracle`) on Contoso `523c442`, run independently by this lane:
+13/14 steps of `charts-kpi-revenue` grounded (VERIFIED 2, 4, 5, 8, 10, 13, 14; INFERRED 1, 3, 7, 9, 11, 12), step 6
+UNMAPPED (Revenue card reads the response by position; the analyzer does not map response columns to UI elements). The
+DuckLake service hops (5, 12) and the generator (13) are now reached. Receipt `handoff/evidence/e2e-05-react-leg-2026-10-11.json`;
+the 9-phase/Gold evidence is reused (only handoff files changed since `6b8185e`).
