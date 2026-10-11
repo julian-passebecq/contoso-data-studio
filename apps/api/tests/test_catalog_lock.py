@@ -1,3 +1,4 @@
+import json
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
 from types import SimpleNamespace
@@ -20,6 +21,11 @@ def test_catalog_read_waits_for_dbt_subprocess(monkeypatch, tmp_path):
     def fake_subprocess(*args, **kwargs):
         started.set()
         assert release.wait(10)
+        settings.dbt_target_path.mkdir(parents=True, exist_ok=True)
+        (settings.dbt_target_path / "run_results.json").write_text(json.dumps({
+            "metadata": {"generated_at": "2026-01-01T00:00:00Z"},
+            "results": [{"unique_id": "model.contoso_data_studio.stg_sales", "status": "success"}],
+        }), encoding="utf-8")
         return SimpleNamespace(returncode=0, stdout="ok", stderr="")
 
     monkeypatch.setattr("app.services.dbt_runner.subprocess.run", fake_subprocess)

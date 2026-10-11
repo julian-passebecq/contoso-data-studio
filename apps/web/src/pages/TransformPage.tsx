@@ -12,7 +12,7 @@ import type {
 import { completeTutorialStep } from "../tutorialProgress";
 import "../transform.css";
 
-type DbtModel = { name:string; path:string; layer:string };
+type DbtModel = { name:string; path:string; layer:string; app_lab?:boolean };
 type DbtNodeResult = {
   unique_id:string;
   status:string;
@@ -35,7 +35,7 @@ type DbtRun = {
   command:string;
   selector:string | null;
   exit_code:number;
-  ok:boolean;
+  ok:boolean; nodes_executed?:number; warning?:string | null;
   output:string;
   run_results:DbtStatus["latest_run"];
 };
@@ -271,7 +271,7 @@ export default function TransformPage({
             ? `dbt ${run.command}`
             : "dbt run_results.json"}
       />
-      {error && <div className="errorText">{error}</div>}
+      {error && <div className="errorText">{error}</div>}{run?.warning && <div className="errorText" role="alert">{run.warning}</div>}
       {(run?.run_results ?? status?.latest_run) ? <div className="runResults">
         {(run?.run_results ?? status?.latest_run)?.results.map(item=><div className="runResult" key={item.unique_id}>
           <Badge appearance="outline" color={item.status==="success" || item.status==="pass" ? "success" : "danger"}>{item.status}</Badge>

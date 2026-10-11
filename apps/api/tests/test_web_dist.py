@@ -101,6 +101,17 @@ def test_one_version_source():
     assert app.version == package_version()
 
 
+def test_web_package_version_matches_api_pyproject():
+    import json
+    import tomllib
+
+    pyproject = tomllib.loads((ROOT / "apps" / "api" / "pyproject.toml").read_text(encoding="utf-8"))
+    web = json.loads((ROOT / "apps" / "web" / "package.json").read_text(encoding="utf-8"))
+    assert web["version"] == pyproject["project"]["version"], (
+        "apps/web/package.json version must match apps/api/pyproject.toml (the single version source)"
+    )
+
+
 def test_cli_finds_the_package_root(monkeypatch, tmp_path):
     monkeypatch.delenv("CONTOSO_PROJECT_ROOT", raising=False)
     assert cli.find_project_root() == ROOT

@@ -352,16 +352,16 @@ Transform page: dbt build/test (callers, route, runner branch, models built)
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
 | api | `apps/api/app/main.py:452-452` | `@app.post("/api/dbt/{command}")` | verified | FastAPI route POST /api/dbt/{command} |
 | api | `apps/api/app/main.py:453-458` | `dbt.run(command, selector)` | verified | selector query param 1..200 chars; ValueError -> 400, RuntimeError -> 409 |
-| service | `apps/api/app/services/dbt_runner.py:407-409` | `def run` | verified | Takes the catalog lock then _run |
-| service | `apps/api/app/services/dbt_runner.py:411-413` | `ALLOWED_COMMANDS` | verified | command must be build/run/test/parse |
+| service | `apps/api/app/services/dbt_runner.py:418-420` | `def run` | verified | Takes the catalog lock then _run |
+| service | `apps/api/app/services/dbt_runner.py:422-424` | `ALLOWED_COMMANDS` | verified | command must be build/run/test/parse |
 | service | `apps/api/app/services/dbt_runner.py:13-13` | `ALLOWED_COMMANDS` | verified | build/run/test/parse |
-| service | `apps/api/app/services/dbt_runner.py:420-428` | `"--project-dir"` | verified | dbt <command> --project-dir dbt --profiles-dir dbt |
-| service | `apps/api/app/services/dbt_runner.py:24-27` | `def _foil_active` | inferred | Branch flag: active generator run scenario starts with foil- (Runtime workspace state; two outcomes (FOIL scenario or retail scenario), both enumerated.) |
-| service | `apps/api/app/services/dbt_runner.py:430-433` | `path:models/foil` | inferred | FOIL branch: --vars foil_enabled, --select path:models/foil when no selector (Taken only when _foil_active() is true.) |
-| service | `apps/api/app/services/dbt_runner.py:434-438` | `_validate_model_selector` | inferred | Selector branch: --select <model> (Taken only when a selector is given; candidates enumerated by _models().) |
-| service | `apps/api/app/services/dbt_runner.py:394-405` | `def _validate_model_selector` | verified | Selector must equal exactly one model name of _models() |
-| service | `apps/api/app/services/dbt_runner.py:29-45` | `def _models` | inferred | Model list = *.sql under dbt/models, foil folder only in the FOIL branch (Filter depends on _foil_active(); both model lists are enumerated in the sub-traces.) |
-| service | `apps/api/app/services/dbt_runner.py:440-448` | `subprocess.run(` | verified | dbt subprocess, timeout 300 s |
+| service | `apps/api/app/services/dbt_runner.py:431-439` | `"--project-dir"` | verified | dbt <command> --project-dir dbt --profiles-dir dbt |
+| service | `apps/api/app/services/dbt_runner.py:27-30` | `def _foil_active` | inferred | Branch flag: active generator run scenario starts with foil- (Runtime workspace state; two outcomes (FOIL scenario or retail scenario), both enumerated.) |
+| service | `apps/api/app/services/dbt_runner.py:442-445` | `path:models/foil` | inferred | FOIL branch: --vars foil_enabled, --select path:models/foil when no selector (Taken only when _foil_active() is true.) |
+| service | `apps/api/app/services/dbt_runner.py:446-460` | `_validate_model_selector` | inferred | Selector branch: --select <model> (Taken only when a selector is given; candidates enumerated by _models().) |
+| service | `apps/api/app/services/dbt_runner.py:405-416` | `def _validate_model_selector` | verified | Selector must equal exactly one model name of _models() |
+| service | `apps/api/app/services/dbt_runner.py:32-51` | `def _models` | inferred | Model list = *.sql under dbt/models, foil folder only in the FOIL branch (Filter depends on _foil_active(); both model lists are enumerated in the sub-traces.) |
+| service | `apps/api/app/services/dbt_runner.py:466-474` | `subprocess.run(` | verified | dbt subprocess, timeout 300 s |
 
 ### transform-dbt-build/branch-retail (RESOLVED)
 Retail branch (_foil_active() false, no selector): models built
@@ -370,7 +370,7 @@ Models built: `silver.stg_sales`, `gold.channel_performance`, `gold.currency_exp
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| service | `apps/api/app/services/dbt_runner.py:430-430` | `if self._foil_active():` | inferred | Condition false: no --vars, no --select, dbt builds every enabled model (Runtime branch on the active run scenario; this sub-trace is the non-FOIL outcome.) |
+| service | `apps/api/app/services/dbt_runner.py:442-442` | `if self._foil_active():` | inferred | Condition false: no --vars, no --select, dbt builds every enabled model (Runtime branch on the active run scenario; this sub-trace is the non-FOIL outcome.) |
 | dbt | `dbt/dbt_project.yml:9-14` | `+schema: gold` | verified | silver and gold folders materialize as tables in schemas silver and gold |
 | dbt | `dbt/models/silver/stg_sales.sql:23-23` | `source('bronze','sales')` | verified | silver.stg_sales |
 | dbt | `dbt/models/gold/channel_performance.sql:11-11` | `ref('stg_sales')` | verified | gold.channel_performance |
@@ -381,7 +381,7 @@ Models built: `silver.stg_sales`, `gold.channel_performance`, `gold.currency_exp
 | dbt | `dbt/models/gold/product_performance.sql:11-12` | `ref('stg_sales')` | verified | gold.product_performance (joins bronze.product) |
 | dbt | `dbt/models/gold/store_performance.sql:13-14` | `ref('stg_sales')` | verified | gold.store_performance (joins bronze.store) |
 | dbt | `dbt/models/foil/gold/foil_energy_risk.sql:1-1` | `var('foil_enabled', false)` | verified | FOIL models disabled (var default false) |
-| dbt | `dbt/models/fabric_apps/gold/schema.yml:7-7` | `var('fabric_apps_enabled', false)` | verified | fabric_apps forecast_vs_actual disabled; only the Fabric mirror (fabric_apps/mirror.py) enables it |
+| dbt | `dbt/models/fabric_apps/gold/schema.yml:7-7` | `var('fabric_apps_enabled', false)` | verified | fabric_apps forecast_vs_actual disabled unless the Fabric mirror (fabric_apps/mirror.py) or a Transform selector build of it passes the var |
 
 ### transform-dbt-build/branch-foil (RESOLVED)
 FOIL branch (_foil_active() true, no selector): models built
@@ -392,8 +392,8 @@ Retail Silver/Gold models are not rebuilt in this branch (path selector); they k
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| service | `apps/api/app/services/dbt_runner.py:431-431` | `foil_enabled` | inferred | --vars {"foil_enabled": true} (Runtime branch on the active run scenario; this sub-trace is the FOIL outcome.) |
-| service | `apps/api/app/services/dbt_runner.py:432-433` | `--select` | inferred | --select path:models/foil (not for parse, not with a selector) (Runtime branch on the active run scenario; this sub-trace is the FOIL outcome.) |
+| service | `apps/api/app/services/dbt_runner.py:443-443` | `foil_enabled` | inferred | --vars {"foil_enabled": true} (Runtime branch on the active run scenario; this sub-trace is the FOIL outcome.) |
+| service | `apps/api/app/services/dbt_runner.py:444-445` | `--select` | inferred | --select path:models/foil (not for parse, not with a selector) (Runtime branch on the active run scenario; this sub-trace is the FOIL outcome.) |
 | dbt | `dbt/models/foil/sources.yml:3-7` | `var('foil_enabled', false)` | verified | foil sources enabled by the var |
 | dbt | `dbt/models/foil/silver/foil_experiments.sql:6-6` | `source('foil', 'foil_trials')` | verified | silver.foil_experiments |
 | dbt | `dbt/models/foil/silver/foil_cashflows.sql:10-10` | `ref('foil_experiments')` | verified | silver.foil_cashflows |
@@ -406,15 +406,15 @@ Retail Silver/Gold models are not rebuilt in this branch (path selector); they k
 ### transform-dbt-build/branch-selector (RESOLVED)
 Selector branch (Build model / Test model): one model
 
-Models built: `one of the models listed in branch-retail or branch-foil (plus fabric_apps.forecast_vs_actual, which is accepted by the validator in the retail branch but stays disabled without fabric_apps_enabled, so dbt selects nothing)`
+Models built: `one of the models listed in branch-retail or branch-foil (plus fabric_apps.forecast_vs_actual, which the retail branch builds with --vars fabric_apps_enabled when the app lab is enabled in the workspace and refuses otherwise)`
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
 | react | `apps/web/src/pages/TransformPage.tsx:299-305` | `nodeDetail.name` | inferred | Selected DAG node name (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
-| service | `apps/api/app/services/dbt_runner.py:164-164` | `_layer_for_dependency` | inferred | node_detail name comes from the dbt manifest (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
-| service | `apps/api/app/services/dbt_runner.py:434-438` | `args.extend(["--select", selected_model])` | inferred | --select <model> for build/run/test; parse rejects a selector (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
-| service | `apps/api/app/services/dbt_runner.py:398-404` | `Unknown dbt model selector` | verified | Exactly one model of _models() must match, else HTTP 400 |
-| service | `apps/api/app/services/dbt_runner.py:37-38` | `("foil" in relative.parts) != foil_active` | inferred | Candidates: retail models (incl. fabric_apps) or foil models, by branch (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
+| service | `apps/api/app/services/dbt_runner.py:175-175` | `_layer_for_dependency` | inferred | node_detail name comes from the dbt manifest (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
+| service | `apps/api/app/services/dbt_runner.py:446-460` | `args.extend(["--select", selected_model])` | inferred | --select <model> for build/run/test; parse rejects a selector (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
+| service | `apps/api/app/services/dbt_runner.py:409-415` | `Unknown dbt model selector` | verified | Exactly one model of _models() must match, else HTTP 400 |
+| service | `apps/api/app/services/dbt_runner.py:40-41` | `("foil" in relative.parts) != foil_active` | inferred | Candidates: retail models (incl. fabric_apps) or foil models, by branch (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
 
 ## projects-open (RESOLVED)
 Projects open: open a project scenario
@@ -430,7 +430,7 @@ Projects open: open a project scenario
 | service | `apps/api/app/services/projects.py:81-81` | `load_parquet_to_bronze` | verified | Loads parquet into bronze |
 | service | `apps/api/app/services/ducklake.py:139-148` | `def load_parquet_to_bronze` | inferred | CREATE OR REPLACE TABLE contoso.bronze.{table} (Table name is the f-string key of run_files(): retail tables or FOIL_FILES depending on the scenario.) |
 | service | `apps/api/app/services/projects.py:84-84` | `self.dbt.run("build")` | verified | dbt build to produce Silver/Gold |
-| service | `apps/api/app/services/dbt_runner.py:407-456` | `def run` | verified | dbt subprocess |
+| service | `apps/api/app/services/dbt_runner.py:418-495` | `def run` | verified | dbt subprocess |
 | dbt | `dbt/models/gold/monthly_sales.sql:1-12` | `date_trunc` | inferred | Gold output of the build (Gold output depends on the dbt runner branch (_foil_active): retail Gold models or gold.foil_* (see transform-dbt-build).) |
 
 ## apps-architecture-concept (RESOLVED)
@@ -484,7 +484,7 @@ Workspace switch: activate a named workspace
 `contoso.gold.monthly_sales.revenue` = `round(sum(net_revenue),2)` over `stg_sales`. `net_revenue` there is a decimal(18,2) cast of `contoso.bronze.sales.net_revenue`, which the generator writes as `round(net_revenue_local*exchange_rate_to_usd,2)`.
 
 ## Observations
-- In the retail branch `_validate_model_selector` also accepts `forecast_vs_actual` (fabric_apps is not under a `foil` folder), but that model is disabled unless `fabric_apps_enabled` is passed, so a selector build of it selects nothing. Only the Fabric mirror (`apps/api/app/services/fabric_apps/mirror.py`) passes that var.
+- In the retail branch `_validate_model_selector` also accepts `forecast_vs_actual` (fabric_apps is not under a `foil` folder). That model is disabled unless `fabric_apps_enabled` is passed, so `_run` passes the var when the app lab is enabled in the workspace (its operational store exists) and refuses the build otherwise; the Fabric mirror (`apps/api/app/services/fabric_apps/mirror.py`) also passes it. A build or test that executes 0 nodes is reported as `ok: false` with a warning.
 - In the FOIL branch the path selector rebuilds only FOIL models; retail Gold tables keep their last build.
 
 ## React analyzer cross-check
