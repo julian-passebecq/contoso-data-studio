@@ -2051,8 +2051,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
-     "start": 407,
-     "end": 409,
+     "start": 418,
+     "end": 420,
      "symbol": "def run",
      "note": "Takes the catalog lock then _run",
      "confidence": "verified"
@@ -2060,8 +2060,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
-     "start": 411,
-     "end": 413,
+     "start": 422,
+     "end": 424,
      "symbol": "ALLOWED_COMMANDS",
      "note": "command must be build|run|test|parse",
      "confidence": "verified"
@@ -2078,8 +2078,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
-     "start": 420,
-     "end": 428,
+     "start": 431,
+     "end": 439,
      "symbol": "\"--project-dir\"",
      "note": "dbt <command> --project-dir dbt --profiles-dir dbt",
      "confidence": "verified"
@@ -2087,8 +2087,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
-     "start": 24,
-     "end": 27,
+     "start": 27,
+     "end": 30,
      "symbol": "def _foil_active",
      "note": "Branch flag: active generator run scenario starts with foil-",
      "confidence": "inferred",
@@ -2097,8 +2097,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
-     "start": 430,
-     "end": 433,
+     "start": 442,
+     "end": 445,
      "symbol": "path:models/foil",
      "note": "FOIL branch: --vars foil_enabled, --select path:models/foil when no selector",
      "confidence": "inferred",
@@ -2107,8 +2107,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
-     "start": 434,
-     "end": 438,
+     "start": 446,
+     "end": 460,
      "symbol": "_validate_model_selector",
      "note": "Selector branch: --select <model>",
      "confidence": "inferred",
@@ -2117,8 +2117,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
-     "start": 394,
-     "end": 405,
+     "start": 405,
+     "end": 416,
      "symbol": "def _validate_model_selector",
      "note": "Selector must equal exactly one model name of _models()",
      "confidence": "verified"
@@ -2126,8 +2126,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
-     "start": 29,
-     "end": 45,
+     "start": 32,
+     "end": 51,
      "symbol": "def _models",
      "note": "Model list = *.sql under dbt/models, foil folder only in the FOIL branch",
      "confidence": "inferred",
@@ -2136,8 +2136,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
-     "start": 440,
-     "end": 448,
+     "start": 466,
+     "end": 474,
      "symbol": "subprocess.run(",
      "note": "dbt subprocess, timeout 300 s",
      "confidence": "verified"
@@ -2153,8 +2153,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/dbt_runner.py",
-       "start": 430,
-       "end": 430,
+       "start": 442,
+       "end": 442,
        "symbol": "if self._foil_active():",
        "note": "Condition false: no --vars, no --select, dbt builds every enabled model",
        "confidence": "inferred",
@@ -2256,7 +2256,7 @@
        "start": 7,
        "end": 7,
        "symbol": "var('fabric_apps_enabled', false)",
-       "note": "fabric_apps forecast_vs_actual disabled; only the Fabric mirror (fabric_apps/mirror.py) enables it",
+       "note": "fabric_apps forecast_vs_actual disabled unless the Fabric mirror (fabric_apps/mirror.py) or a Transform selector build of it passes the var",
        "confidence": "verified"
       }
      ],
@@ -2280,8 +2280,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/dbt_runner.py",
-       "start": 431,
-       "end": 431,
+       "start": 443,
+       "end": 443,
        "symbol": "foil_enabled",
        "note": "--vars {\"foil_enabled\": true}",
        "confidence": "inferred",
@@ -2290,8 +2290,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/dbt_runner.py",
-       "start": 432,
-       "end": 433,
+       "start": 444,
+       "end": 445,
        "symbol": "--select",
        "note": "--select path:models/foil (not for parse, not with a selector)",
        "confidence": "inferred",
@@ -2400,8 +2400,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/dbt_runner.py",
-       "start": 164,
-       "end": 164,
+       "start": 175,
+       "end": 175,
        "symbol": "_layer_for_dependency",
        "note": "node_detail name comes from the dbt manifest",
        "confidence": "inferred",
@@ -2410,8 +2410,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/dbt_runner.py",
-       "start": 434,
-       "end": 438,
+       "start": 446,
+       "end": 460,
        "symbol": "args.extend([\"--select\", selected_model])",
        "note": "--select <model> for build|run|test; parse rejects a selector",
        "confidence": "inferred",
@@ -2420,8 +2420,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/dbt_runner.py",
-       "start": 398,
-       "end": 404,
+       "start": 409,
+       "end": 415,
        "symbol": "Unknown dbt model selector",
        "note": "Exactly one model of _models() must match, else HTTP 400",
        "confidence": "verified"
@@ -2429,8 +2429,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/dbt_runner.py",
-       "start": 37,
-       "end": 38,
+       "start": 40,
+       "end": 41,
        "symbol": "(\"foil\" in relative.parts) != foil_active",
        "note": "Candidates: retail models (incl. fabric_apps) or foil models, by branch",
        "confidence": "inferred",
@@ -2439,7 +2439,7 @@
      ],
      "unresolved": [],
      "models_built": [
-      "one of the models listed in branch-retail or branch-foil (plus fabric_apps.forecast_vs_actual, which is accepted by the validator in the retail branch but stays disabled without fabric_apps_enabled, so dbt selects nothing)"
+      "one of the models listed in branch-retail or branch-foil (plus fabric_apps.forecast_vs_actual, which the retail branch builds with --vars fabric_apps_enabled when the app lab is enabled in the workspace and refuses otherwise)"
      ]
     }
    ]
@@ -2535,8 +2535,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/dbt_runner.py",
-     "start": 407,
-     "end": 456,
+     "start": 418,
+     "end": 495,
      "symbol": "def run",
      "note": "dbt subprocess",
      "confidence": "verified"

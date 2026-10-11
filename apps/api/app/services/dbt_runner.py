@@ -11,6 +11,9 @@ from app.services.catalog_lock import catalog_lock
 
 
 ALLOWED_COMMANDS = {"build", "run", "test", "parse"}
+# Fabric-style app lab models (docs/fabric-apps) are disabled unless dbt gets
+# --vars '{"fabric_apps_enabled": true}'; a build of one of them must pass it.
+FABRIC_APPS_DIR = "fabric_apps"
 
 
 class DbtService:
@@ -26,23 +29,31 @@ class DbtService:
         run = GeneratorService(self.settings).active_run()
         return bool(run and str(run.get("scenario", "")).startswith("foil-"))
 
-    def _models(self) -> list[dict[str, str]]:
+    def _models(self) -> list[dict[str, Any]]:
         models_root = self.settings.dbt_path / "models"
         if not models_root.exists():
             return []
-        models: list[dict[str, str]] = []
+        models: list[dict[str, Any]] = []
         foil_active = self._foil_active()
         for path in sorted(models_root.rglob("*.sql")):
             relative = path.relative_to(self.settings.dbt_path)
             if ("foil" in relative.parts) != foil_active:
                 continue
             layer = path.parent.name
-            models.append({
+            model: dict[str, Any] = {
                 "name": path.stem,
                 "path": relative.as_posix(),
                 "layer": layer,
-            })
+            }
+            if FABRIC_APPS_DIR in relative.parts:
+                model["app_lab"] = True
+            models.append(model)
         return models
+
+    def _app_lab_enabled(self) -> bool:
+        """The app lab is enabled in this workspace once its operational store exists."""
+        from app.services.fabric_apps import APP_SLUG
+        return (self.settings.workspace / "fabric-apps" / f"{APP_SLUG}.sqlite").exists()
 
     def _read_manifest(self) -> dict[str, Any] | None:
         path = self.settings.dbt_target_path / "manifest.json"
@@ -391,18 +402,18 @@ class DbtService:
             "quality": self.quality(),
         }
 
-    def _validate_model_selector(self, selector: str) -> str:
+    def _validate_model_selector(self, selector: str) -> dict[str, Any]:
         requested = selector.strip()
         if not requested:
             raise ValueError("dbt model selector is empty")
         matches = [
-            model["name"]
+            model
             for model in self._models()
             if model["name"] == requested
         ]
         if len(matches) != 1:
             raise ValueError(f"Unknown dbt model selector: {requested}")
-        return requested
+        return matches[0]
 
     def run(self, command: str, selector: str | None = None) -> dict[str, Any]:
         with catalog_lock(self.settings.catalog_path):
@@ -427,16 +438,31 @@ class DbtService:
             "--no-use-colors",
         ]
         selected_model = None
+        dbt_vars: dict[str, bool] = {}
         if self._foil_active():
-            args.extend(["--vars", '{"foil_enabled": true}'])
+            dbt_vars["foil_enabled"] = True
             if command != "parse" and selector is None:
                 args.extend(["--select", "path:models/foil"])
         if selector is not None:
             if command not in {"build", "run", "test"}:
                 raise ValueError(f"dbt {command} does not accept a model selector here")
-            selected_model = self._validate_model_selector(selector)
+            model = self._validate_model_selector(selector)
+            selected_model = model["name"]
+            if model.get("app_lab"):
+                # App Gold is built by dbt build of the app's own model (docs/fabric-apps/GOLD-MAPPING.md).
+                if not self._app_lab_enabled():
+                    raise ValueError(
+                        f"{selected_model} is the Sales Forecasting app lab's Gold model, and the lab is not "
+                        "enabled in this workspace yet. Open the Apps page so the lab creates its store and "
+                        "mirrors Bronze, then build it again."
+                    )
+                dbt_vars["fabric_apps_enabled"] = True
             args.extend(["--select", selected_model])
+        if dbt_vars:
+            args.extend(["--vars", json.dumps(dbt_vars)])
 
+        previous = self._read_run_results()
+        previous_generated_at = previous.get("generated_at") if previous else None
         completed = subprocess.run(
             args,
             cwd=self.settings.dbt_path,
@@ -447,11 +473,24 @@ class DbtService:
             check=False,
         )
         combined = "\n".join(part for part in (completed.stdout, completed.stderr) if part)
+        run_results = self._read_run_results()
+        if run_results is not None and previous is not None and run_results["generated_at"] == previous_generated_at:
+            run_results = None  # dbt wrote no new run_results: never show the previous run as this one
+        nodes_executed = len(run_results["results"]) if run_results else 0
+        ok = completed.returncode == 0
+        warning = None
+        if ok and command != "parse" and nodes_executed == 0:
+            # dbt exits 0 with "Nothing to do" when the selection matches no enabled node.
+            ok = False
+            target = f"--select {selected_model}" if selected_model else "the project"
+            warning = f"dbt {command} executed 0 nodes for {target}: nothing was built or tested."
         return {
             "command": command,
             "selector": selected_model,
             "exit_code": completed.returncode,
-            "ok": completed.returncode == 0,
+            "ok": ok,
+            "nodes_executed": nodes_executed,
+            "warning": warning,
             "output": combined[-50_000:],
-            "run_results": self._read_run_results(),
+            "run_results": run_results or {"elapsed_time": None, "generated_at": None, "results": []},
         }
