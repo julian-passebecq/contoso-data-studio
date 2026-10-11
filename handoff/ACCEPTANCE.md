@@ -66,3 +66,13 @@ the release-set coordinator; Contoso supplies its package and install receipt).
 - Package: `contoso-data-studio-0.2.0-fe83dbd.zip`, 2,963,772 bytes, sha256 `c065671d0acbe4520860fcd6dca93842aa1a75bd7ee7808d56106a8e58b0fbd1`,
   clean-venv install receipt PASS (CI, final main); Windows install PASS at #17 head. Kept locally, not published.
 - Gates: LOCAL (this repo) PASS; PUBLIC_DISTRIBUTION and tags NOT_AUTHORIZED; FABRIC_AUTHENTICATED BLOCKED (not authorized).
+
+### E2E-05 Retail Gold to application and explanation (2026-10-11): PASS
+
+Receipt `handoff/evidence/e2e-05-2026-10-11.json`, source `6b8185e` (merged as #22 `2e09f89`, same tree), MosaicStudio
+`b3f194d` (0.10.0), DataPass React `70b86fd` (2.2.0), both read-only. Generate (seed 42, file sha256) -> Bronze -> dbt
+Silver/Gold (invocation, model sha256, DuckLake snapshot 44) -> NORD/SOUTH/ONLINE mapping (0-cent total match) -> SQL/charts
+-> artifact/concept export -> Mosaic validators (Windows) and Mosaic UI + concept viewer (CI run 38148268178, all gates PASS)
+-> React analyzer explanation of the Revenue KPI chain (7/14 steps confirmed, gaps listed) -> backup/restore. Negatives:
+dbt failure and stale Gold refused, unmapped channel reported, API down, private/public boundary. Windows 11 journey PASS
+(9 phases), 28 targeted tests PASS, PR CI 7/7 success.

@@ -1,0 +1,196 @@
+{
+  "journey": "E2E-05 Retail Gold to application and explanation",
+  "lane": "07-contoso",
+  "profile": "LOCAL_COMPLETE",
+  "data": "SYNTHETIC",
+  "source_sha": "6b8185eae675f87c546d7ad8cb9506af834e6d4a",
+  "merged_as": "2e09f89ac964c7884a1763c5e3a03229ff6d59f3 (PR #22, same tree)",
+  "consumers": {
+    "mosaicstudio": {
+      "sha": "b3f194d0cc0a2620abc4b96d1a11740249b3b107",
+      "version": "0.10.0 (no tag)",
+      "mode": "read-only git archive"
+    },
+    "datapass_react": {
+      "sha": "70b86fd4f9739d619578ebb10f4d22c04acaaad6",
+      "version": "2.2.0",
+      "mode": "read-only archive in a temp folder, npm ci --ignore-scripts, analyzeWorkspace + explainNode"
+    }
+  },
+  "steps": {
+    "generate": {
+      "run_id": "20261011T144327Z-6d269d12",
+      "seed": 42,
+      "generator_sha256": "d3c5d2104ded06fa28cb2f1e9f3b5536e33229cc62743450e90b1d3bd797cf4b",
+      "file_sha256": {
+        "currency_exchange": "818ff485ce581af79e38b4b164f020f66d1e80d48826bbb0036f8c3b485e3923",
+        "customer": "f2ab85e48c1f8e83cde1cacd622ccb23ce6ae5846d83761263f15b89940e65c2",
+        "product": "1eb4810ec440705d5f13f701037e8e18091184a84575db8314571ab7c8400d62",
+        "sales": "dd9d6b50dc4e9a59dd766dc12fdd20ca341c3c846dec4f9295ca595028499d47",
+        "store": "7dcdd7bf85fafcb3a02cc73a353a591394931c9c806cf57c19ab269b6b7dd37f"
+      }
+    },
+    "bronze_dbt_silver_gold": {
+      "dbt_invocation_id": "fa12ac4f-ac30-4958-be6e-f328e086fee1",
+      "dbt_version": "1.12.5",
+      "status": "success",
+      "model_sha256": {
+        "dbt/models/gold/monthly_sales.sql": "107365efdc0168942e024c75e0daf5d79c7f05268951f715a367d1716c9880ca",
+        "dbt/models/silver/stg_sales.sql": "f341de1a1c7c58c23884b87985bd649e906dd91366db70e13a14cf7a0c2def51",
+        "dbt/models/gold/monthly_sales_by_country.sql": "7310af34222d9a5667bd890a2261fc97e78ab89d9b49fa6a2b77afb6aca76e1a"
+      },
+      "ducklake_snapshot_id": 44
+    },
+    "mappings": {
+      "snapshot": 44,
+      "items": 72,
+      "perDepartment": {
+        "ONLINE": {
+          "items": 24,
+          "amount": 1676468.49
+        },
+        "NORD": {
+          "items": 24,
+          "amount": 1444971.3
+        },
+        "SOUTH": {
+          "items": 24,
+          "amount": 1302977.05
+        }
+      },
+      "appTotal": 4424416.84,
+      "goldTotal": 4424416.84,
+      "diffCents": 0
+    },
+    "sql_charts": "journey phases build/reopen: Query on contoso.gold.monthly_sales, Charts KPIs and board (screenshots in the local evidence)",
+    "export": {
+      "artifact_sha256": "41974b36fb75598262f91ead8b6701483d54d5a1aa809b6ddb79412d7b6033e3",
+      "bytes": 22007,
+      "bulk_parquet_sha256": "983b9a067f945980df4732f84dfd11453e9ec1375140ec0b5b16034f5ab62210",
+      "concept_sha256": "d653d94f80738bdb5d66c5068e6158d5d6c1b1bab894d1935ccebe7c5bddc5db"
+    },
+    "mosaic_validators": {
+      "windows_journey": [
+        "validateArtifact+artifactDefinition OK",
+        "checkConceptSpec OK"
+      ]
+    },
+    "open_in_mosaic_ui": {
+      "ci_run": 38148268178,
+      "runner": "ubuntu-latest",
+      "result": "PASS",
+      "gates": {
+        "structural_strict": "PASS",
+        "structural_ts": "PASS",
+        "semantic": "PASS",
+        "concept": "PASS"
+      },
+      "screenshots": [
+        "mosaic-artifact-table.png",
+        "mosaic-artifact-chart.png",
+        "mosaic-artifact-metric.png",
+        "mosaic-artifact-page.png",
+        "mosaic-concept-embed-1000x600.png",
+        "mosaic-concept-embed-resized-720x480.png",
+        "mosaic-concept-embed-layered.png"
+      ]
+    },
+    "react_explanation": {
+      "graph": {
+        "summary": {
+          "nodes": 586,
+          "edges": 608,
+          "nodes_by_kind": {
+            "ApiClient": 71,
+            "Column": 217,
+            "Component": 14,
+            "Config": 3,
+            "DTO": 1,
+            "Endpoint": 89,
+            "EnvironmentVariable": 5,
+            "Form": 1,
+            "Handler": 86,
+            "Hook": 1,
+            "Package": 2,
+            "Page": 10,
+            "Script": 6,
+            "SqlObject": 44,
+            "StateStore": 1,
+            "Table": 30,
+            "Test": 4,
+            "Workspace": 1
+          },
+          "edges_by_kind": {
+            "calls": 132,
+            "contains": 225,
+            "delegatesTo": 16,
+            "handles": 86,
+            "queries": 10,
+            "reads": 68,
+            "references": 2,
+            "renders": 29,
+            "submits": 1,
+            "writes": 39
+          },
+          "nodes_by_confidence": {
+            "inferred": 333,
+            "verified": 252,
+            "unresolved": 1
+          },
+          "edges_by_confidence": {
+            "inferred": 404,
+            "verified": 204
+          },
+          "diagnostics": 1
+        }
+      },
+      "charts_kpi_revenue": "7 of 14 Contoso trace steps confirmed by the analyzer (ChartsPage client call + Page, main.py def query handler [verified], dbt reads monthly_sales->stg_sales and stg_sales->sales [inferred]); 3 file-level only (monthly_sales.sql:8, stg_sales.sql:20); 4 not reached (api.ts postJson, ducklake.py query/load_parquet_to_bronze, generator.py:655). Calls into POST /api/query are inferred, ChartsPage -> client verified.",
+      "charts_export_mosaic": "2 of 13 confirmed (ExportPanel.tsx:49-54, main.py def export_artifact [verified]); 3 file-level; 8 not reached (api.ts, services/exports.py).",
+      "note": "Explanation text and graph kept as a local receipt outside Git; only Contoso-path summary here. Contoso's own docs/datapass-react traces remain the reviewed source of truth."
+    }
+  },
+  "negatives": {
+    "dbt_failure_and_stale_gold_refused": "journey fault-broken (export refused while latest model run failed) / fault-repaired (new invocation referenced); tests test_export_refuses_without_successful_run and stale-Gold refusal in test_workspaces_exports.py",
+    "unmapped_channel": "test_read_folds_gold_into_departments_as_a_labelled_copy: Store/Atlantis reported in unmapped, not dropped or credited",
+    "api_down": "journey api-down phase",
+    "private_public_boundary": "public repo receives synthetic data and Contoso-path summaries only; React analyzer output, Mosaic temp copies and screenshots stay local; diff screened before push",
+    "pytest": "apps/api/tests/test_retail_gold_to_app.py, test_workspaces_exports.py, test_rayfin_boundary.py: 28 passed (Windows)"
+  },
+  "windows_journey": {
+    "os": "Windows 11 (10.0.26300)",
+    "python": "3.12.10",
+    "node": "v26.9.0",
+    "dbt": "1.12.5",
+    "result": "PASS",
+    "phases": [
+      "build",
+      "reopen",
+      "fault-broken",
+      "fault-repaired",
+      "mapping",
+      "backup",
+      "restore",
+      "api-down",
+      "ux"
+    ]
+  },
+  "ci": {
+    "pr": 22,
+    "head_sha": "6b8185eae675f87c546d7ad8cb9506af834e6d4a",
+    "runs": [
+      38148268009,
+      38148268178
+    ],
+    "status": "success",
+    "jobs": [
+      "api",
+      "web",
+      "charts",
+      "fabric-app-model",
+      "package",
+      "browser-smoke",
+      "open-in-mosaic"
+    ]
+  },
+  "result": "PASS"
+}
