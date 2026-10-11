@@ -498,15 +498,22 @@ def charts_validate(board: str = Query(default="executive-sales.yml")):
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+def _dbt_nodes_for_lineage() -> list[dict]:
+    """dbt nodes of the Transform lineage, to link Query relations to their model (empty if no manifest)."""
+    try:
+        return list(dbt.lineage().get("nodes", []))
+    except Exception:
+        return []
+
+
 @app.post("/api/query", response_model=QueryResult)
 def query(request: QueryRequest):
     try:
-        columns, rows, truncated = ducklake.query(request.sql, request.limit)
+        columns, rows, truncated, lineage = ducklake.query_with_lineage(
+            request.sql, request.limit, _dbt_nodes_for_lineage()
+        )
         return QueryResult(
-            columns=columns,
-            rows=rows,
-            row_count=len(rows),
-            truncated=truncated,
+            columns=columns, rows=rows, row_count=len(rows), truncated=truncated, lineage=lineage,
         )
     except ValueError as exc:
         raise HTTPException(400, detail=str(exc)) from exc

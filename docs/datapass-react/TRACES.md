@@ -24,7 +24,7 @@ Status: RESOLVED when every step is verified or inferred; PARTIAL when at least 
 | &nbsp;&nbsp;query-page/preset/foil-energy-risk | RESOLVED | 15 | 5 | 0 |
 | &nbsp;&nbsp;query-page/preset/foil-investment | RESOLVED | 14 | 6 | 0 |
 | &nbsp;&nbsp;query-page/preset/foil-sensitivity | RESOLVED | 14 | 5 | 0 |
-| &nbsp;&nbsp;query-page/free-sql | PARTIAL | 3 | 2 | 3 |
+| &nbsp;&nbsp;query-page/free-sql | PARTIAL | 11 | 2 | 3 |
 | lakehouse-catalog | RESOLVED | 5 | 0 | 0 |
 | transform-dbt-build | RESOLVED | 11 | 7 | 0 |
 | &nbsp;&nbsp;transform-dbt-build/branch-retail | RESOLVED | 11 | 1 | 0 |
@@ -44,15 +44,15 @@ Charts KPIs: Revenue card and monthly revenue chart (Gold monthly_sales.revenue)
 | react | `apps/web/src/pages/ChartsPage.tsx:286-295` | `contoso.gold.monthly_sales` | inferred | Default (retail-baseline) branch posts two literal SQL strings to /api/query (Reached only when the active scenario falls through the scenario-specific branches of loadDashboard (candidates: the scenario ids in projects.ts); SQL itself is literal.) |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
 | http | `apps/web/src/pages/ChartsPage.tsx:286-286` | `"/api/query"` | verified | POST /api/query body {sql,limit} |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | FastAPI route POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:305-329` | `def query` | verified | Read-only validation, executes statement on DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | FastAPI route POST /api/query -> ducklake.query |
+| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes statement on DuckLake read-only connection |
 | react | `apps/web/src/pages/ChartsPage.tsx:297-301` | `label:"Revenue"` | verified | rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card |
 | sql | `apps/web/src/pages/ChartsPage.tsx:287-287` | `sum(revenue)` | verified | select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales |
 | dbt | `dbt/models/gold/monthly_sales.sql:8-8` | `as revenue` | verified | revenue = round(sum(net_revenue),2) grouped by scenario, order_month, channel |
 | dbt | `dbt/models/gold/monthly_sales.sql:12-12` | `ref('stg_sales')` | verified | Gold reads Silver |
 | dbt | `dbt/models/silver/stg_sales.sql:20-20` | `as net_revenue` | verified | net_revenue = cast(net_revenue as decimal(18,2)) |
 | dbt | `dbt/models/silver/stg_sales.sql:23-23` | `source('bronze','sales')` | verified | Silver reads Bronze contoso.bronze.sales |
-| service | `apps/api/app/services/ducklake.py:138-147` | `def load_parquet_to_bronze` | inferred | Bronze table created from run parquet via read_parquet (Table name is the f-string key of run_files(): one of customer/product/store/currency_exchange/sales for retail runs.) |
+| service | `apps/api/app/services/ducklake.py:139-148` | `def load_parquet_to_bronze` | inferred | Bronze table created from run parquet via read_parquet (Table name is the f-string key of run_files(): one of customer/product/store/currency_exchange/sales for retail runs.) |
 | service | `apps/api/app/services/generator.py:655-655` | `AS net_revenue` | verified | Parquet net_revenue = round(net_revenue_local*exchange_rate_to_usd,2) |
 | gold | `dbt/models/gold/monthly_sales.sql:8-8` | `revenue` | verified | FIELD contoso.gold.monthly_sales.revenue |
 
@@ -61,10 +61,10 @@ Query page: run SQL (8 preset sub-traces + free SQL)
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| react | `apps/web/src/pages/QueryPage.tsx:66-70` | `"/api/query"` | verified | run() posts the editor SQL with limit 500 |
+| react | `apps/web/src/pages/QueryPage.tsx:67-71` | `"/api/query"` | verified | run() posts the editor SQL with limit 500 |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | POST /api/query |
-| service | `apps/api/app/services/ducklake.py:305-329` | `def query` | verified | Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query |
+| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation |
 
 UNRESOLVED / notes:
 - Free user SQL is traced separately as sub-trace query-page/free-sql (PARTIAL, unresolved edges listed there).
@@ -80,11 +80,11 @@ Gold fields: `contoso.gold.store_performance.store_country`, `contoso.gold.store
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | 'Open this query' opens the project then the Query page with this SQL (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:53-53` | `setSql(initialSql)` | verified | Editor state takes the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:70-70` | `"/api/query"` | verified | run() posts {sql,limit:500} |
+| react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
+| react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:305-329` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
+| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:19-22` | `store_country as country` | verified | Columns country, revenue, gross_margin, margin_rate (margin_rate computed in the preset) |
 | dbt | `dbt/models/gold/store_performance.sql:5-5` | `s.store_country` | verified | store_country passed through from Silver |
 | dbt | `dbt/models/gold/store_performance.sql:9-9` | `as revenue` | verified | revenue = round(sum(net_revenue),2) |
@@ -93,7 +93,7 @@ Gold fields: `contoso.gold.store_performance.store_country`, `contoso.gold.store
 | dbt | `dbt/models/silver/stg_sales.sql:10-10` | `store_country` | verified | Silver store_country |
 | dbt | `dbt/models/silver/stg_sales.sql:20-22` | `as gross_margin` | verified | net_revenue cast; gross_margin = net_revenue - total_cost |
 | dbt | `dbt/models/silver/stg_sales.sql:23-23` | `source('bronze','sales')` | verified | Silver reads Bronze contoso.bronze.sales |
-| service | `apps/api/app/services/ducklake.py:143-147` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables created from the run parquet files (f-string on the run_files() keys: customer/product/store/currency_exchange/sales.) |
+| service | `apps/api/app/services/ducklake.py:144-148` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables created from the run parquet files (f-string on the run_files() keys: customer/product/store/currency_exchange/sales.) |
 | service | `apps/api/app/services/generator.py:624-624` | `s.country AS store_country` | verified | Generator: store_country from the store parquet |
 | service | `apps/api/app/services/generator.py:655-656` | `AS net_revenue` | verified | net_revenue and total_cost in USD |
 
@@ -108,11 +108,11 @@ Gold fields: `contoso.gold.channel_performance.order_year`, `contoso.gold.channe
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | 'Open this query' opens the project then the Query page with this SQL (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:53-53` | `setSql(initialSql)` | verified | Editor state takes the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:70-70` | `"/api/query"` | verified | run() posts {sql,limit:500} |
+| react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
+| react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:305-329` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
+| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:35-39` | `revenue_share` | verified | Columns order_year, channel, revenue, revenue_share, gross_margin |
 | dbt | `dbt/models/gold/channel_performance.sql:4-5` | `as order_year` | verified | order_year = year(order_date); channel |
 | dbt | `dbt/models/gold/channel_performance.sql:9-10` | `as revenue` | verified | revenue and gross_margin per scenario/year/channel |
@@ -121,7 +121,7 @@ Gold fields: `contoso.gold.channel_performance.order_year`, `contoso.gold.channe
 | dbt | `dbt/models/silver/stg_sales.sql:12-12` | `channel` | verified | Silver channel |
 | dbt | `dbt/models/silver/stg_sales.sql:20-22` | `as gross_margin` | verified | net_revenue, total_cost, gross_margin |
 | dbt | `dbt/models/silver/stg_sales.sql:23-23` | `source('bronze','sales')` | verified | Silver reads Bronze contoso.bronze.sales |
-| service | `apps/api/app/services/ducklake.py:143-147` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables created from the run parquet files (f-string on the run_files() keys: customer/product/store/currency_exchange/sales.) |
+| service | `apps/api/app/services/ducklake.py:144-148` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables created from the run parquet files (f-string on the run_files() keys: customer/product/store/currency_exchange/sales.) |
 | service | `apps/api/app/services/generator.py:490-500` | `if scenario == "online-migration":` | inferred | channel_expr: online share 22% -> 68% in year two for this scenario, 38% otherwise (Runtime branch on the active scenario; each branch is enumerated in code.) |
 | service | `apps/api/app/services/generator.py:608-608` | `{channel_expr} AS channel` | inferred | channel column of the sales parquet (Runtime branch on the active scenario; each branch is enumerated in code.) |
 | service | `apps/api/app/services/generator.py:655-656` | `AS net_revenue` | verified | net_revenue and total_cost in USD |
@@ -137,11 +137,11 @@ Gold fields: `contoso.gold.monthly_sales.order_month`, `contoso.gold.monthly_sal
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | 'Open this query' opens the project then the Query page with this SQL (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:53-53` | `setSql(initialSql)` | verified | Editor state takes the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:70-70` | `"/api/query"` | verified | run() posts {sql,limit:500} |
+| react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
+| react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:305-329` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
+| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:51-54` | `avg(avg_discount_rate)` | verified | Columns year, margin_rate, avg_discount_rate, revenue |
 | dbt | `dbt/models/gold/monthly_sales.sql:3-3` | `as order_month` | verified | order_month = month of order_date |
 | dbt | `dbt/models/gold/monthly_sales.sql:7-8` | `as avg_discount_rate` | verified | avg_discount_rate and revenue |
@@ -150,7 +150,7 @@ Gold fields: `contoso.gold.monthly_sales.order_month`, `contoso.gold.monthly_sal
 | dbt | `dbt/models/silver/stg_sales.sql:16-16` | `discount_rate` | verified | Silver discount_rate |
 | dbt | `dbt/models/silver/stg_sales.sql:20-22` | `as gross_margin` | verified | net_revenue, total_cost, gross_margin |
 | dbt | `dbt/models/silver/stg_sales.sql:23-23` | `source('bronze','sales')` | verified | Silver reads Bronze contoso.bronze.sales |
-| service | `apps/api/app/services/ducklake.py:143-147` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables created from the run parquet files (f-string on the run_files() keys: customer/product/store/currency_exchange/sales.) |
+| service | `apps/api/app/services/ducklake.py:144-148` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables created from the run parquet files (f-string on the run_files() keys: customer/product/store/currency_exchange/sales.) |
 | service | `apps/api/app/services/generator.py:502-513` | `if scenario == "margin-pressure":` | inferred | discount_expr and cost_multiplier_expr: heavier discount and +20% cost in year two for this scenario (Runtime branch on the active scenario; each branch is enumerated in code.) |
 | service | `apps/api/app/services/generator.py:609-609` | `{discount_expr} AS discount_rate` | inferred | discount_rate column (Runtime branch on the active scenario; each branch is enumerated in code.) |
 | service | `apps/api/app/services/generator.py:623-623` | `o.cost_multiplier` | inferred | unit_cost scaled by the cost multiplier (Runtime branch on the active scenario; each branch is enumerated in code.) |
@@ -167,11 +167,11 @@ Gold fields: `contoso.gold.delivery_metrics.channel`, `contoso.gold.delivery_met
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | 'Open this query' opens the project then the Query page with this SQL (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:53-53` | `setSql(initialSql)` | verified | Editor state takes the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:70-70` | `"/api/query"` | verified | run() posts {sql,limit:500} |
+| react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
+| react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:305-329` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
+| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:67-70` | `avg(p90_delivery_days)` | verified | Columns channel, avg_delivery_days, p90_delivery_days, over_7_day_rate |
 | dbt | `dbt/models/gold/delivery_metrics.sql:4-4` | `channel` | verified | channel |
 | dbt | `dbt/models/gold/delivery_metrics.sql:6-7` | `as p90_delivery_days` | verified | avg_delivery_days and quantile_cont(delivery_days,0.90) |
@@ -180,7 +180,7 @@ Gold fields: `contoso.gold.delivery_metrics.channel`, `contoso.gold.delivery_met
 | dbt | `dbt/models/silver/stg_sales.sql:6-6` | `delivery_days` | verified | Silver delivery_days |
 | dbt | `dbt/models/silver/stg_sales.sql:12-12` | `channel` | verified | Silver channel |
 | dbt | `dbt/models/silver/stg_sales.sql:23-23` | `source('bronze','sales')` | verified | Silver reads Bronze contoso.bronze.sales |
-| service | `apps/api/app/services/ducklake.py:143-147` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables created from the run parquet files (f-string on the run_files() keys: customer/product/store/currency_exchange/sales.) |
+| service | `apps/api/app/services/ducklake.py:144-148` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables created from the run parquet files (f-string on the run_files() keys: customer/product/store/currency_exchange/sales.) |
 | service | `apps/api/app/services/generator.py:515-521` | `if scenario == "logistics-delays":` | inferred | delivery_expr: Online 5-20 days for this scenario, 1-6 days otherwise (Runtime branch on the active scenario; each branch is enumerated in code.) |
 | service | `apps/api/app/services/generator.py:615-615` | `AS delivery_days` | inferred | delivery_days column (Runtime branch on the active scenario; each branch is enumerated in code.) |
 | service | `apps/api/app/services/generator.py:608-608` | `{channel_expr} AS channel` | inferred | channel column (Runtime branch on the active scenario; each branch is enumerated in code.) |
@@ -196,11 +196,11 @@ Gold fields: `contoso.gold.currency_exposure.currency`, `contoso.gold.currency_e
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | 'Open this query' opens the project then the Query page with this SQL (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:53-53` | `setSql(initialSql)` | verified | Editor state takes the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:70-70` | `"/api/query"` | verified | run() posts {sql,limit:500} |
+| react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
+| react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:305-329` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
+| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:83-87` | `sum(revenue_usd)` | verified | Columns currency, min_rate, max_rate, rate_spread, revenue_usd |
 | dbt | `dbt/models/gold/currency_exposure.sql:5-6` | `as avg_exchange_rate_to_usd` | verified | currency and monthly average rate |
 | dbt | `dbt/models/gold/currency_exposure.sql:8-8` | `as revenue_usd` | verified | revenue_usd = round(sum(net_revenue),2) |
@@ -209,7 +209,7 @@ Gold fields: `contoso.gold.currency_exposure.currency`, `contoso.gold.currency_e
 | dbt | `dbt/models/silver/stg_sales.sql:17-17` | `exchange_rate_to_usd` | verified | Silver exchange_rate_to_usd |
 | dbt | `dbt/models/silver/stg_sales.sql:20-20` | `as net_revenue` | verified | net_revenue (USD) |
 | dbt | `dbt/models/silver/stg_sales.sql:23-23` | `source('bronze','sales')` | verified | Silver reads Bronze contoso.bronze.sales |
-| service | `apps/api/app/services/ducklake.py:143-147` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables created from the run parquet files (f-string on the run_files() keys: customer/product/store/currency_exchange/sales.) |
+| service | `apps/api/app/services/ducklake.py:144-148` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables created from the run parquet files (f-string on the run_files() keys: customer/product/store/currency_exchange/sales.) |
 | service | `apps/api/app/services/generator.py:523-530` | `if scenario == "currency-exposure":` | inferred | fx_expr: wider monthly rate band for this scenario (Runtime branch on the active scenario; each branch is enumerated in code.) |
 | service | `apps/api/app/services/generator.py:587-587` | `AS exchange_rate_to_usd` | inferred | currency_exchange parquet rate (Runtime branch on the active scenario; each branch is enumerated in code.) |
 | service | `apps/api/app/services/generator.py:625-626` | `fx.exchange_rate_to_usd` | verified | sales gets store currency and the monthly rate |
@@ -226,11 +226,11 @@ Gold fields: `contoso.gold.foil_energy_risk.draw_count`, `contoso.gold.foil_ener
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | Open this query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:53-53` | `setSql(initialSql)` | verified | Editor state takes the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:70-70` | `"/api/query"` | verified | run() posts {sql,limit:500} |
+| react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
+| react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:305-329` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
+| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | dbt | `dbt/models/foil/gold/foil_energy_risk.sql:2-6` | `as aep_p90_mwh` | verified | draw_count, aep_p50 (0.5), aep_p90 (0.1 quantile), aep_p10 (0.9 quantile) |
 | dbt | `dbt/models/foil/gold/foil_energy_risk.sql:13-14` | `ref('foil_experiment_metrics')` | verified | monte_carlo samples only |
 | dbt | `dbt/models/foil/gold/foil_experiment_metrics.sql:3-3` | `aep_year1_mwh` | verified | aep_year1_mwh passed through |
@@ -239,7 +239,7 @@ Gold fields: `contoso.gold.foil_energy_risk.draw_count`, `contoso.gold.foil_ener
 | dbt | `dbt/models/foil/silver/foil_experiments.sql:3-6` | `source('foil', 'foil_trials')` | verified | monte_carlo arm from bronze.foil_trials |
 | service | `apps/api/app/services/foil.py:45-45` | `'aep_year1_mwh'` | verified | trial aep_year1_mwh from reference AEP x resource x availability |
 | dbt | `dbt/models/foil/sources.yml:3-7` | `var('foil_enabled', false)` | inferred | foil sources (schema bronze) exist only when the runner passes foil_enabled (Runtime branch on the active scenario; each branch is enumerated in code.) |
-| service | `apps/api/app/services/ducklake.py:143-147` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables from FOIL_FILES parquet (f-string on FOIL_FILES keys.) |
+| service | `apps/api/app/services/ducklake.py:144-148` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables from FOIL_FILES parquet (f-string on FOIL_FILES keys.) |
 | service | `apps/api/app/services/foil.py:14-14` | `FOIL_FILES` | verified | foil_cases, foil_trials, foil_sensitivity |
 | service | `apps/api/app/services/generator.py:465-466` | `generate_foil` | inferred | Generator takes the FOIL branch for foil-* scenarios (Runtime branch on the active scenario; each branch is enumerated in code.) |
 
@@ -254,11 +254,11 @@ Gold fields: `contoso.gold.foil_project_summary.capex_eur`, `contoso.gold.foil_p
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | Open this query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:53-53` | `setSql(initialSql)` | verified | Editor state takes the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:70-70` | `"/api/query"` | verified | run() posts {sql,limit:500} |
+| react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
+| react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:305-329` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
+| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | dbt | `dbt/models/foil/gold/foil_project_summary.sql:3-5` | `as break_even_price_eur_mwh` | verified | capex, opex, npv, lcoe and break_even = lcoe from reference experiments |
 | dbt | `dbt/models/foil/gold/foil_project_summary.sql:7-7` | `r.positive_npv_probability` | verified | positive_npv_probability from foil_energy_risk |
 | dbt | `dbt/models/foil/gold/foil_project_summary.sql:10-13` | `ref('foil_experiment_metrics')` | verified | reads metrics (reference), energy risk and source foil_cases |
@@ -267,7 +267,7 @@ Gold fields: `contoso.gold.foil_project_summary.capex_eur`, `contoso.gold.foil_p
 | dbt | `dbt/models/foil/silver/foil_experiments.sql:8-10` | `source('foil', 'foil_cases')` | verified | reference arm from bronze.foil_cases |
 | service | `apps/api/app/services/foil.py:31-36` | `1.3 if stress` | inferred | foil-investment stresses CAPEX x1.3 and OPEX x1.2 (scenario branch) (Runtime branch on the active scenario; each branch is enumerated in code.) |
 | dbt | `dbt/models/foil/sources.yml:3-7` | `var('foil_enabled', false)` | inferred | foil sources (schema bronze) exist only when the runner passes foil_enabled (Runtime branch on the active scenario; each branch is enumerated in code.) |
-| service | `apps/api/app/services/ducklake.py:143-147` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables from FOIL_FILES parquet (f-string on FOIL_FILES keys.) |
+| service | `apps/api/app/services/ducklake.py:144-148` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables from FOIL_FILES parquet (f-string on FOIL_FILES keys.) |
 | service | `apps/api/app/services/foil.py:14-14` | `FOIL_FILES` | verified | foil_cases, foil_trials, foil_sensitivity |
 | service | `apps/api/app/services/generator.py:465-466` | `generate_foil` | inferred | Generator takes the FOIL branch for foil-* scenarios (Runtime branch on the active scenario; each branch is enumerated in code.) |
 
@@ -282,11 +282,11 @@ Gold fields: `contoso.gold.foil_sensitivity.driver`, `contoso.gold.foil_sensitiv
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | Open this query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
 | react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:53-53` | `setSql(initialSql)` | verified | Editor state takes the seed |
-| react | `apps/web/src/pages/QueryPage.tsx:70-70` | `"/api/query"` | verified | run() posts {sql,limit:500} |
+| react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
+| react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:305-329` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
+| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | dbt | `dbt/models/foil/gold/foil_sensitivity.sql:2-4` | `as npv_delta_eur` | verified | driver, relative_change, npv_delta and lcoe_delta vs the reference experiment |
 | dbt | `dbt/models/foil/gold/foil_sensitivity.sql:5-7` | `ref('foil_experiment_metrics')` | verified | sensitivity rows joined to reference rows |
 | dbt | `dbt/models/foil/silver/foil_cashflows.sql:10-10` | `ref('foil_experiments')` | verified | cashflows read Silver experiments |
@@ -294,7 +294,7 @@ Gold fields: `contoso.gold.foil_sensitivity.driver`, `contoso.gold.foil_sensitiv
 | service | `apps/api/app/services/foil.py:51-59` | `for driver in` | verified | five drivers x {-0.2, 0, +0.2} per case |
 | data | `data/foil/reference_cases.json:44-44` | `FOIL-WIND-A-N-R0` | verified | case_id literal of the preset filter exists in the committed reference cases |
 | dbt | `dbt/models/foil/sources.yml:3-7` | `var('foil_enabled', false)` | inferred | foil sources (schema bronze) exist only when the runner passes foil_enabled (Runtime branch on the active scenario; each branch is enumerated in code.) |
-| service | `apps/api/app/services/ducklake.py:143-147` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables from FOIL_FILES parquet (f-string on FOIL_FILES keys.) |
+| service | `apps/api/app/services/ducklake.py:144-148` | `CREATE OR REPLACE TABLE contoso.bronze.{table}` | inferred | Bronze tables from FOIL_FILES parquet (f-string on FOIL_FILES keys.) |
 | service | `apps/api/app/services/foil.py:14-14` | `FOIL_FILES` | verified | foil_cases, foil_trials, foil_sensitivity |
 | service | `apps/api/app/services/generator.py:465-466` | `generate_foil` | inferred | Generator takes the FOIL branch for foil-* scenarios (Runtime branch on the active scenario; each branch is enumerated in code.) |
 
@@ -303,19 +303,27 @@ Free SQL typed or edited in the Query editor
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| react | `apps/web/src/pages/QueryPage.tsx:137-137` | `setSql(event.target.value)` | unresolved | Editor text is user input |
-| react | `apps/web/src/pages/QueryPage.tsx:122-122` | `setSql(example.sql)` | inferred | Example buttons: EXAMPLES or FOIL_EXAMPLES literals (Candidates are the literal EXAMPLES / FOIL_EXAMPLES in QueryPage.tsx:12-31.) |
-| react | `apps/web/src/pages/QueryPage.tsx:94-94` | `from contoso.${table.schema}.${table.name}` | inferred | Catalog click seeds select * from a catalog table (schema is bronze/silver/gold; names are catalog tables produced by the generator and the dbt models.) |
-| react | `apps/web/src/pages/QueryPage.tsx:169-169` | `setSql(item.sql)` | unresolved | History entries replay earlier SQL from localStorage |
-| react | `apps/web/src/pages/QueryPage.tsx:70-70` | `"/api/query"` | verified | run() posts {sql,limit:500} |
-| api | `apps/api/app/main.py:502-515` | `def query` | verified | POST /api/query |
-| service | `apps/api/app/services/ducklake.py:315-319` | `FORBIDDEN_SQL` | verified | Only one read-only statement; mutation rejected |
-| service | `apps/api/app/services/ducklake.py:323-323` | `cur.description` | unresolved | Result columns known only at run time |
+| react | `apps/web/src/pages/QueryPage.tsx:138-138` | `setSql(event.target.value)` | unresolved | Editor text is user input |
+| react | `apps/web/src/pages/QueryPage.tsx:123-123` | `setSql(example.sql)` | inferred | Example buttons: EXAMPLES or FOIL_EXAMPLES literals (Candidates are the literal EXAMPLES / FOIL_EXAMPLES in QueryPage.tsx:13-32.) |
+| react | `apps/web/src/pages/QueryPage.tsx:95-95` | `from contoso.${table.schema}.${table.name}` | inferred | Catalog click seeds select * from a catalog table (schema is bronze|silver|gold; names are catalog tables produced by the generator and the dbt models.) |
+| react | `apps/web/src/pages/QueryPage.tsx:171-171` | `setSql(item.sql)` | unresolved | History entries replay earlier SQL from localStorage |
+| react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query |
+| service | `apps/api/app/services/ducklake.py:324-328` | `FORBIDDEN_SQL` | verified | Only one read-only statement; mutation rejected |
+| service | `apps/api/app/services/ducklake.py:332-332` | `cur.description` | unresolved | Result columns known only at run time; the columns the statement read are resolved at run time by the lineage steps below |
+| api | `apps/api/app/main.py:504-504` | `dbt.lineage()` | verified | Runtime lineage: /api/query passes the dbt lineage nodes (same source as the Transform page) to the service |
+| service | `apps/api/app/services/ducklake.py:337-337` | `sql_lineage.resolve(con, statement, dbt_nodes)` | verified | Runtime lineage: after the validated statement ran, the same read-only connection resolves what it read; a lineage error never fails the query |
+| service | `apps/api/app/services/sql_lineage.py:46-46` | `json_serialize_sql` | verified | DuckDB's parser lists the relations the statement names (catalog/schema/table, AT (VERSION => n)); CTE names and table functions are told apart |
+| service | `apps/api/app/services/sql_lineage.py:87-87` | `EXPLAIN (FORMAT JSON)` | verified | DuckDB binds the statement (EXPLAIN, not executed) and each lake scan names its table and projected columns: the columns read are resolved at run time |
+| service | `apps/api/app/services/sql_lineage.py:153-153` | `dbt_index(dbt_nodes)` | verified | Layer from the schema (bronze/silver/gold) and dbt unique_id from the lineage nodes; a relation not in the lake is 'unresolved', never guessed |
+| api | `apps/api/app/models.py:59-59` | `lineage: QueryLineage` | verified | Additive response field 'lineage' {relations, method, confidence}; existing fields unchanged |
+| react | `apps/web/src/pages/QueryPage.tsx:158-158` | `<LineageStrip lineage={result.lineage}` | verified | 'Reads from' strip under the results |
+| react | `apps/web/src/components/LineageStrip.tsx:24-27` | `export function lineageDestination` | verified | Each resolved relation opens Transform (dbt model) or Lakehouse (lake layer); unresolved ones are listed, not linked |
 
 UNRESOLVED / notes:
-- UNRESOLVED edge QueryPage.tsx:137: free SQL typed by the user; target tables and columns cannot be resolved statically (the server policy at ducklake.py:315-319 bounds it to one read-only statement).
-- UNRESOLVED edge QueryPage.tsx:169: query history replays SQL from browser storage (earlier user input).
-- UNRESOLVED edge ducklake.py:323: result columns come from cursor.description at run time.
+- UNRESOLVED edge QueryPage.tsx:138: free SQL typed by the user; target tables and columns cannot be resolved statically; since the runtime lineage steps, DuckDB resolves the relations and columns each run read, but the edge stays user input (the server policy at ducklake.py:324-328 bounds it to one read-only statement).
+- UNRESOLVED edge QueryPage.tsx:171: query history replays SQL from browser storage (earlier user input).
+- UNRESOLVED edge ducklake.py:332: result columns come from cursor.description at run time.
 
 ## lakehouse-catalog (RESOLVED)
 Lakehouse catalog: bronze/silver/gold table list
@@ -325,8 +333,8 @@ Lakehouse catalog: bronze/silver/gold table list
 | react | `apps/web/src/pages/LakehousePage.tsx:40-45` | `"/api/lakehouse/catalog"` | verified | load() fetches catalog with snapshots, quality, project state |
 | react | `apps/web/src/api.ts:28-30` | `getJson` | verified | GET helper |
 | api | `apps/api/app/main.py:319-324` | `def catalog` | verified | GET /api/lakehouse/catalog -> {tables} |
-| service | `apps/api/app/services/ducklake.py:153-171` | `def catalog` | verified | Reads the DuckLake SQLite metadata catalog, schemas bronze/silver/gold |
-| sql | `apps/api/app/services/ducklake.py:156-165` | `FROM ducklake_table` | verified | Metadata SQL; table names come from the catalog at run time |
+| service | `apps/api/app/services/ducklake.py:154-172` | `def catalog` | verified | Reads the DuckLake SQLite metadata catalog, schemas bronze/silver/gold |
+| sql | `apps/api/app/services/ducklake.py:157-166` | `FROM ducklake_table` | verified | Metadata SQL; table names come from the catalog at run time |
 
 UNRESOLVED / notes:
 - Names of returned tables are catalog data, not statically known; dbt/models/gold/*.sql and silver/stg_sales.sql define the expected ones.
@@ -420,7 +428,7 @@ Projects open: open a project scenario
 | service | `apps/api/app/services/projects.py:42-51` | `def open` | verified | Lock, catalog lock, then _open |
 | service | `apps/api/app/services/projects.py:70-70` | `self.generator.generate` | verified | Generates parquet for scenario |
 | service | `apps/api/app/services/projects.py:81-81` | `load_parquet_to_bronze` | verified | Loads parquet into bronze |
-| service | `apps/api/app/services/ducklake.py:138-147` | `def load_parquet_to_bronze` | inferred | CREATE OR REPLACE TABLE contoso.bronze.{table} (Table name is the f-string key of run_files(): retail tables or FOIL_FILES depending on the scenario.) |
+| service | `apps/api/app/services/ducklake.py:139-148` | `def load_parquet_to_bronze` | inferred | CREATE OR REPLACE TABLE contoso.bronze.{table} (Table name is the f-string key of run_files(): retail tables or FOIL_FILES depending on the scenario.) |
 | service | `apps/api/app/services/projects.py:84-84` | `self.dbt.run("build")` | verified | dbt build to produce Silver/Gold |
 | service | `apps/api/app/services/dbt_runner.py:407-456` | `def run` | verified | dbt subprocess |
 | dbt | `dbt/models/gold/monthly_sales.sql:1-12` | `date_trunc` | inferred | Gold output of the build (Gold output depends on the dbt runner branch (_foil_active): retail Gold models or gold.foil_* (see transform-dbt-build).) |
@@ -447,7 +455,7 @@ Charts export for Mosaic: Gold mart artifact (monthly_sales.revenue, unit USD)
 |---|---|---|---|---|
 | react | `apps/web/src/components/ExportPanel.tsx:49-54` | `"/api/exports/artifact"` | inferred | exportNow() posts {mart}; mart is chosen from gold_tables returned by GET /api/exports (mart is one of gold_tables() returned by GET /api/exports; candidates are the Gold models in dbt/models/gold and dbt/models/foil/gold.) |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:523-528` | `def export_artifact` | verified | POST /api/exports/artifact -> exports.export(mart, columns, max_rows) |
+| api | `apps/api/app/main.py:530-535` | `def export_artifact` | verified | POST /api/exports/artifact -> exports.export(mart, columns, max_rows) |
 | service | `apps/api/app/main.py:77-77` | `ExportService(settings` | verified | exports service bound per workspace in _bind |
 | service | `apps/api/app/services/exports.py:172-175` | `def export` | verified | Mart must match _MART and be in gold_tables() (catalog gold schema) |
 | sql | `apps/api/app/services/exports.py:199-199` | `DESCRIBE contoso.gold.` | inferred | DESCRIBE the Gold mart for column names and types (f-string on mart, validated by _MART and gold_tables() before use.) |

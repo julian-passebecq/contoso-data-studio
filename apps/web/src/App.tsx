@@ -139,7 +139,7 @@ export default function App() {
     if (page==="Generate") return <GeneratePage scenarios={scenarios} activeRun={workspace?.active_run ?? null} onStatus={setMessage} onGenerated={()=>{setQuerySeed("");setRefreshToken(v=>v+1);}}/>;
     if (page==="Lakehouse") return <LakehousePage refreshToken={refreshToken}/>;
     if (page==="Transform") return <TransformPage activeScenario={workspace?.active_scenario} onBuilt={onDbtBuilt} onOpenQuery={openQuery}/>;
-    if (page==="Query") return <QueryPage initialSql={querySeed} initialProjectState={workspace}/>;
+    if (page==="Query") return <QueryPage initialSql={querySeed} initialProjectState={workspace} onOpenPage={setPage}/>;
     if (page==="Explore") return <ExplorePage onOpenQuery={openQuery}/>;
     if (page==="Charts") return <ChartsPage onOpenQuery={openQuery}/>;
     if (page==="Apps") return <AppsPage onOpenQuery={openQuery}/>;

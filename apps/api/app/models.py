@@ -26,11 +26,37 @@ class QueryRequest(BaseModel):
     limit: int = Field(default=500, ge=1, le=5_000)
 
 
+LineageConfidence = Literal["verified", "inferred", "unresolved"]
+
+
+class LineageRelation(BaseModel):
+    catalog: str | None
+    schema_: str | None = Field(alias="schema", serialization_alias="schema")
+    table: str
+    layer: str | None
+    dbt_model: str | None
+    columns: list[str]
+    at: list[dict[str, Any]] = Field(default_factory=list)
+    confidence: LineageConfidence
+    note: str = ""
+
+    model_config = {"populate_by_name": True}
+
+
+class QueryLineage(BaseModel):
+    relations: list[LineageRelation]
+    method: str
+    confidence: LineageConfidence
+    note: str | None = None
+
+
 class QueryResult(BaseModel):
     columns: list[str]
     rows: list[list[Any]]
     row_count: int
     truncated: bool
+    # Additive: relations and columns the statement read, resolved by DuckDB (POST /api/query only).
+    lineage: QueryLineage | None = None
 
 
 class WorkspaceCreate(BaseModel):

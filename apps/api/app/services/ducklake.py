@@ -9,6 +9,7 @@ from typing import Any, Iterator
 import duckdb
 
 from app.config import Settings
+from app.services import sql_lineage
 from app.services.catalog_lock import catalog_lock
 
 
@@ -303,6 +304,14 @@ class DuckLakeService:
         }
 
     def query(self, sql: str, limit: int):
+        columns, rows, truncated, _ = self._run_read_only(sql, limit, None)
+        return columns, rows, truncated
+
+    def query_with_lineage(self, sql: str, limit: int, dbt_nodes: list[dict[str, Any]]):
+        """Like query(), plus the relations and columns DuckDB resolved for the statement."""
+        return self._run_read_only(sql, limit, dbt_nodes)
+
+    def _run_read_only(self, sql: str, limit: int, dbt_nodes: list[dict[str, Any]] | None):
         statement = sql.strip()
         if statement.endswith(";"):
             statement = statement[:-1].rstrip()
@@ -322,8 +331,15 @@ class DuckLakeService:
             cur = con.execute(statement)
             columns = [d[0] for d in cur.description or []]
             rows = cur.fetchmany(limit + 1)
+            lineage = None
+            if dbt_nodes is not None:
+                try:
+                    lineage = sql_lineage.resolve(con, statement, dbt_nodes)
+                except Exception as exc:  # lineage never fails a query that already succeeded
+                    lineage = {"relations": [], "method": "none", "confidence": "unresolved",
+                               "note": f"Lineage unavailable: {str(exc).splitlines()[0] if str(exc) else type(exc).__name__}"}
 
         truncated = len(rows) > limit
         rows = rows[:limit]
         normalized = [[self._normalize(v) for v in row] for row in rows]
-        return columns, normalized, truncated
+        return columns, normalized, truncated, lineage
