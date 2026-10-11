@@ -30,7 +30,7 @@ import {tmpdir} from 'node:os';
 import {basename, join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
-export const PINNED_MOSAIC_SHA = 'f3a02bca98efb56ac219db46edb6275088a20192';
+export const PINNED_MOSAIC_SHA = 'b3f194d0cc0a2620abc4b96d1a11740249b3b107';
 const AJV_VERSION = '8.17.1';
 const CLIENT_ID = 'contoso-consumer';
 const WIN = process.platform === 'win32';
