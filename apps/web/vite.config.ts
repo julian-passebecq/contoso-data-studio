@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { createReadStream, existsSync, readFileSync, readdirSync } from "node:fs";
@@ -39,5 +40,14 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: { "/api": apiTarget }
+  },
+  test: {
+    // Node 25+ ships an experimental global `localStorage` (Web Storage API). Without
+    // --localstorage-file it is undefined, and because the key already exists on the Node global,
+    // Vitest's jsdom environment does not replace it with the jsdom window's storage. Turning the
+    // Node API off in the test workers (documented Node flag, also accepted by Node 22) lets the
+    // jsdom `localStorage` through, so the same tests run unchanged on Node 22 and Node 26.
+    pool: "forks",
+    poolOptions: { forks: { execArgv: ["--no-experimental-webstorage"] } }
   }
 });
