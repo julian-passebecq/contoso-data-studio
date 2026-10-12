@@ -8,9 +8,13 @@
 - Night 12 Oct (merged): #25 Transform selector builds app-lab Gold with its var, 0-node dbt runs flagged, web 0.2.0;
   #27 web tests on Node 22+26; #26 Query "Reads from" runtime lineage (DuckDB-resolved, linked to dbt models).
   Windows clean-venv package install PASS at 9d99330 (zip sha256 bc022103..., 14/14 checks).
-- In flight: Query lineage deep links to Lakehouse/Transform; retail Gold "last built / not rebuilt" marker after FOIL builds.
+- Night 12 Oct (merged, cont.): #30 lineage chips deep-link to the exact Lakehouse table / dbt model; #31 retail Gold
+  "last built / not rebuilt by this run" marker + GET /api/dbt/gold-builds; #33 retail journey covers both (UX05, UX06;
+  FOIL build in workspace B); #32 TRACES.md rendered from traces.json (`render_traces.py`, stale check in check_traces).
+- In flight: none. React analyzer step-5 gap (query_with_lineage -> _run_read_only) is React's to fix; re-run the
+  E2E-05 React leg when it lands. Possible journey flake: reopen phase project-state slow once on a busy machine.
 - Re-qualify: `python tools/qa_retail_journey.py --mosaic <datapass-mosaicstudio>`; `node tools/open_in_mosaic.mjs ...`;
   `python tools/package_release.py && python tools/qa_install_package.py`; `pytest -q apps/api/tests` (venv Scripts on PATH);
-  `npm --prefix apps/web test` (Node 22 or 26); React leg: React CLI `datapass-analyze.mjs analyze <root> --oracle`.
+  `npm --prefix apps/web test` (Node 22 or 26); `python -I docs/datapass-react/render_traces.py`; React leg: React CLI `datapass-analyze.mjs analyze <root> --oracle`.
 - Owner gates (not authorized): tag/release/public distribution, Fabric/cloud (E2E-09), E2E-08 release-set assembly.
 - Processes: none left running by the lead. Worktrees from workflows remain (no cleanup authorized).
