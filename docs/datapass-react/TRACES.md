@@ -44,8 +44,8 @@ Charts KPIs: Revenue card and monthly revenue chart (Gold monthly_sales.revenue)
 | react | `apps/web/src/pages/ChartsPage.tsx:286-295` | `contoso.gold.monthly_sales` | inferred | Default (retail-baseline) branch posts two literal SQL strings to /api/query (Reached only when the active scenario falls through the scenario-specific branches of loadDashboard (candidates: the scenario ids in projects.ts); SQL itself is literal.) |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
 | http | `apps/web/src/pages/ChartsPage.tsx:286-286` | `"/api/query"` | verified | POST /api/query body {sql,limit} |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | FastAPI route POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes statement on DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | FastAPI route POST /api/query -> ducklake.query_with_lineage |
+| service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes statement on DuckLake read-only connection |
 | react | `apps/web/src/pages/ChartsPage.tsx:297-301` | `label:"Revenue"` | verified | rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card |
 | sql | `apps/web/src/pages/ChartsPage.tsx:287-287` | `sum(revenue)` | verified | select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales |
 | dbt | `dbt/models/gold/monthly_sales.sql:8-8` | `as revenue` | verified | revenue = round(sum(net_revenue),2) grouped by scenario, order_month, channel |
@@ -64,7 +64,7 @@ Query page: run SQL (8 preset sub-traces + free SQL)
 | react | `apps/web/src/pages/QueryPage.tsx:67-71` | `"/api/query"` | verified | run() posts the editor SQL with limit 500 |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
 | api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query |
-| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation |
+| service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation |
 
 UNRESOLVED / notes:
 - Free user SQL is traced separately as sub-trace query-page/free-sql (PARTIAL, unresolved edges listed there).
@@ -83,8 +83,8 @@ Gold fields: `contoso.gold.store_performance.store_country`, `contoso.gold.store
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:19-22` | `store_country as country` | verified | Columns country, revenue, gross_margin, margin_rate (margin_rate computed in the preset) |
 | dbt | `dbt/models/gold/store_performance.sql:5-5` | `s.store_country` | verified | store_country passed through from Silver |
 | dbt | `dbt/models/gold/store_performance.sql:9-9` | `as revenue` | verified | revenue = round(sum(net_revenue),2) |
@@ -111,8 +111,8 @@ Gold fields: `contoso.gold.channel_performance.order_year`, `contoso.gold.channe
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:35-39` | `revenue_share` | verified | Columns order_year, channel, revenue, revenue_share, gross_margin |
 | dbt | `dbt/models/gold/channel_performance.sql:4-5` | `as order_year` | verified | order_year = year(order_date); channel |
 | dbt | `dbt/models/gold/channel_performance.sql:9-10` | `as revenue` | verified | revenue and gross_margin per scenario/year/channel |
@@ -140,8 +140,8 @@ Gold fields: `contoso.gold.monthly_sales.order_month`, `contoso.gold.monthly_sal
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:51-54` | `avg(avg_discount_rate)` | verified | Columns year, margin_rate, avg_discount_rate, revenue |
 | dbt | `dbt/models/gold/monthly_sales.sql:3-3` | `as order_month` | verified | order_month = month of order_date |
 | dbt | `dbt/models/gold/monthly_sales.sql:7-8` | `as avg_discount_rate` | verified | avg_discount_rate and revenue |
@@ -170,8 +170,8 @@ Gold fields: `contoso.gold.delivery_metrics.channel`, `contoso.gold.delivery_met
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:67-70` | `avg(p90_delivery_days)` | verified | Columns channel, avg_delivery_days, p90_delivery_days, over_7_day_rate |
 | dbt | `dbt/models/gold/delivery_metrics.sql:4-4` | `channel` | verified | channel |
 | dbt | `dbt/models/gold/delivery_metrics.sql:6-7` | `as p90_delivery_days` | verified | avg_delivery_days and quantile_cont(delivery_days,0.90) |
@@ -199,8 +199,8 @@ Gold fields: `contoso.gold.currency_exposure.currency`, `contoso.gold.currency_e
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:83-87` | `sum(revenue_usd)` | verified | Columns currency, min_rate, max_rate, rate_spread, revenue_usd |
 | dbt | `dbt/models/gold/currency_exposure.sql:5-6` | `as avg_exchange_rate_to_usd` | verified | currency and monthly average rate |
 | dbt | `dbt/models/gold/currency_exposure.sql:8-8` | `as revenue_usd` | verified | revenue_usd = round(sum(net_revenue),2) |
@@ -229,8 +229,8 @@ Gold fields: `contoso.gold.foil_energy_risk.draw_count`, `contoso.gold.foil_ener
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | dbt | `dbt/models/foil/gold/foil_energy_risk.sql:2-6` | `as aep_p90_mwh` | verified | draw_count, aep_p50 (0.5), aep_p90 (0.1 quantile), aep_p10 (0.9 quantile) |
 | dbt | `dbt/models/foil/gold/foil_energy_risk.sql:13-14` | `ref('foil_experiment_metrics')` | verified | monte_carlo samples only |
 | dbt | `dbt/models/foil/gold/foil_experiment_metrics.sql:3-3` | `aep_year1_mwh` | verified | aep_year1_mwh passed through |
@@ -257,8 +257,8 @@ Gold fields: `contoso.gold.foil_project_summary.capex_eur`, `contoso.gold.foil_p
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | dbt | `dbt/models/foil/gold/foil_project_summary.sql:3-5` | `as break_even_price_eur_mwh` | verified | capex, opex, npv, lcoe and break_even = lcoe from reference experiments |
 | dbt | `dbt/models/foil/gold/foil_project_summary.sql:7-7` | `r.positive_npv_probability` | verified | positive_npv_probability from foil_energy_risk |
 | dbt | `dbt/models/foil/gold/foil_project_summary.sql:10-13` | `ref('foil_experiment_metrics')` | verified | reads metrics (reference), energy risk and source foil_cases |
@@ -285,8 +285,8 @@ Gold fields: `contoso.gold.foil_sensitivity.driver`, `contoso.gold.foil_sensitiv
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query |
-| service | `apps/api/app/services/ducklake.py:306-345` | `def query` | verified | Read-only validation, executes on the DuckLake read-only connection |
+| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | dbt | `dbt/models/foil/gold/foil_sensitivity.sql:2-4` | `as npv_delta_eur` | verified | driver, relative_change, npv_delta and lcoe_delta vs the reference experiment |
 | dbt | `dbt/models/foil/gold/foil_sensitivity.sql:5-7` | `ref('foil_experiment_metrics')` | verified | sensitivity rows joined to reference rows |
 | dbt | `dbt/models/foil/silver/foil_cashflows.sql:10-10` | `ref('foil_experiments')` | verified | cashflows read Silver experiments |
