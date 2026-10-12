@@ -124,12 +124,13 @@ main{padding:28px 32px;min-width:0}
 .queryHistory span{font-size:10px;color:#777;white-space:nowrap}
 .lineageStrip{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:10px;padding-top:8px;border-top:1px solid #ededee}
 .lineageRelations{display:flex;flex-wrap:wrap;gap:4px 8px;margin:0;padding:0;list-style:none}
-.lineageRelations li{display:inline-flex}
+.lineageRelations li{display:inline-flex;align-items:center;gap:2px}
 .lineageRelations code{font:11px Consolas,"Cascadia Code",monospace}
 .lineageRelations .lineageMeta{margin-left:6px;font-size:10px;color:#777}
 .lineageRelations .lineageLayer{margin-right:6px}
 .lineageStatic{display:inline-flex;align-items:center;padding:2px 8px;border:1px dashed #c8c8cc;border-radius:4px}
 .lineageRelations li[data-confidence="unresolved"] code{text-decoration:underline dotted}
+.lineageRelations .lineageModelLink{min-width:0;font-size:11px}
 
 .lakehouseStack{display:grid;gap:16px}
 .tableItemButton{
