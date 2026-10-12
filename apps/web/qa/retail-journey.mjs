@@ -119,6 +119,31 @@ async function goldFingerprint(snapshot) {
     `ORDER BY scenario, order_month, channel, store_country)) as digest from ${RETAIL_GOLD} AT (VERSION => ${snapshot})`);
   return { snapshot, rows: Number(row[0]), revenue: String(row[1]), digest: row[2] };
 }
+// UX05 (PR #26, #30): a Gold + Silver + table-function statement; DuckDB resolves the lake relations.
+const LINEAGE_SQL =
+  "select 'gold' as layer, count(*) as row_count, sum(revenue) as revenue from contoso.gold.monthly_sales " +
+  "union all select 'silver', count(*), sum(net_revenue) from contoso.silver.stg_sales " +
+  "union all select 'function', count(*), null from range(3)";
+async function goldBuilds() {
+  const result = await api("/api/dbt/gold-builds");
+  assert.equal(result.status, 200, JSON.stringify(result.body));
+  return result.body;
+}
+async function latestInvocation() {
+  const status = (await api("/api/dbt/status")).body;
+  assert.ok(status.latest_run?.invocation_id, "no dbt invocation recorded");
+  return status.latest_run.invocation_id;
+}
+// UX06: the Transform page "Gold builds" list and the row of one Gold model in it.
+async function goldBuildList() {
+  await nav("Transform");
+  const list = page.getByRole("region", { name: "Gold builds", exact: true });
+  await list.waitFor({ timeout: 60000 });
+  return list;
+}
+function goldBuildRow(list, name) {
+  return list.locator("li").filter({ has: page.locator("code", { hasText: new RegExp(`^${name}$`) }) });
+}
 async function exportIds() { return (await api("/api/exports")).body.exports.map(e => e.export_id).sort(); }
 async function openManage() {
   await page.getByRole("button", { name: "Manage", exact: true }).click();
@@ -147,9 +172,71 @@ try {
     await nav("Transform");
     await page.locator(".dagNode").first().waitFor();
     await snap("a-transform", "UX01 dbt lineage and run results visible");
+    // UX06 (PR #31): every retail Gold model reports a last build by the current dbt invocation, no marker.
+    const invocationA = await latestInvocation();
+    const buildsA = await goldBuilds();
+    assert.equal(buildsA.foil_active, false);
+    assert.equal(buildsA.latest_build.invocation_id, invocationA);
+    assert.equal(buildsA.latest_build.scope, "retail");
+    const retailA = buildsA.models.filter(m => m.scope === "retail");
+    assert.ok(retailA.length >= 5, `retail Gold models: ${retailA.map(m => m.name)}`);
+    for (const model of retailA) {
+      assert.equal(model.last_build?.invocation_id, invocationA, `${model.name} last build`);
+      assert.equal(model.rebuilt_by_latest, true, `${model.name} rebuilt by latest`);
+    }
+    const listA = await goldBuildList();
+    for (const model of retailA) {
+      const row = goldBuildRow(listA, model.name);
+      assert.equal(await row.getAttribute("data-rebuilt"), "yes", `${model.name} row`);
+      assert.equal(await row.locator(".goldBuildMarker").count(), 0, `${model.name} shows a marker after a retail build`);
+    }
+    await goldBuildRow(listA, "monthly_sales").getByText(`(run ${invocationA.slice(0, 8)})`, { exact: false }).waitFor();
+    await listA.scrollIntoViewIfNeeded();
+    await snap("a-gold-builds", `UX06 ${retailA.length} retail Gold models last built by run ${invocationA.slice(0, 8)}, no "not rebuilt" marker`);
     const revenueA = await runQuery(REVENUE_SQL);
     assert.equal(revenueA[0][0], "retail-baseline");
     await snap("a-query", "UX01 Gold queried through read-only SQL");
+    // UX05 (PR #26): the "Reads from" strip lists the Gold and Silver relations with layer labels.
+    const lineageRows = await runQuery(LINEAGE_SQL);
+    assert.equal(lineageRows.length, 3);
+    const lineage = (await api("/api/query", { method: "POST", data: { sql: LINEAGE_SQL, limit: 10 } })).body.lineage;
+    const byName = Object.fromEntries(lineage.relations.map(r => [[r.schema, r.table].filter(Boolean).join("."), r]));
+    const strip = page.getByRole("region", { name: "Reads from", exact: true });
+    await strip.waitFor({ timeout: 30000 });
+    for (const [name, layer, column] of [["gold.monthly_sales", "gold", "revenue"], ["silver.stg_sales", "silver", "net_revenue"]]) {
+      const relation = byName[name];
+      assert.ok(relation, `lineage misses ${name}: ${JSON.stringify(lineage.relations)}`);
+      assert.equal(relation.layer, layer);
+      assert.equal(relation.confidence, "verified", `${name}: ${relation.note}`);
+      assert.ok(relation.columns.includes(column), `${name} columns ${relation.columns}`);
+      const item = strip.locator("li").filter({ has: page.locator("code", { hasText: new RegExp(`^${name.replace(".", "\\.")}$`) }) });
+      assert.equal(await item.getAttribute("data-confidence"), "verified");
+      assert.equal((await item.locator(".lineageLayer").textContent()).trim(), layer);
+    }
+    // Unresolved relation: the read-only guard allows the range() table function; shown, not clickable, with its reason.
+    const fn = lineage.relations.find(r => r.confidence === "unresolved");
+    if (fn) {
+      assert.match(fn.note, /Table function/);
+      const item = strip.locator('li[data-confidence="unresolved"]').filter({ hasText: fn.table });
+      assert.equal(await item.locator("button").count(), 0, "unresolved relation must not be clickable");
+      assert.match(await item.locator(".lineageStatic").getAttribute("title"), /Table function/);
+      note(`UX05 unresolved relation ${fn.table}() shown non-clickable: ${fn.note}`);
+    } else {
+      note("UX05 unresolved sub-check skipped: no unresolved relation in the lineage of the read-only statement");
+    }
+    await strip.scrollIntoViewIfNeeded();
+    await snap("a-lineage", "UX05 Reads from: gold.monthly_sales + silver.stg_sales verified by DuckDB, range() unresolved");
+    // UX05 (PR #30): the Gold chip opens Lakehouse on that exact table with its current preview.
+    await strip.getByRole("button", { name: /^gold\.monthly_sales: .*Open in Lakehouse$/ }).click();
+    await page.locator(".pageTitle").getByText("Lakehouse", { exact: true }).waitFor();
+    const selected = page.locator(".tableItemButton.selected");
+    await selected.waitFor({ timeout: 60000 });
+    assert.equal(await selected.count(), 1);
+    assert.equal((await selected.locator("span").first().textContent()).trim(), "monthly_sales");
+    const previewCard = page.locator(".fui-Card").filter({ hasText: "gold.monthly_sales · current version" });
+    await previewCard.locator("table tbody tr").first().waitFor({ timeout: 60000 });
+    await previewCard.scrollIntoViewIfNeeded();
+    await snap("a-lineage-lakehouse", "UX05 Gold chip opened Lakehouse with gold.monthly_sales selected and previewed");
     const exportA = await exportGold();
     assert.equal(exportA.lineage.dbt_run.status, "success");
     assert.equal(exportA.lineage.generator_run.scenario, "retail-baseline");
@@ -169,6 +256,31 @@ try {
     assert.equal(revenueB[0][0], "online-migration");
     assert.equal((await api("/api/exports")).body.exports.length, 0, "workspace B must not list A's exports");
     await snap("b-query", "UX04 workspace B has its own Gold, history and exports");
+    // UX06 (PR #31): a FOIL build in workspace B selects models/foil only; retail Gold keeps its older build.
+    const retailInvocationB = await latestInvocation();
+    await openProject("foil-energy-risk");
+    const foilInvocation = await latestInvocation();
+    assert.notEqual(foilInvocation, retailInvocationB);
+    const buildsB = await goldBuilds();
+    assert.equal(buildsB.foil_active, true);
+    assert.equal(buildsB.latest_build.scope, "foil");
+    assert.equal(buildsB.latest_build.invocation_id, foilInvocation);
+    const retailB = buildsB.models.filter(m => m.scope === "retail");
+    for (const model of retailB) {
+      assert.equal(model.rebuilt_by_latest, false, `${model.name} rebuilt by the FOIL build`);
+      assert.equal(model.last_build?.invocation_id, retailInvocationB, `${model.name} last build`);
+    }
+    assert.ok(buildsB.models.some(m => m.scope === "foil" && m.rebuilt_by_latest), "no FOIL Gold model rebuilt");
+    const listB = await goldBuildList();
+    for (const model of retailB) {
+      const row = goldBuildRow(listB, model.name);
+      assert.equal(await row.getAttribute("data-rebuilt"), "no", `${model.name} row`);
+      await row.locator(".goldBuildMarker").getByText("not rebuilt by this run", { exact: true }).waitFor();
+    }
+    await goldBuildRow(listB, "monthly_sales").getByText(`(run ${retailInvocationB.slice(0, 8)})`, { exact: false }).waitFor();
+    await listB.scrollIntoViewIfNeeded();
+    await snap("b-foil-gold-builds", `UX06 FOIL build ${foilInvocation.slice(0, 8)} in workspace B: ${retailB.length} retail Gold models "not rebuilt by this run", last run ${retailInvocationB.slice(0, 8)}`);
+    state.goldBuilds = { retailInvocationA: invocationA, retailInvocationB, foilInvocation, retailModels: retailB.length };
     state.workspaceA = { scenario: a.active_scenario, revenue: revenueA[0][1], exportId: exportA.export_id, invocation: exportA.lineage.dbt_run.invocation_id };
     state.workspaceB = { revenue: revenueB[0][1] };
   }
