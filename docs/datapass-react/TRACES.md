@@ -78,8 +78,8 @@ Gold fields: `contoso.gold.store_performance.store_country`, `contoso.gold.store
 |---|---|---|---|---|
 | react | `apps/web/src/projects.ts:18-25` | `from contoso.gold.store_performance` | verified | ProjectPreset 'retail-baseline'.query is a literal SQL string |
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | 'Open this query' opens the project then the Query page with this SQL (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
+| react | `apps/web/src/App.tsx:102-102` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
+| react | `apps/web/src/App.tsx:154-154` | `initialSql={querySeed}` | verified | Query page receives the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
@@ -106,8 +106,8 @@ Gold fields: `contoso.gold.channel_performance.order_year`, `contoso.gold.channe
 |---|---|---|---|---|
 | react | `apps/web/src/projects.ts:34-41` | `from contoso.gold.channel_performance` | verified | ProjectPreset 'online-migration'.query is a literal SQL string |
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | 'Open this query' opens the project then the Query page with this SQL (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
+| react | `apps/web/src/App.tsx:102-102` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
+| react | `apps/web/src/App.tsx:154-154` | `initialSql={querySeed}` | verified | Query page receives the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
@@ -135,8 +135,8 @@ Gold fields: `contoso.gold.monthly_sales.order_month`, `contoso.gold.monthly_sal
 |---|---|---|---|---|
 | react | `apps/web/src/projects.ts:50-57` | `from contoso.gold.monthly_sales` | verified | ProjectPreset 'margin-pressure'.query is a literal SQL string |
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | 'Open this query' opens the project then the Query page with this SQL (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
+| react | `apps/web/src/App.tsx:102-102` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
+| react | `apps/web/src/App.tsx:154-154` | `initialSql={querySeed}` | verified | Query page receives the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
@@ -165,8 +165,8 @@ Gold fields: `contoso.gold.delivery_metrics.channel`, `contoso.gold.delivery_met
 |---|---|---|---|---|
 | react | `apps/web/src/projects.ts:66-73` | `from contoso.gold.delivery_metrics` | verified | ProjectPreset 'logistics-delays'.query is a literal SQL string |
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | 'Open this query' opens the project then the Query page with this SQL (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
+| react | `apps/web/src/App.tsx:102-102` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
+| react | `apps/web/src/App.tsx:154-154` | `initialSql={querySeed}` | verified | Query page receives the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
@@ -194,8 +194,8 @@ Gold fields: `contoso.gold.currency_exposure.currency`, `contoso.gold.currency_e
 |---|---|---|---|---|
 | react | `apps/web/src/projects.ts:82-90` | `from contoso.gold.currency_exposure` | verified | ProjectPreset 'currency-exposure'.query is a literal SQL string |
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | 'Open this query' opens the project then the Query page with this SQL (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
+| react | `apps/web/src/App.tsx:102-102` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
+| react | `apps/web/src/App.tsx:154-154` | `initialSql={querySeed}` | verified | Query page receives the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
@@ -224,8 +224,8 @@ Gold fields: `contoso.gold.foil_energy_risk.draw_count`, `contoso.gold.foil_ener
 |---|---|---|---|---|
 | react | `apps/web/src/projects.ts:97-97` | `contoso.gold.foil_energy_risk` | verified | ProjectPreset 'foil-energy-risk'.query is a literal SQL string |
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | Open this query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
+| react | `apps/web/src/App.tsx:102-102` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
+| react | `apps/web/src/App.tsx:154-154` | `initialSql={querySeed}` | verified | Query page receives the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
@@ -252,8 +252,8 @@ Gold fields: `contoso.gold.foil_project_summary.capex_eur`, `contoso.gold.foil_p
 |---|---|---|---|---|
 | react | `apps/web/src/projects.ts:104-104` | `contoso.gold.foil_project_summary` | verified | ProjectPreset 'foil-investment'.query is a literal SQL string |
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | Open this query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
+| react | `apps/web/src/App.tsx:102-102` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
+| react | `apps/web/src/App.tsx:154-154` | `initialSql={querySeed}` | verified | Query page receives the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
@@ -280,8 +280,8 @@ Gold fields: `contoso.gold.foil_sensitivity.driver`, `contoso.gold.foil_sensitiv
 |---|---|---|---|---|
 | react | `apps/web/src/projects.ts:111-111` | `contoso.gold.foil_sensitivity` | verified | ProjectPreset 'foil-sensitivity'.query, filtered on case_id FOIL-WIND-A-N-R0 |
 | react | `apps/web/src/pages/ProjectsPage.tsx:258-258` | `onOpenProject(selected,"Query",selected.query)` | inferred | Open this query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:101-101` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
-| react | `apps/web/src/App.tsx:142-142` | `initialSql={querySeed}` | verified | Query page receives the seed |
+| react | `apps/web/src/App.tsx:102-102` | `setQuerySeed(sql ?? project.query)` | inferred | openProject(project,'Query',sql) seeds the editor with the preset query (The preset is selected by the user among the PROJECTS entries; this step is the same code for each enumerated candidate.) |
+| react | `apps/web/src/App.tsx:154-154` | `initialSql={querySeed}` | verified | Query page receives the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
@@ -318,7 +318,7 @@ Free SQL typed or edited in the Query editor
 | service | `apps/api/app/services/sql_lineage.py:153-153` | `dbt_index(dbt_nodes)` | verified | Layer from the schema (bronze/silver/gold) and dbt unique_id from the lineage nodes; a relation not in the lake is 'unresolved', never guessed |
 | api | `apps/api/app/models.py:59-59` | `lineage: QueryLineage` | verified | Additive response field 'lineage' {relations, method, confidence}; existing fields unchanged |
 | react | `apps/web/src/pages/QueryPage.tsx:158-158` | `<LineageStrip lineage={result.lineage}` | verified | 'Reads from' strip under the results |
-| react | `apps/web/src/components/LineageStrip.tsx:24-27` | `export function lineageDestination` | verified | Each resolved relation opens Transform (dbt model) or Lakehouse (lake layer); unresolved ones are listed, not linked |
+| react | `apps/web/src/components/LineageStrip.tsx:45-48` | `export function lineageDestination` | verified | Each resolved relation opens Transform (dbt model) or Lakehouse (lake layer); unresolved ones are listed, not linked |
 
 UNRESOLVED / notes:
 - UNRESOLVED edge QueryPage.tsx:138: free SQL typed by the user; target tables and columns cannot be resolved statically; since the runtime lineage steps, DuckDB resolves the relations and columns each run read, but the edge stays user input (the server policy at ducklake.py:324-328 bounds it to one read-only statement).
@@ -330,7 +330,7 @@ Lakehouse catalog: bronze/silver/gold table list
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| react | `apps/web/src/pages/LakehousePage.tsx:40-45` | `"/api/lakehouse/catalog"` | verified | load() fetches catalog with snapshots, quality, project state |
+| react | `apps/web/src/pages/LakehousePage.tsx:69-74` | `"/api/lakehouse/catalog"` | verified | load() fetches catalog with snapshots, quality, project state |
 | react | `apps/web/src/api.ts:28-30` | `getJson` | verified | GET helper |
 | api | `apps/api/app/main.py:319-324` | `def catalog` | verified | GET /api/lakehouse/catalog -> {tables} |
 | service | `apps/api/app/services/ducklake.py:154-172` | `def catalog` | verified | Reads the DuckLake SQLite metadata catalog, schemas bronze/silver/gold |
@@ -344,11 +344,11 @@ Transform page: dbt build/test (callers, route, runner branch, models built)
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| react | `apps/web/src/pages/TransformPage.tsx:237-237` | `execute("test")` | verified | Test button: whole project |
-| react | `apps/web/src/pages/TransformPage.tsx:238-238` | `execute("build")` | verified | Build button: whole project |
-| react | `apps/web/src/pages/TransformPage.tsx:299-299` | `execute("test",nodeDetail.name)` | inferred | Test model button: selector = selected node name (nodeDetail.name comes from GET /api/dbt/node (manifest); the server accepts it only if it equals one model of _models().) |
-| react | `apps/web/src/pages/TransformPage.tsx:305-305` | `execute("build",nodeDetail.name)` | inferred | Build model button: selector = selected node name (nodeDetail.name comes from GET /api/dbt/node (manifest); the server accepts it only if it equals one model of _models().) |
-| react | `apps/web/src/pages/TransformPage.tsx:118-123` | `/api/dbt/${command}${suffix}` | inferred | Template URL: command in {build,test}, optional ?selector= (command is typed "build"/"test" and the two callers pass literals; selector candidates are the model names (see branch-selector).) |
+| react | `apps/web/src/pages/TransformPage.tsx:252-252` | `execute("test")` | verified | Test button: whole project |
+| react | `apps/web/src/pages/TransformPage.tsx:253-253` | `execute("build")` | verified | Build button: whole project |
+| react | `apps/web/src/pages/TransformPage.tsx:314-314` | `execute("test",nodeDetail.name)` | inferred | Test model button: selector = selected node name (nodeDetail.name comes from GET /api/dbt/node (manifest); the server accepts it only if it equals one model of _models().) |
+| react | `apps/web/src/pages/TransformPage.tsx:320-320` | `execute("build",nodeDetail.name)` | inferred | Build model button: selector = selected node name (nodeDetail.name comes from GET /api/dbt/node (manifest); the server accepts it only if it equals one model of _models().) |
+| react | `apps/web/src/pages/TransformPage.tsx:132-137` | `/api/dbt/${command}${suffix}` | inferred | Template URL: command in {build,test}, optional ?selector= (command is typed "build"/"test" and the two callers pass literals; selector candidates are the model names (see branch-selector).) |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
 | api | `apps/api/app/main.py:452-452` | `@app.post("/api/dbt/{command}")` | verified | FastAPI route POST /api/dbt/{command} |
 | api | `apps/api/app/main.py:453-458` | `dbt.run(command, selector)` | verified | selector query param 1..200 chars; ValueError -> 400, RuntimeError -> 409 |
@@ -410,7 +410,7 @@ Models built: `one of the models listed in branch-retail or branch-foil (plus fa
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| react | `apps/web/src/pages/TransformPage.tsx:299-305` | `nodeDetail.name` | inferred | Selected DAG node name (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
+| react | `apps/web/src/pages/TransformPage.tsx:314-320` | `nodeDetail.name` | inferred | Selected DAG node name (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
 | service | `apps/api/app/services/dbt_runner.py:175-175` | `_layer_for_dependency` | inferred | node_detail name comes from the dbt manifest (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
 | service | `apps/api/app/services/dbt_runner.py:446-460` | `args.extend(["--select", selected_model])` | inferred | --select <model> for build/run/test; parse rejects a selector (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
 | service | `apps/api/app/services/dbt_runner.py:409-415` | `Unknown dbt model selector` | verified | Exactly one model of _models() must match, else HTTP 400 |
@@ -422,7 +422,7 @@ Projects open: open a project scenario
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
 | react | `apps/web/src/pages/ProjectsPage.tsx:121-127` | `prepareProject` | verified | Button handler calls onOpenProject |
-| react | `apps/web/src/App.tsx:88-98` | `/api/projects/${project.scenario}/open` | inferred | openProject posts to the open route (Template URL; project.scenario is one of the PROJECTS entries in apps/web/src/projects.ts, so the route POST /api/projects/{scenario}/open is unique.) |
+| react | `apps/web/src/App.tsx:89-99` | `/api/projects/${project.scenario}/open` | inferred | openProject posts to the open route (Template URL; project.scenario is one of the PROJECTS entries in apps/web/src/projects.ts, so the route POST /api/projects/{scenario}/open is unique.) |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
 | api | `apps/api/app/main.py:180-189` | `def open_project` | verified | POST /api/projects/{scenario}/open |
 | service | `apps/api/app/services/projects.py:42-51` | `def open` | verified | Lock, catalog lock, then _open |

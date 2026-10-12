@@ -1,5 +1,10 @@
 export type Page = "Projects"|"Generate"|"Lakehouse"|"Transform"|"Query"|"Explore"|"Charts"|"Canvas"|"Apps";
 
+/** Opens a page on one exact item: a lake table in Lakehouse or a dbt node in Transform. */
+export type NavigationIntent =
+  | { page: "Lakehouse"; schema: string; table: string }
+  | { page: "Transform"; nodeId: string };
+
 export type Scenario = {
   id: string;
   name: string;
