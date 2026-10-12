@@ -43,11 +43,33 @@ export type FileProfile = {
   rows: unknown[][];
 };
 
+export type LineageConfidence = "verified" | "inferred" | "unresolved";
+
+export type LineageRelation = {
+  catalog: string | null;
+  schema: string | null;
+  table: string;
+  layer: string | null;
+  dbt_model: string | null;
+  columns: string[];
+  at: {unit: string; value: unknown}[];
+  confidence: LineageConfidence;
+  note: string;
+};
+
+export type QueryLineage = {
+  relations: LineageRelation[];
+  method: string;
+  confidence: LineageConfidence;
+  note?: string | null;
+};
+
 export type QueryResult = {
   columns: string[];
   rows: unknown[][];
   row_count: number;
   truncated: boolean;
+  lineage?: QueryLineage | null;
 };
 
 

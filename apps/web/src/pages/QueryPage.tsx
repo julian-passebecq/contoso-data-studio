@@ -3,6 +3,7 @@ import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-c
 import { getJson, postJson } from "../api";
 import { SkeletonTable } from "../motion";
 import DataTable from "../components/DataTable";
+import LineageStrip, { type LineageDestination } from "../components/LineageStrip";
 import type { CatalogTable, QueryResult, WorkspaceProjectState } from "../types";
 import { completeTutorialStep, isGoldQuery } from "../tutorialProgress";
 import { scopedKey } from "../workspaceScope";
@@ -38,7 +39,7 @@ function csvCell(value:unknown) {
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"','""')}"` : text;
 }
 
-export default function QueryPage({initialSql,initialProjectState}:{initialSql?:string;initialProjectState?:WorkspaceProjectState|null}) {
+export default function QueryPage({initialSql,initialProjectState,onOpenPage}:{initialSql?:string;initialProjectState?:WorkspaceProjectState|null;onOpenPage?:(page:LineageDestination)=>void}) {
   const [sql,setSql] = useState(initialSql || DEFAULT_SQL);
   const [catalog,setCatalog] = useState<CatalogTable[]>([]);
   const [result,setResult] = useState<QueryResult|null>(null);
@@ -154,6 +155,7 @@ export default function QueryPage({initialSql,initialProjectState}:{initialSql?:
           </div>:undefined}
         />
         {running ? <SkeletonTable/> : result ? <DataTable columns={result.columns} rows={result.rows}/> : <Text className="muted">Run a query to inspect the result.</Text>}
+        {!running && result && <LineageStrip lineage={result.lineage} onOpen={onOpenPage}/>}
       </Card>
 
       <Card>

@@ -39,8 +39,8 @@
     {
      "layer": "api",
      "path": "apps/api/app/main.py",
-     "start": 502,
-     "end": 515,
+     "start": 510,
+     "end": 522,
      "symbol": "def query",
      "note": "FastAPI route POST /api/query -> ducklake.query",
      "confidence": "verified"
@@ -48,8 +48,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/ducklake.py",
-     "start": 305,
-     "end": 329,
+     "start": 306,
+     "end": 345,
      "symbol": "def query",
      "note": "Read-only validation, executes statement on DuckLake read-only connection",
      "confidence": "verified"
@@ -111,8 +111,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/ducklake.py",
-     "start": 138,
-     "end": 147,
+     "start": 139,
+     "end": 148,
      "symbol": "def load_parquet_to_bronze",
      "note": "Bronze table created from run parquet via read_parquet",
      "confidence": "inferred",
@@ -147,8 +147,8 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/QueryPage.tsx",
-     "start": 66,
-     "end": 70,
+     "start": 67,
+     "end": 71,
      "symbol": "\"/api/query\"",
      "note": "run() posts the editor SQL with limit 500",
      "confidence": "verified"
@@ -165,8 +165,8 @@
     {
      "layer": "api",
      "path": "apps/api/app/main.py",
-     "start": 502,
-     "end": 515,
+     "start": 510,
+     "end": 522,
      "symbol": "def query",
      "note": "POST /api/query",
      "confidence": "verified"
@@ -174,8 +174,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/ducklake.py",
-     "start": 305,
-     "end": 329,
+     "start": 306,
+     "end": 345,
      "symbol": "def query",
      "note": "Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation",
      "confidence": "verified"
@@ -230,8 +230,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 53,
-       "end": 53,
+       "start": 54,
+       "end": 54,
        "symbol": "setSql(initialSql)",
        "note": "Editor state takes the seed",
        "confidence": "verified"
@@ -239,8 +239,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 70,
-       "end": 70,
+       "start": 71,
+       "end": 71,
        "symbol": "\"/api/query\"",
        "note": "run() posts {sql,limit:500}",
        "confidence": "verified"
@@ -257,8 +257,8 @@
       {
        "layer": "api",
        "path": "apps/api/app/main.py",
-       "start": 502,
-       "end": 515,
+       "start": 510,
+       "end": 522,
        "symbol": "def query",
        "note": "POST /api/query -> ducklake.query",
        "confidence": "verified"
@@ -266,8 +266,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 305,
-       "end": 329,
+       "start": 306,
+       "end": 345,
        "symbol": "def query",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
@@ -347,8 +347,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 143,
-       "end": 147,
+       "start": 144,
+       "end": 148,
        "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
        "note": "Bronze tables created from the run parquet files",
        "confidence": "inferred",
@@ -426,8 +426,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 53,
-       "end": 53,
+       "start": 54,
+       "end": 54,
        "symbol": "setSql(initialSql)",
        "note": "Editor state takes the seed",
        "confidence": "verified"
@@ -435,8 +435,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 70,
-       "end": 70,
+       "start": 71,
+       "end": 71,
        "symbol": "\"/api/query\"",
        "note": "run() posts {sql,limit:500}",
        "confidence": "verified"
@@ -453,8 +453,8 @@
       {
        "layer": "api",
        "path": "apps/api/app/main.py",
-       "start": 502,
-       "end": 515,
+       "start": 510,
+       "end": 522,
        "symbol": "def query",
        "note": "POST /api/query -> ducklake.query",
        "confidence": "verified"
@@ -462,8 +462,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 305,
-       "end": 329,
+       "start": 306,
+       "end": 345,
        "symbol": "def query",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
@@ -543,8 +543,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 143,
-       "end": 147,
+       "start": 144,
+       "end": 148,
        "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
        "note": "Bronze tables created from the run parquet files",
        "confidence": "inferred",
@@ -635,8 +635,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 53,
-       "end": 53,
+       "start": 54,
+       "end": 54,
        "symbol": "setSql(initialSql)",
        "note": "Editor state takes the seed",
        "confidence": "verified"
@@ -644,8 +644,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 70,
-       "end": 70,
+       "start": 71,
+       "end": 71,
        "symbol": "\"/api/query\"",
        "note": "run() posts {sql,limit:500}",
        "confidence": "verified"
@@ -662,8 +662,8 @@
       {
        "layer": "api",
        "path": "apps/api/app/main.py",
-       "start": 502,
-       "end": 515,
+       "start": 510,
+       "end": 522,
        "symbol": "def query",
        "note": "POST /api/query -> ducklake.query",
        "confidence": "verified"
@@ -671,8 +671,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 305,
-       "end": 329,
+       "start": 306,
+       "end": 345,
        "symbol": "def query",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
@@ -752,8 +752,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 143,
-       "end": 147,
+       "start": 144,
+       "end": 148,
        "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
        "note": "Bronze tables created from the run parquet files",
        "confidence": "inferred",
@@ -853,8 +853,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 53,
-       "end": 53,
+       "start": 54,
+       "end": 54,
        "symbol": "setSql(initialSql)",
        "note": "Editor state takes the seed",
        "confidence": "verified"
@@ -862,8 +862,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 70,
-       "end": 70,
+       "start": 71,
+       "end": 71,
        "symbol": "\"/api/query\"",
        "note": "run() posts {sql,limit:500}",
        "confidence": "verified"
@@ -880,8 +880,8 @@
       {
        "layer": "api",
        "path": "apps/api/app/main.py",
-       "start": 502,
-       "end": 515,
+       "start": 510,
+       "end": 522,
        "symbol": "def query",
        "note": "POST /api/query -> ducklake.query",
        "confidence": "verified"
@@ -889,8 +889,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 305,
-       "end": 329,
+       "start": 306,
+       "end": 345,
        "symbol": "def query",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
@@ -970,8 +970,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 143,
-       "end": 147,
+       "start": 144,
+       "end": 148,
        "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
        "note": "Bronze tables created from the run parquet files",
        "confidence": "inferred",
@@ -1062,8 +1062,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 53,
-       "end": 53,
+       "start": 54,
+       "end": 54,
        "symbol": "setSql(initialSql)",
        "note": "Editor state takes the seed",
        "confidence": "verified"
@@ -1071,8 +1071,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 70,
-       "end": 70,
+       "start": 71,
+       "end": 71,
        "symbol": "\"/api/query\"",
        "note": "run() posts {sql,limit:500}",
        "confidence": "verified"
@@ -1089,8 +1089,8 @@
       {
        "layer": "api",
        "path": "apps/api/app/main.py",
-       "start": 502,
-       "end": 515,
+       "start": 510,
+       "end": 522,
        "symbol": "def query",
        "note": "POST /api/query -> ducklake.query",
        "confidence": "verified"
@@ -1098,8 +1098,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 305,
-       "end": 329,
+       "start": 306,
+       "end": 345,
        "symbol": "def query",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
@@ -1179,8 +1179,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 143,
-       "end": 147,
+       "start": 144,
+       "end": 148,
        "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
        "note": "Bronze tables created from the run parquet files",
        "confidence": "inferred",
@@ -1278,8 +1278,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 53,
-       "end": 53,
+       "start": 54,
+       "end": 54,
        "symbol": "setSql(initialSql)",
        "note": "Editor state takes the seed",
        "confidence": "verified"
@@ -1287,8 +1287,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 70,
-       "end": 70,
+       "start": 71,
+       "end": 71,
        "symbol": "\"/api/query\"",
        "note": "run() posts {sql,limit:500}",
        "confidence": "verified"
@@ -1305,8 +1305,8 @@
       {
        "layer": "api",
        "path": "apps/api/app/main.py",
-       "start": 502,
-       "end": 515,
+       "start": 510,
+       "end": 522,
        "symbol": "def query",
        "note": "POST /api/query -> ducklake.query",
        "confidence": "verified"
@@ -1314,8 +1314,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 305,
-       "end": 329,
+       "start": 306,
+       "end": 345,
        "symbol": "def query",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
@@ -1396,8 +1396,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 143,
-       "end": 147,
+       "start": 144,
+       "end": 148,
        "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
        "note": "Bronze tables from FOIL_FILES parquet",
        "confidence": "inferred",
@@ -1477,8 +1477,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 53,
-       "end": 53,
+       "start": 54,
+       "end": 54,
        "symbol": "setSql(initialSql)",
        "note": "Editor state takes the seed",
        "confidence": "verified"
@@ -1486,8 +1486,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 70,
-       "end": 70,
+       "start": 71,
+       "end": 71,
        "symbol": "\"/api/query\"",
        "note": "run() posts {sql,limit:500}",
        "confidence": "verified"
@@ -1504,8 +1504,8 @@
       {
        "layer": "api",
        "path": "apps/api/app/main.py",
-       "start": 502,
-       "end": 515,
+       "start": 510,
+       "end": 522,
        "symbol": "def query",
        "note": "POST /api/query -> ducklake.query",
        "confidence": "verified"
@@ -1513,8 +1513,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 305,
-       "end": 329,
+       "start": 306,
+       "end": 345,
        "symbol": "def query",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
@@ -1596,8 +1596,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 143,
-       "end": 147,
+       "start": 144,
+       "end": 148,
        "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
        "note": "Bronze tables from FOIL_FILES parquet",
        "confidence": "inferred",
@@ -1679,8 +1679,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 53,
-       "end": 53,
+       "start": 54,
+       "end": 54,
        "symbol": "setSql(initialSql)",
        "note": "Editor state takes the seed",
        "confidence": "verified"
@@ -1688,8 +1688,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 70,
-       "end": 70,
+       "start": 71,
+       "end": 71,
        "symbol": "\"/api/query\"",
        "note": "run() posts {sql,limit:500}",
        "confidence": "verified"
@@ -1706,8 +1706,8 @@
       {
        "layer": "api",
        "path": "apps/api/app/main.py",
-       "start": 502,
-       "end": 515,
+       "start": 510,
+       "end": 522,
        "symbol": "def query",
        "note": "POST /api/query -> ducklake.query",
        "confidence": "verified"
@@ -1715,8 +1715,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 305,
-       "end": 329,
+       "start": 306,
+       "end": 345,
        "symbol": "def query",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
@@ -1788,8 +1788,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 143,
-       "end": 147,
+       "start": 144,
+       "end": 148,
        "symbol": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
        "note": "Bronze tables from FOIL_FILES parquet",
        "confidence": "inferred",
@@ -1833,8 +1833,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 137,
-       "end": 137,
+       "start": 138,
+       "end": 138,
        "symbol": "setSql(event.target.value)",
        "note": "Editor text is user input",
        "confidence": "unresolved"
@@ -1842,18 +1842,18 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 122,
-       "end": 122,
+       "start": 123,
+       "end": 123,
        "symbol": "setSql(example.sql)",
        "note": "Example buttons: EXAMPLES or FOIL_EXAMPLES literals",
        "confidence": "inferred",
-       "confidence_reason": "Candidates are the literal EXAMPLES / FOIL_EXAMPLES in QueryPage.tsx:12-31."
+       "confidence_reason": "Candidates are the literal EXAMPLES / FOIL_EXAMPLES in QueryPage.tsx:13-32."
       },
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 94,
-       "end": 94,
+       "start": 95,
+       "end": 95,
        "symbol": "from contoso.${table.schema}.${table.name}",
        "note": "Catalog click seeds select * from a catalog table",
        "confidence": "inferred",
@@ -1862,8 +1862,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 169,
-       "end": 169,
+       "start": 171,
+       "end": 171,
        "symbol": "setSql(item.sql)",
        "note": "History entries replay earlier SQL from localStorage",
        "confidence": "unresolved"
@@ -1871,8 +1871,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/QueryPage.tsx",
-       "start": 70,
-       "end": 70,
+       "start": 71,
+       "end": 71,
        "symbol": "\"/api/query\"",
        "note": "run() posts {sql,limit:500}",
        "confidence": "verified"
@@ -1880,8 +1880,8 @@
       {
        "layer": "api",
        "path": "apps/api/app/main.py",
-       "start": 502,
-       "end": 515,
+       "start": 510,
+       "end": 522,
        "symbol": "def query",
        "note": "POST /api/query",
        "confidence": "verified"
@@ -1889,8 +1889,8 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 315,
-       "end": 319,
+       "start": 324,
+       "end": 328,
        "symbol": "FORBIDDEN_SQL",
        "note": "Only one read-only statement; mutation rejected",
        "confidence": "verified"
@@ -1898,17 +1898,89 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 323,
-       "end": 323,
+       "start": 332,
+       "end": 332,
        "symbol": "cur.description",
-       "note": "Result columns known only at run time",
+       "note": "Result columns known only at run time; the columns the statement read are resolved at run time by the lineage steps below",
        "confidence": "unresolved"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/main.py",
+       "start": 504,
+       "end": 504,
+       "symbol": "dbt.lineage()",
+       "note": "Runtime lineage: /api/query passes the dbt lineage nodes (same source as the Transform page) to the service",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/ducklake.py",
+       "start": 337,
+       "end": 337,
+       "symbol": "sql_lineage.resolve(con, statement, dbt_nodes)",
+       "note": "Runtime lineage: after the validated statement ran, the same read-only connection resolves what it read; a lineage error never fails the query",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/sql_lineage.py",
+       "start": 46,
+       "end": 46,
+       "symbol": "json_serialize_sql",
+       "note": "DuckDB's parser lists the relations the statement names (catalog/schema/table, AT (VERSION => n)); CTE names and table functions are told apart",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/sql_lineage.py",
+       "start": 87,
+       "end": 87,
+       "symbol": "EXPLAIN (FORMAT JSON)",
+       "note": "DuckDB binds the statement (EXPLAIN, not executed) and each lake scan names its table and projected columns: the columns read are resolved at run time",
+       "confidence": "verified"
+      },
+      {
+       "layer": "service",
+       "path": "apps/api/app/services/sql_lineage.py",
+       "start": 153,
+       "end": 153,
+       "symbol": "dbt_index(dbt_nodes)",
+       "note": "Layer from the schema (bronze/silver/gold) and dbt unique_id from the lineage nodes; a relation not in the lake is 'unresolved', never guessed",
+       "confidence": "verified"
+      },
+      {
+       "layer": "api",
+       "path": "apps/api/app/models.py",
+       "start": 59,
+       "end": 59,
+       "symbol": "lineage: QueryLineage",
+       "note": "Additive response field 'lineage' {relations, method, confidence}; existing fields unchanged",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/pages/QueryPage.tsx",
+       "start": 158,
+       "end": 158,
+       "symbol": "<LineageStrip lineage={result.lineage}",
+       "note": "'Reads from' strip under the results",
+       "confidence": "verified"
+      },
+      {
+       "layer": "react",
+       "path": "apps/web/src/components/LineageStrip.tsx",
+       "start": 24,
+       "end": 27,
+       "symbol": "export function lineageDestination",
+       "note": "Each resolved relation opens Transform (dbt model) or Lakehouse (lake layer); unresolved ones are listed, not linked",
+       "confidence": "verified"
       }
      ],
      "unresolved": [
-      "UNRESOLVED edge QueryPage.tsx:137: free SQL typed by the user; target tables and columns cannot be resolved statically (the server policy at ducklake.py:315-319 bounds it to one read-only statement).",
-      "UNRESOLVED edge QueryPage.tsx:169: query history replays SQL from browser storage (earlier user input).",
-      "UNRESOLVED edge ducklake.py:323: result columns come from cursor.description at run time."
+      "UNRESOLVED edge QueryPage.tsx:138: free SQL typed by the user; target tables and columns cannot be resolved statically; since the runtime lineage steps, DuckDB resolves the relations and columns each run read, but the edge stays user input (the server policy at ducklake.py:324-328 bounds it to one read-only statement).",
+      "UNRESOLVED edge QueryPage.tsx:171: query history replays SQL from browser storage (earlier user input).",
+      "UNRESOLVED edge ducklake.py:332: result columns come from cursor.description at run time."
      ]
     }
    ]
@@ -1948,8 +2020,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/ducklake.py",
-     "start": 153,
-     "end": 171,
+     "start": 154,
+     "end": 172,
      "symbol": "def catalog",
      "note": "Reads the DuckLake SQLite metadata catalog, schemas bronze/silver/gold",
      "confidence": "verified"
@@ -1957,8 +2029,8 @@
     {
      "layer": "sql",
      "path": "apps/api/app/services/ducklake.py",
-     "start": 156,
-     "end": 165,
+     "start": 157,
+     "end": 166,
      "symbol": "FROM ducklake_table",
      "note": "Metadata SQL; table names come from the catalog at run time",
      "confidence": "verified"
@@ -2516,8 +2588,8 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/ducklake.py",
-     "start": 138,
-     "end": 147,
+     "start": 139,
+     "end": 148,
      "symbol": "def load_parquet_to_bronze",
      "note": "CREATE OR REPLACE TABLE contoso.bronze.{table}",
      "confidence": "inferred",
@@ -2637,8 +2709,8 @@
     {
      "layer": "api",
      "path": "apps/api/app/main.py",
-     "start": 523,
-     "end": 528,
+     "start": 530,
+     "end": 535,
      "symbol": "def export_artifact",
      "note": "POST /api/exports/artifact -> exports.export(mart, columns, max_rows)",
      "confidence": "verified"
