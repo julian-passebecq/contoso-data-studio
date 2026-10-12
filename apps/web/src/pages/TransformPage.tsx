@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 
 import { getJson, postJson } from "../api";
@@ -10,6 +10,7 @@ import type {
   WorkspaceProjectState,
 } from "../types";
 import { completeTutorialStep } from "../tutorialProgress";
+import { prefersReducedMotion } from "../motion";
 import "../transform.css";
 
 type DbtModel = { name:string; path:string; layer:string; app_lab?:boolean };
@@ -45,10 +46,13 @@ export default function TransformPage({
   activeScenario,
   onBuilt,
   onOpenQuery,
+  initialNodeId=null,
 }:{
   activeScenario?:string|null;
   onBuilt:()=>void;
   onOpenQuery:(sql:string)=>void;
+  /** dbt unique_id to open in the model workbench on arrival (Query lineage "Open model"). */
+  initialNodeId?:string|null;
 }) {
   const [status,setStatus] = useState<DbtStatus|null>(null);
   const [lineage,setLineage] = useState<DbtLineage|null>(null);
@@ -60,6 +64,7 @@ export default function TransformPage({
   const [nodeDetail,setNodeDetail] = useState<DbtNodeDetail|null>(null);
   const [loadingNode,setLoadingNode] = useState("");
   const [workbenchTab,setWorkbenchTab] = useState<WorkbenchTab>("Source");
+  const workbenchRef = useRef<HTMLDivElement>(null);
 
   async function loadNode(uniqueId:string) {
     if (!uniqueId || uniqueId.startsWith("fallback.")) return;
@@ -114,6 +119,15 @@ export default function TransformPage({
   }
 
   useEffect(()=>{ void refresh(); },[]);
+
+  // A deep link opens its node in the workbench and brings the workbench into view.
+  useEffect(()=>{
+    if (!initialNodeId) return;
+    void loadNode(initialNodeId).then(()=>workbenchRef.current?.scrollIntoView?.({
+      block:"start",
+      behavior:prefersReducedMotion() ? "auto" : "smooth",
+    }));
+  },[initialNodeId]);
 
   async function execute(command:"build"|"test", selector?:string) {
     const busyKey=selector ? `${command}:${selector}` : command;
@@ -200,6 +214,7 @@ export default function TransformPage({
       type="button"
       className={`dagNode${node.resource_type==="source"?" source":""}${issues?" issue":""}${selected?" selected":""}`}
       key={node.id}
+      aria-pressed={selected}
       title={node.path || node.id}
       disabled={node.id.startsWith("fallback.")}
       onClick={()=>void loadNode(node.id)}
@@ -285,7 +300,7 @@ export default function TransformPage({
       </details>}
     </Card>
 
-    <Card className="modelWorkbenchCard">
+    <Card className="modelWorkbenchCard" ref={workbenchRef}>
       <CardHeader
         header={<Title3>{nodeDetail ? nodeDetail.name : "Model workbench"}</Title3>}
         description={nodeDetail

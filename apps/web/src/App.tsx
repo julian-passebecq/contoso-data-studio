@@ -25,7 +25,7 @@ import GeneratePage from "./pages/GeneratePage";
 import LakehousePage from "./pages/LakehousePage";
 import QueryPage from "./pages/QueryPage";
 import TransformPage from "./pages/TransformPage";
-import type { Page, Scenario, WorkspaceProjectState } from "./types";
+import type { NavigationIntent, Page, Scenario, WorkspaceProjectState } from "./types";
 import "./projects.css";
 import { scopedKey } from "./workspaceScope";
 
@@ -50,6 +50,7 @@ export default function App() {
   const [message,setMessage] = useState("Choose a guided project or open the manual workspace.");
   const [querySeed,setQuerySeed] = useState("");
   const [refreshToken,setRefreshToken] = useState(0);
+  const [intent,setIntent] = useState<NavigationIntent|null>(null);
   const [workspace,setWorkspace] = useState<WorkspaceProjectState|null>(null);
   const [workspaceLoading,setWorkspaceLoading] = useState(true);
   const [opening,setOpening] = useState("");
@@ -100,7 +101,7 @@ export default function App() {
       localStorage.setItem(scopedKey("contoso-project-group"),groupFor(project.scenario));
       setQuerySeed(sql ?? project.query);
       setRefreshToken(value=>value+1);
-      setPage(destination);
+      goTo(destination);
       setMessage(`${project.title} is ready · data, models, quality and dashboard activated.`);
       return true;
     } catch(exc) {
@@ -109,7 +110,7 @@ export default function App() {
       setMessage("Project activation failed. Please retry or inspect Transform.");
       // A failed build may have activated Bronze; show its real state.
       setRefreshToken(value=>value+1);
-      setPage("Projects");
+      goTo("Projects");
       return false;
     } finally {
       setOpening("");
@@ -117,9 +118,20 @@ export default function App() {
     }
   }
 
+  // Open a page on one exact item (Query lineage chips); plain navigation clears it.
+  function openIntent(next:NavigationIntent) {
+    setIntent(next);
+    setPage(next.page);
+  }
+
+  function goTo(next:Page) {
+    setIntent(null);
+    setPage(next);
+  }
+
   function openQuery(sql:string) {
     setQuerySeed(sql);
-    setPage("Query");
+    goTo("Query");
   }
 
   function onDbtBuilt() {
@@ -134,12 +146,12 @@ export default function App() {
       onOpenProject={openProject}
       opening={opening}
       workspace={workspace}
-      onNavigate={setPage}
+      onNavigate={goTo}
     />;
     if (page==="Generate") return <GeneratePage scenarios={scenarios} activeRun={workspace?.active_run ?? null} onStatus={setMessage} onGenerated={()=>{setQuerySeed("");setRefreshToken(v=>v+1);}}/>;
-    if (page==="Lakehouse") return <LakehousePage refreshToken={refreshToken}/>;
-    if (page==="Transform") return <TransformPage activeScenario={workspace?.active_scenario} onBuilt={onDbtBuilt} onOpenQuery={openQuery}/>;
-    if (page==="Query") return <QueryPage initialSql={querySeed} initialProjectState={workspace} onOpenPage={setPage}/>;
+    if (page==="Lakehouse") return <LakehousePage refreshToken={refreshToken} initialTable={intent?.page==="Lakehouse" ? intent : null}/>;
+    if (page==="Transform") return <TransformPage activeScenario={workspace?.active_scenario} onBuilt={onDbtBuilt} onOpenQuery={openQuery} initialNodeId={intent?.page==="Transform" ? intent.nodeId : null}/>;
+    if (page==="Query") return <QueryPage initialSql={querySeed} initialProjectState={workspace} onOpenPage={openIntent}/>;
     if (page==="Explore") return <ExplorePage onOpenQuery={openQuery}/>;
     if (page==="Charts") return <ChartsPage onOpenQuery={openQuery}/>;
     if (page==="Apps") return <AppsPage onOpenQuery={openQuery}/>;
@@ -167,7 +179,7 @@ export default function App() {
       <aside>
         <div className="navSection">WORKSPACE</div>
         {pages.map(([label,icon]) =>
-          <button key={label} disabled={Boolean(opening)} className={page===label?"active":""} onClick={()=>setPage(label)}>
+          <button key={label} disabled={Boolean(opening)} className={page===label?"active":""} onClick={()=>goTo(label)}>
             {icon}{label}
           </button>
         )}
@@ -191,10 +203,10 @@ export default function App() {
             <option value="" disabled>Choose a project</option>
             {(["foil","samples"] as const).map(group=><optgroup label={groupName(group)} key={group}>{PROJECTS.filter(p=>groupFor(p.scenario)===group).map(project=><option value={project.scenario} key={project.scenario}>{project.title}</option>)}</optgroup>)}
           </select></label>
-          <Button disabled={Boolean(opening)} onClick={()=>setPage("Projects")}>Portfolio & architecture</Button>
+          <Button disabled={Boolean(opening)} onClick={()=>goTo("Projects")}>Portfolio & architecture</Button>
         </div>}
         {apiDown && <div className="errorText apiDown" role="alert">{API_UNAVAILABLE} <Button size="small" onClick={()=>{setApiDown(false);setRefreshToken(value=>value+1);}}>Retry</Button></div>}
-        {projectError && <div className="errorText" role="alert">{projectError} <Button size="small" onClick={()=>setPage("Transform")}>Inspect Transform</Button></div>}
+        {projectError && <div className="errorText" role="alert">{projectError} <Button size="small" onClick={()=>goTo("Transform")}>Inspect Transform</Button></div>}
         {opening ? <div className="projectOpening" role="status" aria-live="polite"><Spinner/><Title2>Opening {PROJECTS.find(p=>p.scenario===opening)?.title}</Title2><Text>Activating project data, rebuilding analytical layers and checking quality.</Text><Text className="muted">Your dashboard will open automatically when everything is ready.</Text></div>
           : <div key={`${refreshToken}:${page}`} className="pageTransition" data-route={page}><Suspense fallback={<PageSkeleton label="Loading project portfolio…"/>}>{renderPage()}<RouteReady route={page}/></Suspense></div>}
       </main>

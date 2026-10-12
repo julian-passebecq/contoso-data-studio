@@ -3,8 +3,8 @@ import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-c
 import { getJson, postJson } from "../api";
 import { SkeletonTable } from "../motion";
 import DataTable from "../components/DataTable";
-import LineageStrip, { type LineageDestination } from "../components/LineageStrip";
-import type { CatalogTable, QueryResult, WorkspaceProjectState } from "../types";
+import LineageStrip from "../components/LineageStrip";
+import type { CatalogTable, NavigationIntent, QueryResult, WorkspaceProjectState } from "../types";
 import { completeTutorialStep, isGoldQuery } from "../tutorialProgress";
 import { scopedKey } from "../workspaceScope";
 
@@ -39,7 +39,7 @@ function csvCell(value:unknown) {
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"','""')}"` : text;
 }
 
-export default function QueryPage({initialSql,initialProjectState,onOpenPage}:{initialSql?:string;initialProjectState?:WorkspaceProjectState|null;onOpenPage?:(page:LineageDestination)=>void}) {
+export default function QueryPage({initialSql,initialProjectState,onOpenPage}:{initialSql?:string;initialProjectState?:WorkspaceProjectState|null;onOpenPage?:(intent:NavigationIntent)=>void}) {
   const [sql,setSql] = useState(initialSql || DEFAULT_SQL);
   const [catalog,setCatalog] = useState<CatalogTable[]>([]);
   const [result,setResult] = useState<QueryResult|null>(null);

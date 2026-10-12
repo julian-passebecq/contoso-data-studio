@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-components";
 
-import { getJson } from "../api";
+import { getJson, postJson } from "../api";
 import DataTable from "../components/DataTable";
 import type { CatalogTable, DbtQuality, DuckLakeSnapshot, QueryResult, SnapshotComparison, WorkspaceProjectState } from "../types";
 import { completeTutorialStep } from "../tutorialProgress";
+import { prefersReducedMotion } from "../motion";
 
 function changeSummary(changes: Record<string, unknown> | null) {
   if (!changes) return "No catalog changes";
@@ -19,7 +20,21 @@ function changeSummary(changes: Record<string, unknown> | null) {
     .join(" · ");
 }
 
-export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
+export type LakehouseSelection = { schema:string; table:string };
+
+const quoteIdent=(name:string)=>`"${name.replaceAll('"','""')}"`;
+
+/** Read-only preview of the current version of one catalog table. */
+export function currentPreviewSql(table:CatalogTable, limit=100) {
+  return `select *\nfrom contoso.${quoteIdent(table.schema)}.${quoteIdent(table.name)}\nlimit ${limit};`;
+}
+
+export function findCatalogTable(tables:CatalogTable[], selection:LakehouseSelection|null|undefined) {
+  if (!selection) return null;
+  return tables.find(table=>table.schema===selection.schema && table.name===selection.table) ?? null;
+}
+
+export default function LakehousePage({refreshToken=0,initialTable=null}:{refreshToken?:number;initialTable?:LakehouseSelection|null}) {
   const [tables,setTables] = useState<CatalogTable[]>([]);
   const [snapshots,setSnapshots] = useState<DuckLakeSnapshot[]>([]);
   const [quality,setQuality] = useState<DbtQuality|null>(null);
@@ -34,6 +49,20 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
   const [comparison,setComparison] = useState<SnapshotComparison|null>(null);
   const [compareError,setCompareError] = useState("");
   const [comparing,setComparing] = useState(false);
+  const [currentPreview,setCurrentPreview] = useState(false);
+  const [intentMissing,setIntentMissing] = useState("");
+  const initialRef = useRef(initialTable);
+  const intentPending = useRef(Boolean(initialTable));
+  const layersRef = useRef<HTMLDivElement>(null);
+
+  async function previewCurrent(table:CatalogTable) {
+    setPreview(null); setPreviewSnapshot(null); setPreviewError(""); setCurrentPreview(true);
+    try {
+      setPreview(await postJson<QueryResult>("/api/query",{sql:currentPreviewSql(table),limit:100}));
+    } catch (err) {
+      setPreviewError(err instanceof Error ? err.message : "Table preview failed.");
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -67,7 +96,13 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
             ? String(snapshotData.snapshots[0].snapshot_id)
             : "";
       });
+      const requested=intentPending.current ? initialRef.current : null;
+      const target=findCatalogTable(catalogData.tables,requested);
+      intentPending.current=false;
+      setIntentMissing(requested && !target ? `${requested.schema}.${requested.table} is not in the DuckLake catalog.` : "");
+      if (target) void previewCurrent(target);
       setSelectedTable(current=>{
+        if (target) return target;
         if (current && catalogData.tables.some(
           table=>table.schema===current.schema && table.name===current.name
         )) return current;
@@ -82,6 +117,14 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
   },[]);
 
   useEffect(()=>{ void load(); },[load,refreshToken]);
+
+  // A deep link lands on its table: bring the selected entry into view and give it focus.
+  useEffect(()=>{
+    if (!currentPreview || !selectedTable) return;
+    const selected=layersRef.current?.querySelector<HTMLButtonElement>(".tableItemButton.selected");
+    selected?.scrollIntoView?.({block:"nearest",behavior:prefersReducedMotion() ? "auto" : "smooth"});
+    selected?.focus({preventScroll:true});
+  },[currentPreview,selectedTable]);
 
   const grouped = useMemo(()=>({
     bronze:tables.filter(table=>table.schema==="bronze"),
@@ -128,7 +171,7 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
   async function inspectSnapshot(snapshot:DuckLakeSnapshot) {
     if (!selectedTable) return;
     setLoadingSnapshot(snapshot.snapshot_id);
-    setPreview(null); setPreviewSnapshot(snapshot); setPreviewError("");
+    setPreview(null); setPreviewSnapshot(snapshot); setPreviewError(""); setCurrentPreview(false);
     try {
       const params=new URLSearchParams({
         schema:selectedTable.schema,
@@ -152,7 +195,8 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
         action={<Button onClick={load}>Refresh</Button>}
       />
       {error && <div className="errorText">{error}</div>}
-      <div className="layerColumns">
+      {intentMissing && <div className="errorText" role="status">{intentMissing}</div>}
+      <div className="layerColumns" ref={layersRef}>
         {(["bronze","silver","gold"] as const).map(layer=><section className="layer" key={layer}>
           <div className="layerTitle">
             <b>{layer.toUpperCase()}</b>
@@ -168,6 +212,7 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
                 : "tableItem tableItemButton"
             }
             key={`${table.schema}.${table.name}`}
+            aria-pressed={selectedTable?.schema===table.schema && selectedTable?.name===table.name}
             onClick={()=>{
               setSelectedTable(table);
               setPreview(null);
@@ -175,6 +220,7 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
               setPreviewError("");
               setComparison(null);
               setCompareError("");
+              setCurrentPreview(false);
             }}
           >
             <span>{table.name}</span><small>{tableHealth(table) ?? table.type}</small>
@@ -273,12 +319,14 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
       </div>
     </Card>}
 
-    {(previewSnapshot || previewError) && <Card>
+    {(previewSnapshot || previewError || currentPreview) && <Card>
       <CardHeader
-        header={<Title3>Historical preview</Title3>}
+        header={<Title3>{currentPreview ? "Table preview" : "Historical preview"}</Title3>}
         description={previewSnapshot && selectedTable
           ? `${selectedTable.schema}.${selectedTable.name} at snapshot #${previewSnapshot.snapshot_id}`
-          : "DuckLake time travel"}
+          : currentPreview && selectedTable
+            ? `${selectedTable.schema}.${selectedTable.name} · current version${preview ? ` · ${preview.columns.length} columns` : ""}`
+            : "DuckLake time travel"}
         action={preview?<Badge appearance="outline">{preview.row_count}{preview.truncated?"+":""} rows</Badge>:undefined}
       />
       {previewError && <div className="errorText">{previewError}</div>}

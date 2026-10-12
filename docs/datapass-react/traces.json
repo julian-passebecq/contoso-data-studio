@@ -211,8 +211,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 101,
-       "end": 101,
+       "start": 102,
+       "end": 102,
        "symbol": "setQuerySeed(sql ?? project.query)",
        "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
        "confidence": "inferred",
@@ -221,8 +221,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 142,
-       "end": 142,
+       "start": 154,
+       "end": 154,
        "symbol": "initialSql={querySeed}",
        "note": "Query page receives the seed",
        "confidence": "verified"
@@ -407,8 +407,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 101,
-       "end": 101,
+       "start": 102,
+       "end": 102,
        "symbol": "setQuerySeed(sql ?? project.query)",
        "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
        "confidence": "inferred",
@@ -417,8 +417,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 142,
-       "end": 142,
+       "start": 154,
+       "end": 154,
        "symbol": "initialSql={querySeed}",
        "note": "Query page receives the seed",
        "confidence": "verified"
@@ -616,8 +616,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 101,
-       "end": 101,
+       "start": 102,
+       "end": 102,
        "symbol": "setQuerySeed(sql ?? project.query)",
        "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
        "confidence": "inferred",
@@ -626,8 +626,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 142,
-       "end": 142,
+       "start": 154,
+       "end": 154,
        "symbol": "initialSql={querySeed}",
        "note": "Query page receives the seed",
        "confidence": "verified"
@@ -834,8 +834,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 101,
-       "end": 101,
+       "start": 102,
+       "end": 102,
        "symbol": "setQuerySeed(sql ?? project.query)",
        "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
        "confidence": "inferred",
@@ -844,8 +844,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 142,
-       "end": 142,
+       "start": 154,
+       "end": 154,
        "symbol": "initialSql={querySeed}",
        "note": "Query page receives the seed",
        "confidence": "verified"
@@ -1043,8 +1043,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 101,
-       "end": 101,
+       "start": 102,
+       "end": 102,
        "symbol": "setQuerySeed(sql ?? project.query)",
        "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
        "confidence": "inferred",
@@ -1053,8 +1053,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 142,
-       "end": 142,
+       "start": 154,
+       "end": 154,
        "symbol": "initialSql={querySeed}",
        "note": "Query page receives the seed",
        "confidence": "verified"
@@ -1259,8 +1259,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 101,
-       "end": 101,
+       "start": 102,
+       "end": 102,
        "symbol": "setQuerySeed(sql ?? project.query)",
        "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
        "confidence": "inferred",
@@ -1269,8 +1269,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 142,
-       "end": 142,
+       "start": 154,
+       "end": 154,
        "symbol": "initialSql={querySeed}",
        "note": "Query page receives the seed",
        "confidence": "verified"
@@ -1458,8 +1458,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 101,
-       "end": 101,
+       "start": 102,
+       "end": 102,
        "symbol": "setQuerySeed(sql ?? project.query)",
        "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
        "confidence": "inferred",
@@ -1468,8 +1468,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 142,
-       "end": 142,
+       "start": 154,
+       "end": 154,
        "symbol": "initialSql={querySeed}",
        "note": "Query page receives the seed",
        "confidence": "verified"
@@ -1660,8 +1660,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 101,
-       "end": 101,
+       "start": 102,
+       "end": 102,
        "symbol": "setQuerySeed(sql ?? project.query)",
        "note": "openProject(project,'Query',sql) seeds the editor with the preset query",
        "confidence": "inferred",
@@ -1670,8 +1670,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/App.tsx",
-       "start": 142,
-       "end": 142,
+       "start": 154,
+       "end": 154,
        "symbol": "initialSql={querySeed}",
        "note": "Query page receives the seed",
        "confidence": "verified"
@@ -1970,8 +1970,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/components/LineageStrip.tsx",
-       "start": 24,
-       "end": 27,
+       "start": 45,
+       "end": 48,
        "symbol": "export function lineageDestination",
        "note": "Each resolved relation opens Transform (dbt model) or Lakehouse (lake layer); unresolved ones are listed, not linked",
        "confidence": "verified"
@@ -1993,8 +1993,8 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/LakehousePage.tsx",
-     "start": 40,
-     "end": 45,
+     "start": 69,
+     "end": 74,
      "symbol": "\"/api/lakehouse/catalog\"",
      "note": "load() fetches catalog with snapshots, quality, project state",
      "confidence": "verified"
@@ -2048,8 +2048,8 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/TransformPage.tsx",
-     "start": 237,
-     "end": 237,
+     "start": 252,
+     "end": 252,
      "symbol": "execute(\"test\")",
      "note": "Test button: whole project",
      "confidence": "verified"
@@ -2057,8 +2057,8 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/TransformPage.tsx",
-     "start": 238,
-     "end": 238,
+     "start": 253,
+     "end": 253,
      "symbol": "execute(\"build\")",
      "note": "Build button: whole project",
      "confidence": "verified"
@@ -2066,8 +2066,8 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/TransformPage.tsx",
-     "start": 299,
-     "end": 299,
+     "start": 314,
+     "end": 314,
      "symbol": "execute(\"test\",nodeDetail.name)",
      "note": "Test model button: selector = selected node name",
      "confidence": "inferred",
@@ -2076,8 +2076,8 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/TransformPage.tsx",
-     "start": 305,
-     "end": 305,
+     "start": 320,
+     "end": 320,
      "symbol": "execute(\"build\",nodeDetail.name)",
      "note": "Build model button: selector = selected node name",
      "confidence": "inferred",
@@ -2086,8 +2086,8 @@
     {
      "layer": "react",
      "path": "apps/web/src/pages/TransformPage.tsx",
-     "start": 118,
-     "end": 123,
+     "start": 132,
+     "end": 137,
      "symbol": "/api/dbt/${command}${suffix}",
      "note": "Template URL: command in {build,test}, optional ?selector=",
      "confidence": "inferred",
@@ -2462,8 +2462,8 @@
       {
        "layer": "react",
        "path": "apps/web/src/pages/TransformPage.tsx",
-       "start": 299,
-       "end": 305,
+       "start": 314,
+       "end": 320,
        "symbol": "nodeDetail.name",
        "note": "Selected DAG node name",
        "confidence": "inferred",
@@ -2533,8 +2533,8 @@
     {
      "layer": "react",
      "path": "apps/web/src/App.tsx",
-     "start": 88,
-     "end": 98,
+     "start": 89,
+     "end": 99,
      "symbol": "/api/projects/${project.scenario}/open",
      "note": "openProject posts to the open route",
      "confidence": "inferred",
