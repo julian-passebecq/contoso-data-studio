@@ -1,12 +1,16 @@
-# Resume - contoso-data-studio lane 07-contoso (full release 2026-10-10)
+# Resume - contoso-data-studio lane 07-contoso (updated 2026-10-12 night)
 
 - Surface: Claude Code desktop, model claude-opus-5-5; native session id not exposed (null).
-- Packet: `galaxy-full-release-2026-10-10/07-contoso` rev 1 (kept outside this public repo). Baseline f2d0c75.
-- Merged: #17 package (a671b36), #16 traces (d23949f), #18 Mosaic consumer (d2056c1), #19 journey (3d257a0), then
-  the lead PR (Mosaic pin -> f3a02bc, strict schema gate required, release notes/acceptance reconciliation).
-- Acceptance: `ACCEPTANCE.md` section "Full release 2026-10-10"; post-merge receipt appended there after final CI.
-- Re-qualify: `python tools/qa_retail_journey.py --mosaic <datapass-mosaicstudio>`; `node tools/open_in_mosaic.mjs
-  --mosaic <checkout> --export <journey>/export --concept <journey>/contoso-sales-forecasting.concept.json --out <dir>`;
-  `python tools/package_release.py && python tools/qa_install_package.py`; `pytest -q apps/api/tests` (venv Scripts on PATH).
-- Owner gates (not authorized here): tag/release, public distribution, Fabric/cloud, E2E-08 cross-product release set.
-- Processes: none left running by the lead. Coder worktrees `wf_7c39816e-2d9-*` remain (no cleanup authorized).
+- Full release (10 Oct): #17 package, #16 traces, #18 Mosaic consumer, #19 journey, #20 lead, #21 receipt (final main fe83dbd).
+- E2E-05 (11-12 Oct): #22 Mosaic pin b3f194d, #23 receipt (PASS), #24 React 7f56479 leg (13/14), #28 React d55e65d
+  re-check: 14/14 at a6d5d08; 13/14 at current main because the analyzer does not follow query_with_lineage ->
+  _run_read_only (React gap, reported). Receipts in `handoff/evidence/e2e-05-*.json`.
+- Night 12 Oct (merged): #25 Transform selector builds app-lab Gold with its var, 0-node dbt runs flagged, web 0.2.0;
+  #27 web tests on Node 22+26; #26 Query "Reads from" runtime lineage (DuckDB-resolved, linked to dbt models).
+  Windows clean-venv package install PASS at 9d99330 (zip sha256 bc022103..., 14/14 checks).
+- In flight: Query lineage deep links to Lakehouse/Transform; retail Gold "last built / not rebuilt" marker after FOIL builds.
+- Re-qualify: `python tools/qa_retail_journey.py --mosaic <datapass-mosaicstudio>`; `node tools/open_in_mosaic.mjs ...`;
+  `python tools/package_release.py && python tools/qa_install_package.py`; `pytest -q apps/api/tests` (venv Scripts on PATH);
+  `npm --prefix apps/web test` (Node 22 or 26); React leg: React CLI `datapass-analyze.mjs analyze <root> --oracle`.
+- Owner gates (not authorized): tag/release/public distribution, Fabric/cloud (E2E-09), E2E-08 release-set assembly.
+- Processes: none left running by the lead. Worktrees from workflows remain (no cleanup authorized).
