@@ -260,7 +260,7 @@
        "start": 518,
        "end": 530,
        "symbol": "def query",
-       "note": "POST /api/query -> ducklake.query",
+       "note": "POST /api/query -> ducklake.query_with_lineage",
        "confidence": "verified"
       },
       {
@@ -456,7 +456,7 @@
        "start": 518,
        "end": 530,
        "symbol": "def query",
-       "note": "POST /api/query -> ducklake.query",
+       "note": "POST /api/query -> ducklake.query_with_lineage",
        "confidence": "verified"
       },
       {
@@ -665,7 +665,7 @@
        "start": 518,
        "end": 530,
        "symbol": "def query",
-       "note": "POST /api/query -> ducklake.query",
+       "note": "POST /api/query -> ducklake.query_with_lineage",
        "confidence": "verified"
       },
       {
@@ -883,7 +883,7 @@
        "start": 518,
        "end": 530,
        "symbol": "def query",
-       "note": "POST /api/query -> ducklake.query",
+       "note": "POST /api/query -> ducklake.query_with_lineage",
        "confidence": "verified"
       },
       {
@@ -1092,7 +1092,7 @@
        "start": 518,
        "end": 530,
        "symbol": "def query",
-       "note": "POST /api/query -> ducklake.query",
+       "note": "POST /api/query -> ducklake.query_with_lineage",
        "confidence": "verified"
       },
       {
@@ -1308,7 +1308,7 @@
        "start": 518,
        "end": 530,
        "symbol": "def query",
-       "note": "POST /api/query -> ducklake.query",
+       "note": "POST /api/query -> ducklake.query_with_lineage",
        "confidence": "verified"
       },
       {
@@ -1507,7 +1507,7 @@
        "start": 518,
        "end": 530,
        "symbol": "def query",
-       "note": "POST /api/query -> ducklake.query",
+       "note": "POST /api/query -> ducklake.query_with_lineage",
        "confidence": "verified"
       },
       {
@@ -1709,7 +1709,7 @@
        "start": 518,
        "end": 530,
        "symbol": "def query",
-       "note": "POST /api/query -> ducklake.query",
+       "note": "POST /api/query -> ducklake.query_with_lineage",
        "confidence": "verified"
       },
       {
@@ -2889,5 +2889,6 @@
   "inferred": "Hop depends on a runtime branch or a template, but every candidate is enumerated from code.",
   "unresolved": "Hop target depends on runtime data or user input that code does not enumerate."
  },
- "status_rule": "RESOLVED when every step is verified or inferred; PARTIAL when at least one step is unresolved (each such edge is also listed under 'unresolved')."
+ "status_rule": "RESOLVED when every step is verified or inferred; PARTIAL when at least one step is unresolved (each such edge is also listed under 'unresolved').",
+ "status_note": "Data notes (catalog contents, file contents) are listed under UNRESOLVED/notes but do not change a hop's confidence."
 }

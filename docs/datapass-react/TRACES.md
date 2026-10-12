@@ -1,6 +1,6 @@
 # DataPass React consumer traces
 
-Source commit: `f2d0c759b2362b94db0cd73c3a9d901ed4aed9f0` (origin/main the line numbers are checked against). Machine-readable twin: `traces.json`. Verify with `python -I docs/datapass-react/check_traces.py` (add `--head` to read files from git HEAD).
+Source commit: `f2d0c759b2362b94db0cd73c3a9d901ed4aed9f0` (origin/main the line numbers are checked against). Machine-readable twin: `traces.json`, rendered into this file with `python -I docs/datapass-react/render_traces.py` (do not edit by hand; add `--check` to fail when this file is stale). Verify with `python -I docs/datapass-react/check_traces.py` (add `--head` to read files from git HEAD).
 
 Confidence (DataPass React analyzer vocabulary), on every step:
 
@@ -34,7 +34,7 @@ Status: RESOLVED when every step is verified or inferred; PARTIAL when at least 
 | apps-architecture-concept | RESOLVED | 5 | 0 | 0 |
 | charts-export-mosaic | RESOLVED | 9 | 4 | 0 |
 | workspace-switch | RESOLVED | 6 | 1 | 0 |
-| **total** | | 207 | 67 | 3 |
+| **total** | | 215 | 67 | 3 |
 
 ## charts-kpi-revenue (RESOLVED)
 Charts KPIs: Revenue card and monthly revenue chart (Gold monthly_sales.revenue)
@@ -305,7 +305,7 @@ Free SQL typed or edited in the Query editor
 |---|---|---|---|---|
 | react | `apps/web/src/pages/QueryPage.tsx:138-138` | `setSql(event.target.value)` | unresolved | Editor text is user input |
 | react | `apps/web/src/pages/QueryPage.tsx:123-123` | `setSql(example.sql)` | inferred | Example buttons: EXAMPLES or FOIL_EXAMPLES literals (Candidates are the literal EXAMPLES / FOIL_EXAMPLES in QueryPage.tsx:13-32.) |
-| react | `apps/web/src/pages/QueryPage.tsx:95-95` | `from contoso.${table.schema}.${table.name}` | inferred | Catalog click seeds select * from a catalog table (schema is bronze|silver|gold; names are catalog tables produced by the generator and the dbt models.) |
+| react | `apps/web/src/pages/QueryPage.tsx:95-95` | `from contoso.${table.schema}.${table.name}` | inferred | Catalog click seeds select * from a catalog table (schema is bronze/silver/gold; names are catalog tables produced by the generator and the dbt models.) |
 | react | `apps/web/src/pages/QueryPage.tsx:171-171` | `setSql(item.sql)` | unresolved | History entries replay earlier SQL from localStorage |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query |

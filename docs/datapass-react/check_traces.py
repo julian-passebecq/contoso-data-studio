@@ -4,6 +4,7 @@ For every step of every trace and sub-trace: the path exists, the range is insid
 the symbol appears in the range, and confidence is one of verified|inferred|unresolved.
 For every trace: status RESOLVED only if no step is unresolved; a trace with an unresolved
 step must be PARTIAL and must list its unresolved edges. Prints counts per confidence.
+TRACES.md must equal what render_traces.py renders from traces.json (render_traces.py --check).
 
 Default reads the working tree. With --head it reads files from git HEAD (the commit
 named in source_commit), which is the reference for the line numbers.
@@ -84,6 +85,12 @@ for t in walk(doc["traces"]):
     for c in CONFIDENCE:
         totals[c] += counts[c]
     statuses.append(f"{tid}={status} (v{counts['verified']}/i{counts['inferred']}/u{counts['unresolved']})")
+
+render = subprocess.run([sys.executable, "-I", str(Path(__file__).parent / "render_traces.py"), "--check"],
+                        capture_output=True, text=True, encoding="utf-8")
+if render.returncode != 0:
+    print(f"RENDER {render.stdout.strip() or render.stderr.strip()}")
+    bad += 1
 
 print("\n".join(statuses))
 print("confidence: " + ", ".join(f"{c}={totals[c]}" for c in CONFIDENCE))
