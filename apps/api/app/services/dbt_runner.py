@@ -14,6 +14,12 @@ ALLOWED_COMMANDS = {"build", "run", "test", "parse"}
 # Fabric-style app lab models (docs/fabric-apps) are disabled unless dbt gets
 # --vars '{"fabric_apps_enabled": true}'; a build of one of them must pass it.
 FABRIC_APPS_DIR = "fabric_apps"
+DBT_PROJECT = "contoso_data_studio"
+# Per-model record of the last successful dbt build, kept next to run_results.json (which dbt
+# overwrites on every invocation). A FOIL build selects path:models/foil only, so retail Gold keeps
+# its previous build: this ledger is what lets the app say so instead of staying silent.
+BUILD_LEDGER = "contoso_build_ledger.json"
+BUILD_COMMANDS = {"build", "run"}
 
 
 class DbtService:
@@ -389,6 +395,7 @@ class DbtService:
         return {
             "elapsed_time": payload.get("elapsed_time"),
             "generated_at": payload.get("metadata", {}).get("generated_at"),
+            "invocation_id": payload.get("metadata", {}).get("invocation_id"),
             "results": results,
         }
 
@@ -476,6 +483,8 @@ class DbtService:
         run_results = self._read_run_results()
         if run_results is not None and previous is not None and run_results["generated_at"] == previous_generated_at:
             run_results = None  # dbt wrote no new run_results: never show the previous run as this one
+        if run_results is not None and command in BUILD_COMMANDS:
+            self._record_build(command, selected_model, bool(dbt_vars.get("foil_enabled")), run_results)
         nodes_executed = len(run_results["results"]) if run_results else 0
         ok = completed.returncode == 0
         warning = None
@@ -494,3 +503,126 @@ class DbtService:
             "output": combined[-50_000:],
             "run_results": run_results or {"elapsed_time": None, "generated_at": None, "results": []},
         }
+
+    # ----- per-model build ledger --------------------------------------------------------
+    @property
+    def _ledger_path(self) -> Path:
+        return self.settings.dbt_target_path / BUILD_LEDGER
+
+    def _read_ledger(self) -> dict[str, Any]:
+        try:
+            payload = json.loads(self._ledger_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            payload = {}
+        if not isinstance(payload, dict):
+            payload = {}
+        models = payload.get("models")
+        latest = payload.get("latest_build")
+        return {
+            "models": models if isinstance(models, dict) else {},
+            "latest_build": latest if isinstance(latest, dict) else None,
+        }
+
+    @staticmethod
+    def _merge_build(ledger: dict[str, Any], build: dict[str, Any], results: list[dict[str, Any]]) -> None:
+        """Make `build` the latest build and stamp every model it built successfully."""
+        statuses = {
+            str(item.get("unique_id")): item.get("status")
+            for item in results
+            if str(item.get("unique_id", "")).startswith("model.")
+        }
+        ledger["latest_build"] = {**build, "models": statuses}
+        for unique_id, status in statuses.items():
+            if status == "success":
+                ledger["models"][unique_id] = dict(build)
+
+    def _record_build(
+        self,
+        command: str,
+        selector: str | None,
+        foil_active: bool,
+        run_results: dict[str, Any],
+    ) -> None:
+        if not any(str(item.get("unique_id", "")).startswith("model.") for item in run_results["results"]):
+            return
+        ledger = self._read_ledger()
+        build = {
+            "invocation_id": run_results.get("invocation_id"),
+            "generated_at": run_results.get("generated_at"),
+            "command": command,
+            "selector": selector,
+            "scope": "foil" if foil_active else "retail",
+        }
+        self._merge_build(ledger, build, run_results["results"])
+        path = self._ledger_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(ledger, indent=2), encoding="utf-8")
+        tmp.replace(path)
+
+    def _gold_model_files(self) -> list[dict[str, Any]]:
+        """Every Gold model of the project, retail, FOIL and app lab alike (not only the active ones)."""
+        models_root = self.settings.dbt_path / "models"
+        if not models_root.exists():
+            return []
+        models = []
+        for path in sorted(models_root.rglob("*.sql")):
+            if path.parent.name != "gold":
+                continue
+            relative = path.relative_to(self.settings.dbt_path)
+            if "foil" in relative.parts:
+                scope = "foil"
+            elif FABRIC_APPS_DIR in relative.parts:
+                scope = "app_lab"
+            else:
+                scope = "retail"
+            models.append({"name": path.stem, "path": relative.as_posix(), "scope": scope})
+        return models
+
+    @staticmethod
+    def _short_id(build: dict[str, Any] | None) -> str | None:
+        invocation = (build or {}).get("invocation_id")
+        return str(invocation)[:8] if invocation else None
+
+    def gold_builds(self) -> dict[str, Any]:
+        """For each Gold model: the dbt invocation and time of its last successful build, and
+        whether the latest dbt build/run rebuilt it (a FOIL build never rebuilds retail Gold)."""
+        ledger = self._read_ledger()
+        latest_results = self._read_run_results()
+        if (
+            ledger["latest_build"] is None
+            and latest_results is not None
+            and latest_results.get("generated_at")
+            and any(item["unique_id"].startswith("model.") for item in latest_results["results"])
+        ):
+            # A workspace built before the ledger existed: its run_results.json is the only record,
+            # so count it as the latest build, command and scope unknown.
+            self._merge_build(ledger, {
+                "invocation_id": latest_results.get("invocation_id"),
+                "generated_at": latest_results.get("generated_at"),
+                "command": None,
+                "selector": None,
+                "scope": None,
+            }, latest_results["results"])
+
+        foil_active = self._foil_active()
+        latest = ledger["latest_build"]
+        latest_models: dict[str, Any] = (latest or {}).get("models") or {}
+        rows = []
+        for model in self._gold_model_files():
+            unique_id = f"model.{DBT_PROJECT}.{model['name']}"
+            last = ledger["models"].get(unique_id)
+            latest_status = latest_models.get(unique_id)
+            rows.append({
+                **model,
+                "unique_id": unique_id,
+                "in_active_project": (model["scope"] == "foil") == foil_active,
+                "last_build": {**last, "short_id": self._short_id(last)} if last else None,
+                "latest_build_status": latest_status,
+                "rebuilt_by_latest": latest is not None and latest_status == "success",
+            })
+        summary = None
+        if latest:
+            summary = {key: value for key, value in latest.items() if key != "models"}
+            summary["short_id"] = self._short_id(latest)
+        return {"foil_active": foil_active, "latest_build": summary, "models": rows}

@@ -44,7 +44,7 @@ Charts KPIs: Revenue card and monthly revenue chart (Gold monthly_sales.revenue)
 | react | `apps/web/src/pages/ChartsPage.tsx:286-295` | `contoso.gold.monthly_sales` | inferred | Default (retail-baseline) branch posts two literal SQL strings to /api/query (Reached only when the active scenario falls through the scenario-specific branches of loadDashboard (candidates: the scenario ids in projects.ts); SQL itself is literal.) |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
 | http | `apps/web/src/pages/ChartsPage.tsx:286-286` | `"/api/query"` | verified | POST /api/query body {sql,limit} |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | FastAPI route POST /api/query -> ducklake.query_with_lineage |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | FastAPI route POST /api/query -> ducklake.query_with_lineage |
 | service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes statement on DuckLake read-only connection |
 | react | `apps/web/src/pages/ChartsPage.tsx:297-301` | `label:"Revenue"` | verified | rows[0][0] (round(sum(revenue),2)) becomes the Revenue KPI card |
 | sql | `apps/web/src/pages/ChartsPage.tsx:287-287` | `sum(revenue)` | verified | select round(sum(revenue),2) revenue ... from contoso.gold.monthly_sales |
@@ -63,7 +63,7 @@ Query page: run SQL (8 preset sub-traces + free SQL)
 |---|---|---|---|---|
 | react | `apps/web/src/pages/QueryPage.tsx:67-71` | `"/api/query"` | verified | run() posts the editor SQL with limit 500 |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query |
 | service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation |
 
 UNRESOLVED / notes:
@@ -83,7 +83,7 @@ Gold fields: `contoso.gold.store_performance.store_country`, `contoso.gold.store
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
 | service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:19-22` | `store_country as country` | verified | Columns country, revenue, gross_margin, margin_rate (margin_rate computed in the preset) |
 | dbt | `dbt/models/gold/store_performance.sql:5-5` | `s.store_country` | verified | store_country passed through from Silver |
@@ -111,7 +111,7 @@ Gold fields: `contoso.gold.channel_performance.order_year`, `contoso.gold.channe
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
 | service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:35-39` | `revenue_share` | verified | Columns order_year, channel, revenue, revenue_share, gross_margin |
 | dbt | `dbt/models/gold/channel_performance.sql:4-5` | `as order_year` | verified | order_year = year(order_date); channel |
@@ -140,7 +140,7 @@ Gold fields: `contoso.gold.monthly_sales.order_month`, `contoso.gold.monthly_sal
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
 | service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:51-54` | `avg(avg_discount_rate)` | verified | Columns year, margin_rate, avg_discount_rate, revenue |
 | dbt | `dbt/models/gold/monthly_sales.sql:3-3` | `as order_month` | verified | order_month = month of order_date |
@@ -170,7 +170,7 @@ Gold fields: `contoso.gold.delivery_metrics.channel`, `contoso.gold.delivery_met
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
 | service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:67-70` | `avg(p90_delivery_days)` | verified | Columns channel, avg_delivery_days, p90_delivery_days, over_7_day_rate |
 | dbt | `dbt/models/gold/delivery_metrics.sql:4-4` | `channel` | verified | channel |
@@ -199,7 +199,7 @@ Gold fields: `contoso.gold.currency_exposure.currency`, `contoso.gold.currency_e
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
 | service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | sql | `apps/web/src/projects.ts:83-87` | `sum(revenue_usd)` | verified | Columns currency, min_rate, max_rate, rate_spread, revenue_usd |
 | dbt | `dbt/models/gold/currency_exposure.sql:5-6` | `as avg_exchange_rate_to_usd` | verified | currency and monthly average rate |
@@ -229,7 +229,7 @@ Gold fields: `contoso.gold.foil_energy_risk.draw_count`, `contoso.gold.foil_ener
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
 | service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | dbt | `dbt/models/foil/gold/foil_energy_risk.sql:2-6` | `as aep_p90_mwh` | verified | draw_count, aep_p50 (0.5), aep_p90 (0.1 quantile), aep_p10 (0.9 quantile) |
 | dbt | `dbt/models/foil/gold/foil_energy_risk.sql:13-14` | `ref('foil_experiment_metrics')` | verified | monte_carlo samples only |
@@ -257,7 +257,7 @@ Gold fields: `contoso.gold.foil_project_summary.capex_eur`, `contoso.gold.foil_p
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
 | service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | dbt | `dbt/models/foil/gold/foil_project_summary.sql:3-5` | `as break_even_price_eur_mwh` | verified | capex, opex, npv, lcoe and break_even = lcoe from reference experiments |
 | dbt | `dbt/models/foil/gold/foil_project_summary.sql:7-7` | `r.positive_npv_probability` | verified | positive_npv_probability from foil_energy_risk |
@@ -285,7 +285,7 @@ Gold fields: `contoso.gold.foil_sensitivity.driver`, `contoso.gold.foil_sensitiv
 | react | `apps/web/src/pages/QueryPage.tsx:54-54` | `setSql(initialSql)` | verified | Editor state takes the seed |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query -> ducklake.query_with_lineage |
 | service | `apps/api/app/services/ducklake.py:310-345` | `def query_with_lineage` | verified | Read-only validation, executes on the DuckLake read-only connection |
 | dbt | `dbt/models/foil/gold/foil_sensitivity.sql:2-4` | `as npv_delta_eur` | verified | driver, relative_change, npv_delta and lcoe_delta vs the reference experiment |
 | dbt | `dbt/models/foil/gold/foil_sensitivity.sql:5-7` | `ref('foil_experiment_metrics')` | verified | sensitivity rows joined to reference rows |
@@ -308,10 +308,10 @@ Free SQL typed or edited in the Query editor
 | react | `apps/web/src/pages/QueryPage.tsx:95-95` | `from contoso.${table.schema}.${table.name}` | inferred | Catalog click seeds select * from a catalog table (schema is bronze|silver|gold; names are catalog tables produced by the generator and the dbt models.) |
 | react | `apps/web/src/pages/QueryPage.tsx:171-171` | `setSql(item.sql)` | unresolved | History entries replay earlier SQL from localStorage |
 | react | `apps/web/src/pages/QueryPage.tsx:71-71` | `"/api/query"` | verified | run() posts {sql,limit:500} |
-| api | `apps/api/app/main.py:510-522` | `def query` | verified | POST /api/query |
+| api | `apps/api/app/main.py:518-530` | `def query` | verified | POST /api/query |
 | service | `apps/api/app/services/ducklake.py:324-328` | `FORBIDDEN_SQL` | verified | Only one read-only statement; mutation rejected |
 | service | `apps/api/app/services/ducklake.py:332-332` | `cur.description` | unresolved | Result columns known only at run time; the columns the statement read are resolved at run time by the lineage steps below |
-| api | `apps/api/app/main.py:504-504` | `dbt.lineage()` | verified | Runtime lineage: /api/query passes the dbt lineage nodes (same source as the Transform page) to the service |
+| api | `apps/api/app/main.py:512-512` | `dbt.lineage()` | verified | Runtime lineage: /api/query passes the dbt lineage nodes (same source as the Transform page) to the service |
 | service | `apps/api/app/services/ducklake.py:337-337` | `sql_lineage.resolve(con, statement, dbt_nodes)` | verified | Runtime lineage: after the validated statement ran, the same read-only connection resolves what it read; a lineage error never fails the query |
 | service | `apps/api/app/services/sql_lineage.py:46-46` | `json_serialize_sql` | verified | DuckDB's parser lists the relations the statement names (catalog/schema/table, AT (VERSION => n)); CTE names and table functions are told apart |
 | service | `apps/api/app/services/sql_lineage.py:87-87` | `EXPLAIN (FORMAT JSON)` | verified | DuckDB binds the statement (EXPLAIN, not executed) and each lake scan names its table and projected columns: the columns read are resolved at run time |
@@ -330,7 +330,7 @@ Lakehouse catalog: bronze/silver/gold table list
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| react | `apps/web/src/pages/LakehousePage.tsx:69-74` | `"/api/lakehouse/catalog"` | verified | load() fetches catalog with snapshots, quality, project state |
+| react | `apps/web/src/pages/LakehousePage.tsx:67-72` | `"/api/lakehouse/catalog"` | verified | load() fetches catalog with snapshots, quality, project state |
 | react | `apps/web/src/api.ts:28-30` | `getJson` | verified | GET helper |
 | api | `apps/api/app/main.py:319-324` | `def catalog` | verified | GET /api/lakehouse/catalog -> {tables} |
 | service | `apps/api/app/services/ducklake.py:154-172` | `def catalog` | verified | Reads the DuckLake SQLite metadata catalog, schemas bronze/silver/gold |
@@ -344,24 +344,24 @@ Transform page: dbt build/test (callers, route, runner branch, models built)
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| react | `apps/web/src/pages/TransformPage.tsx:252-252` | `execute("test")` | verified | Test button: whole project |
-| react | `apps/web/src/pages/TransformPage.tsx:253-253` | `execute("build")` | verified | Build button: whole project |
-| react | `apps/web/src/pages/TransformPage.tsx:314-314` | `execute("test",nodeDetail.name)` | inferred | Test model button: selector = selected node name (nodeDetail.name comes from GET /api/dbt/node (manifest); the server accepts it only if it equals one model of _models().) |
-| react | `apps/web/src/pages/TransformPage.tsx:320-320` | `execute("build",nodeDetail.name)` | inferred | Build model button: selector = selected node name (nodeDetail.name comes from GET /api/dbt/node (manifest); the server accepts it only if it equals one model of _models().) |
-| react | `apps/web/src/pages/TransformPage.tsx:132-137` | `/api/dbt/${command}${suffix}` | inferred | Template URL: command in {build,test}, optional ?selector= (command is typed "build"/"test" and the two callers pass literals; selector candidates are the model names (see branch-selector).) |
+| react | `apps/web/src/pages/TransformPage.tsx:256-256` | `execute("test")` | verified | Test button: whole project |
+| react | `apps/web/src/pages/TransformPage.tsx:257-257` | `execute("build")` | verified | Build button: whole project |
+| react | `apps/web/src/pages/TransformPage.tsx:319-319` | `execute("test",nodeDetail.name)` | inferred | Test model button: selector = selected node name (nodeDetail.name comes from GET /api/dbt/node (manifest); the server accepts it only if it equals one model of _models().) |
+| react | `apps/web/src/pages/TransformPage.tsx:325-325` | `execute("build",nodeDetail.name)` | inferred | Build model button: selector = selected node name (nodeDetail.name comes from GET /api/dbt/node (manifest); the server accepts it only if it equals one model of _models().) |
+| react | `apps/web/src/pages/TransformPage.tsx:136-141` | `/api/dbt/${command}${suffix}` | inferred | Template URL: command in {build,test}, optional ?selector= (command is typed "build"/"test" and the two callers pass literals; selector candidates are the model names (see branch-selector).) |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:452-452` | `@app.post("/api/dbt/{command}")` | verified | FastAPI route POST /api/dbt/{command} |
-| api | `apps/api/app/main.py:453-458` | `dbt.run(command, selector)` | verified | selector query param 1..200 chars; ValueError -> 400, RuntimeError -> 409 |
-| service | `apps/api/app/services/dbt_runner.py:418-420` | `def run` | verified | Takes the catalog lock then _run |
-| service | `apps/api/app/services/dbt_runner.py:422-424` | `ALLOWED_COMMANDS` | verified | command must be build/run/test/parse |
+| api | `apps/api/app/main.py:460-460` | `@app.post("/api/dbt/{command}")` | verified | FastAPI route POST /api/dbt/{command} |
+| api | `apps/api/app/main.py:461-466` | `dbt.run(command, selector)` | verified | selector query param 1..200 chars; ValueError -> 400, RuntimeError -> 409 |
+| service | `apps/api/app/services/dbt_runner.py:425-427` | `def run` | verified | Takes the catalog lock then _run |
+| service | `apps/api/app/services/dbt_runner.py:429-431` | `ALLOWED_COMMANDS` | verified | command must be build/run/test/parse |
 | service | `apps/api/app/services/dbt_runner.py:13-13` | `ALLOWED_COMMANDS` | verified | build/run/test/parse |
-| service | `apps/api/app/services/dbt_runner.py:431-439` | `"--project-dir"` | verified | dbt <command> --project-dir dbt --profiles-dir dbt |
-| service | `apps/api/app/services/dbt_runner.py:27-30` | `def _foil_active` | inferred | Branch flag: active generator run scenario starts with foil- (Runtime workspace state; two outcomes (FOIL scenario or retail scenario), both enumerated.) |
-| service | `apps/api/app/services/dbt_runner.py:442-445` | `path:models/foil` | inferred | FOIL branch: --vars foil_enabled, --select path:models/foil when no selector (Taken only when _foil_active() is true.) |
-| service | `apps/api/app/services/dbt_runner.py:446-460` | `_validate_model_selector` | inferred | Selector branch: --select <model> (Taken only when a selector is given; candidates enumerated by _models().) |
-| service | `apps/api/app/services/dbt_runner.py:405-416` | `def _validate_model_selector` | verified | Selector must equal exactly one model name of _models() |
-| service | `apps/api/app/services/dbt_runner.py:32-51` | `def _models` | inferred | Model list = *.sql under dbt/models, foil folder only in the FOIL branch (Filter depends on _foil_active(); both model lists are enumerated in the sub-traces.) |
-| service | `apps/api/app/services/dbt_runner.py:466-474` | `subprocess.run(` | verified | dbt subprocess, timeout 300 s |
+| service | `apps/api/app/services/dbt_runner.py:438-446` | `"--project-dir"` | verified | dbt <command> --project-dir dbt --profiles-dir dbt |
+| service | `apps/api/app/services/dbt_runner.py:33-36` | `def _foil_active` | inferred | Branch flag: active generator run scenario starts with foil- (Runtime workspace state; two outcomes (FOIL scenario or retail scenario), both enumerated.) |
+| service | `apps/api/app/services/dbt_runner.py:449-452` | `path:models/foil` | inferred | FOIL branch: --vars foil_enabled, --select path:models/foil when no selector (Taken only when _foil_active() is true.) |
+| service | `apps/api/app/services/dbt_runner.py:453-467` | `_validate_model_selector` | inferred | Selector branch: --select <model> (Taken only when a selector is given; candidates enumerated by _models().) |
+| service | `apps/api/app/services/dbt_runner.py:412-423` | `def _validate_model_selector` | verified | Selector must equal exactly one model name of _models() |
+| service | `apps/api/app/services/dbt_runner.py:38-57` | `def _models` | inferred | Model list = *.sql under dbt/models, foil folder only in the FOIL branch (Filter depends on _foil_active(); both model lists are enumerated in the sub-traces.) |
+| service | `apps/api/app/services/dbt_runner.py:473-481` | `subprocess.run(` | verified | dbt subprocess, timeout 300 s |
 
 ### transform-dbt-build/branch-retail (RESOLVED)
 Retail branch (_foil_active() false, no selector): models built
@@ -370,7 +370,7 @@ Models built: `silver.stg_sales`, `gold.channel_performance`, `gold.currency_exp
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| service | `apps/api/app/services/dbt_runner.py:442-442` | `if self._foil_active():` | inferred | Condition false: no --vars, no --select, dbt builds every enabled model (Runtime branch on the active run scenario; this sub-trace is the non-FOIL outcome.) |
+| service | `apps/api/app/services/dbt_runner.py:449-449` | `if self._foil_active():` | inferred | Condition false: no --vars, no --select, dbt builds every enabled model (Runtime branch on the active run scenario; this sub-trace is the non-FOIL outcome.) |
 | dbt | `dbt/dbt_project.yml:9-14` | `+schema: gold` | verified | silver and gold folders materialize as tables in schemas silver and gold |
 | dbt | `dbt/models/silver/stg_sales.sql:23-23` | `source('bronze','sales')` | verified | silver.stg_sales |
 | dbt | `dbt/models/gold/channel_performance.sql:11-11` | `ref('stg_sales')` | verified | gold.channel_performance |
@@ -392,8 +392,8 @@ Retail Silver/Gold models are not rebuilt in this branch (path selector); they k
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| service | `apps/api/app/services/dbt_runner.py:443-443` | `foil_enabled` | inferred | --vars {"foil_enabled": true} (Runtime branch on the active run scenario; this sub-trace is the FOIL outcome.) |
-| service | `apps/api/app/services/dbt_runner.py:444-445` | `--select` | inferred | --select path:models/foil (not for parse, not with a selector) (Runtime branch on the active run scenario; this sub-trace is the FOIL outcome.) |
+| service | `apps/api/app/services/dbt_runner.py:450-450` | `foil_enabled` | inferred | --vars {"foil_enabled": true} (Runtime branch on the active run scenario; this sub-trace is the FOIL outcome.) |
+| service | `apps/api/app/services/dbt_runner.py:451-452` | `--select` | inferred | --select path:models/foil (not for parse, not with a selector) (Runtime branch on the active run scenario; this sub-trace is the FOIL outcome.) |
 | dbt | `dbt/models/foil/sources.yml:3-7` | `var('foil_enabled', false)` | verified | foil sources enabled by the var |
 | dbt | `dbt/models/foil/silver/foil_experiments.sql:6-6` | `source('foil', 'foil_trials')` | verified | silver.foil_experiments |
 | dbt | `dbt/models/foil/silver/foil_cashflows.sql:10-10` | `ref('foil_experiments')` | verified | silver.foil_cashflows |
@@ -410,11 +410,11 @@ Models built: `one of the models listed in branch-retail or branch-foil (plus fa
 
 | Layer | Location | Symbol | Confidence | Note |
 |---|---|---|---|---|
-| react | `apps/web/src/pages/TransformPage.tsx:314-320` | `nodeDetail.name` | inferred | Selected DAG node name (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
-| service | `apps/api/app/services/dbt_runner.py:175-175` | `_layer_for_dependency` | inferred | node_detail name comes from the dbt manifest (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
-| service | `apps/api/app/services/dbt_runner.py:446-460` | `args.extend(["--select", selected_model])` | inferred | --select <model> for build/run/test; parse rejects a selector (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
-| service | `apps/api/app/services/dbt_runner.py:409-415` | `Unknown dbt model selector` | verified | Exactly one model of _models() must match, else HTTP 400 |
-| service | `apps/api/app/services/dbt_runner.py:40-41` | `("foil" in relative.parts) != foil_active` | inferred | Candidates: retail models (incl. fabric_apps) or foil models, by branch (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
+| react | `apps/web/src/pages/TransformPage.tsx:304-310` | `nodeDetail.name` | inferred | Selected DAG node name (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
+| service | `apps/api/app/services/dbt_runner.py:181-181` | `_layer_for_dependency` | inferred | node_detail name comes from the dbt manifest (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
+| service | `apps/api/app/services/dbt_runner.py:453-467` | `args.extend(["--select", selected_model])` | inferred | --select <model> for build/run/test; parse rejects a selector (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
+| service | `apps/api/app/services/dbt_runner.py:416-422` | `Unknown dbt model selector` | verified | Exactly one model of _models() must match, else HTTP 400 |
+| service | `apps/api/app/services/dbt_runner.py:46-47` | `("foil" in relative.parts) != foil_active` | inferred | Candidates: retail models (incl. fabric_apps) or foil models, by branch (Selector is a runtime value restricted to the model names enumerated by _models() for the active branch.) |
 
 ## projects-open (RESOLVED)
 Projects open: open a project scenario
@@ -430,7 +430,7 @@ Projects open: open a project scenario
 | service | `apps/api/app/services/projects.py:81-81` | `load_parquet_to_bronze` | verified | Loads parquet into bronze |
 | service | `apps/api/app/services/ducklake.py:139-148` | `def load_parquet_to_bronze` | inferred | CREATE OR REPLACE TABLE contoso.bronze.{table} (Table name is the f-string key of run_files(): retail tables or FOIL_FILES depending on the scenario.) |
 | service | `apps/api/app/services/projects.py:84-84` | `self.dbt.run("build")` | verified | dbt build to produce Silver/Gold |
-| service | `apps/api/app/services/dbt_runner.py:418-495` | `def run` | verified | dbt subprocess |
+| service | `apps/api/app/services/dbt_runner.py:425-504` | `def run` | verified | dbt subprocess |
 | dbt | `dbt/models/gold/monthly_sales.sql:1-12` | `date_trunc` | inferred | Gold output of the build (Gold output depends on the dbt runner branch (_foil_active): retail Gold models or gold.foil_* (see transform-dbt-build).) |
 
 ## apps-architecture-concept (RESOLVED)
@@ -455,7 +455,7 @@ Charts export for Mosaic: Gold mart artifact (monthly_sales.revenue, unit USD)
 |---|---|---|---|---|
 | react | `apps/web/src/components/ExportPanel.tsx:49-54` | `"/api/exports/artifact"` | inferred | exportNow() posts {mart}; mart is chosen from gold_tables returned by GET /api/exports (mart is one of gold_tables() returned by GET /api/exports; candidates are the Gold models in dbt/models/gold and dbt/models/foil/gold.) |
 | react | `apps/web/src/api.ts:32-38` | `postJson` | verified | POST JSON helper wrapping fetch |
-| api | `apps/api/app/main.py:530-535` | `def export_artifact` | verified | POST /api/exports/artifact -> exports.export(mart, columns, max_rows) |
+| api | `apps/api/app/main.py:538-543` | `def export_artifact` | verified | POST /api/exports/artifact -> exports.export(mart, columns, max_rows) |
 | service | `apps/api/app/main.py:77-77` | `ExportService(settings` | verified | exports service bound per workspace in _bind |
 | service | `apps/api/app/services/exports.py:172-175` | `def export` | verified | Mart must match _MART and be in gold_tables() (catalog gold schema) |
 | sql | `apps/api/app/services/exports.py:199-199` | `DESCRIBE contoso.gold.` | inferred | DESCRIBE the Gold mart for column names and types (f-string on mart, validated by _MART and gold_tables() before use.) |
