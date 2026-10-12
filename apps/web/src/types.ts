@@ -128,6 +128,33 @@ export type DbtQuality = {
   tests: DbtQualityTest[];
 };
 
+/** One dbt build/run invocation as the per-model build ledger records it (GET /api/dbt/gold-builds). */
+export type DbtBuildRef = {
+  invocation_id: string | null;
+  short_id: string | null;
+  generated_at: string | null;
+  command: string | null;
+  selector: string | null;
+  scope: "retail" | "foil" | null;
+};
+
+export type GoldModelBuild = {
+  name: string;
+  path: string;
+  unique_id: string;
+  scope: "retail" | "foil" | "app_lab";
+  in_active_project: boolean;
+  last_build: DbtBuildRef | null;
+  latest_build_status: string | null;
+  rebuilt_by_latest: boolean;
+};
+
+export type GoldBuildReport = {
+  foil_active: boolean;
+  latest_build: DbtBuildRef | null;
+  models: GoldModelBuild[];
+};
+
 
 export type GenerationRunFile = {
   name: string;

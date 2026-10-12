@@ -1,0 +1,13 @@
+.goldBuilds{display:grid;gap:6px;margin-top:16px;border-top:1px solid #e5e5e7;padding-top:10px}
+.goldBuilds p{margin:0}
+.goldBuildList{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.goldBuildList li{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #ededee}
+.goldBuildList code{font:11px Consolas,"Cascadia Code",monospace}
+.goldBuildNote{color:#666;font-size:11px}
+.goldBuildList li[data-rebuilt="no"] code{color:#777}
+.tableItem .goldBuildNote{display:block;font-size:10px}
+.visuallyHidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+:root[data-theme="fabric"] .goldBuilds,
+:root[data-theme="fabric"] .goldBuildList li{border-color:var(--f-stroke)}
+:root[data-theme="fabric"] .goldBuildNote,
+:root[data-theme="fabric"] .goldBuildList li[data-rebuilt="no"] code{color:var(--f-text-2)}

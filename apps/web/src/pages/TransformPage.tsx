@@ -7,8 +7,10 @@ import type {
   DbtLineageNode,
   DbtNodeDetail,
   DbtQuality,
+  GoldBuildReport,
   WorkspaceProjectState,
 } from "../types";
+import GoldBuildList from "../components/GoldBuildList";
 import { completeTutorialStep } from "../tutorialProgress";
 import "../transform.css";
 
@@ -52,6 +54,7 @@ export default function TransformPage({
 }) {
   const [status,setStatus] = useState<DbtStatus|null>(null);
   const [lineage,setLineage] = useState<DbtLineage|null>(null);
+  const [goldBuilds,setGoldBuilds] = useState<GoldBuildReport|null>(null);
   const [run,setRun] = useState<DbtRun|null>(null);
   const [busy,setBusy] = useState("");
   const [error,setError] = useState("");
@@ -89,6 +92,7 @@ export default function TransformPage({
       ]);
       setStatus(nextStatus);
       setLineage(nextLineage);
+      setGoldBuilds(await getJson<GoldBuildReport>("/api/dbt/gold-builds").catch(()=>null));
       setError("");
       if (
         projectState.active_scenario &&
@@ -283,6 +287,7 @@ export default function TransformPage({
         <summary>Console output · exit {run.exit_code}</summary>
         <pre>{run.output}</pre>
       </details>}
+      <GoldBuildList report={goldBuilds}/>
     </Card>
 
     <Card className="modelWorkbenchCard">

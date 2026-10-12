@@ -449,6 +449,14 @@ def dbt_quality():
         raise HTTPException(500, detail=str(exc)) from exc
 
 
+@app.get("/api/dbt/gold-builds")
+def dbt_gold_builds():
+    try:
+        return dbt.gold_builds()
+    except Exception as exc:
+        raise HTTPException(500, detail=str(exc)) from exc
+
+
 @app.post("/api/dbt/{command}")
 def dbt_run(
     command: str,

@@ -3,7 +3,8 @@ import { Badge, Button, Card, CardHeader, Text, Title3 } from "@fluentui/react-c
 
 import { getJson } from "../api";
 import DataTable from "../components/DataTable";
-import type { CatalogTable, DbtQuality, DuckLakeSnapshot, QueryResult, SnapshotComparison, WorkspaceProjectState } from "../types";
+import { goldBuildNote } from "../components/GoldBuildList";
+import type { CatalogTable, DbtQuality, DuckLakeSnapshot, GoldBuildReport, QueryResult, SnapshotComparison, WorkspaceProjectState } from "../types";
 import { completeTutorialStep } from "../tutorialProgress";
 
 function changeSummary(changes: Record<string, unknown> | null) {
@@ -23,6 +24,7 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
   const [tables,setTables] = useState<CatalogTable[]>([]);
   const [snapshots,setSnapshots] = useState<DuckLakeSnapshot[]>([]);
   const [quality,setQuality] = useState<DbtQuality|null>(null);
+  const [goldBuilds,setGoldBuilds] = useState<GoldBuildReport|null>(null);
   const [selectedTable,setSelectedTable] = useState<CatalogTable|null>(null);
   const [preview,setPreview] = useState<QueryResult|null>(null);
   const [previewSnapshot,setPreviewSnapshot] = useState<DuckLakeSnapshot|null>(null);
@@ -46,6 +48,7 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
       setTables(catalogData.tables);
       setSnapshots(snapshotData.snapshots);
       setQuality(qualityData);
+      setGoldBuilds(await getJson<GoldBuildReport>("/api/dbt/gold-builds").catch(()=>null));
       if (
         projectState.active_scenario &&
         projectState.gold_current &&
@@ -105,6 +108,13 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
     const issues=tests.filter(test=>["fail","error","warn"].includes(test.status)).length;
     const passed=tests.filter(test=>test.status==="pass").length;
     return issues===0 ? `${passed}/${tests.length} tests` : `${issues} issue${issues===1?"":"s"}`;
+  }
+
+  function goldBuildLine(table:CatalogTable) {
+    const model=table.schema==="gold" ? goldBuilds?.models.find(item=>item.name===table.name) : undefined;
+    if (!model) return null;
+    const {note,marker,markerDetail}=goldBuildNote(model,goldBuilds?.latest_build ?? null);
+    return <span className="goldBuildNote" title={markerDetail ?? undefined}>{marker ? `${note} · ${marker}` : note}</span>;
   }
 
   async function compareSelectedSnapshots() {
@@ -177,7 +187,7 @@ export default function LakehousePage({refreshToken=0}:{refreshToken?:number}) {
               setCompareError("");
             }}
           >
-            <span>{table.name}</span><small>{tableHealth(table) ?? table.type}</small>
+            <span>{table.name}</span><small>{tableHealth(table) ?? table.type}{goldBuildLine(table)}</small>
           </button>)}
           {!grouped[layer].length && <div className="emptyState">No tables yet.</div>}
         </section>)}
