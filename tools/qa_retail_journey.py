@@ -6,7 +6,9 @@ What it does, against an exact committed revision:
 1. ``git archive HEAD`` into a disposable fixture (the user's own workspace is never touched).
 2. Builds the production web bundle and serves it with ``vite preview`` (proxying /api) on loopback.
 3. Starts the API from the fixture on loopback with fixture-local workspace/home folders.
-4. Drives ``apps/web/qa/retail-journey.mjs`` phases: build -> (API restart) reopen -> fault-broken
+4. Drives ``apps/web/qa/retail-journey.mjs`` phases: build (also UX05 Query "Reads from" lineage strip and
+   its Lakehouse deep link, UX06 Gold build markers after a retail build and after a FOIL build in
+   workspace B) -> (API restart) reopen -> fault-broken
    -> (repair) fault-repaired -> mapping (retail Gold -> app read, FR-02) -> backup -> (API restart)
    restore (as a new workspace, then back to journey-a) -> api-down -> ux, then validates the latest
    export and the concept document with MosaicStudio's own validators when a Mosaic checkout is given.
