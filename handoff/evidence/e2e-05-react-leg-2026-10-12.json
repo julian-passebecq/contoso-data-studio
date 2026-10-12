@@ -1,0 +1,215 @@
+{
+  "journey": "E2E-05 React trace leg (re-check, React step 6)",
+  "lane": "07-contoso",
+  "date": "2026-10-12",
+  "data": "SYNTHETIC",
+  "react_sha": "d55e65d7875226ec7c3f1bf80336250900003c59",
+  "command": "node scripts/datapass-analyze.mjs analyze <contoso archive> --trace apps/web/src/pages/ChartsPage.tsx:286 --field revenue --json --oracle docs/datapass-react/traces.json --oracle-trace charts-kpi-revenue",
+  "run": {
+    "by": "Contoso lane (independent run)",
+    "os": "Windows 11 Pro 10.0.26300",
+    "node": "v26.9.0",
+    "mode": "read-only git archives in a temp folder, npm ci --ignore-scripts"
+  },
+  "runs": [
+    {
+      "contoso_sha": "a6d5d08667727b94ba1a131fe455e01d14fb20ca",
+      "note": "main before #26 (DuckLakeService.query called directly)",
+      "grounded": 14,
+      "of": 14,
+      "totals": {
+        "INFERRED": 7,
+        "VERIFIED": 7
+      },
+      "result": "PASS",
+      "steps": [
+        {
+          "step": 1,
+          "status": "INFERRED",
+          "reviewed": "apps/web/src/pages/ChartsPage.tsx:286-295 contoso.gold.monthly_sales",
+          "analyzer_evidence": "apps/web/src/pages/ChartsPage.tsx:286-289 POST /api/query (via postJson): ChartsPage calls POST /api/query (via postJson): The address /api/query is passed to postJson at apps/web/src/pages/ChartsPage.tsx:286; postJson sends it with fetch (inferred: the addres"
+        },
+        {
+          "step": 2,
+          "status": "VERIFIED",
+          "reviewed": "apps/web/src/api.ts:32-38 postJson",
+          "analyzer_evidence": "apps/web/src/api.ts:32-38 postJson: postJson (apps/web/src/api.ts:32-38) is the function the call site passes the address to; it sends the request with fetch."
+        },
+        {
+          "step": 3,
+          "status": "INFERRED",
+          "reviewed": "apps/web/src/pages/ChartsPage.tsx:286-286 \"/api/query\"",
+          "analyzer_evidence": "apps/web/src/pages/ChartsPage.tsx:286 \"/api/query\": POST /api/query (via postJson) -> POST /api/query: POST /api/query (via postJson) sends POST /api/query, which is exactly the path the backend registers."
+        },
+        {
+          "step": 4,
+          "status": "VERIFIED",
+          "reviewed": "apps/api/app/main.py:502-515 def query",
+          "analyzer_evidence": "apps/api/app/main.py:502-514 def query: query is registered as the handler of POST /api/query (apps/api/app/main.py:501)."
+        },
+        {
+          "step": 5,
+          "status": "VERIFIED",
+          "reviewed": "apps/api/app/services/ducklake.py:305-329 def query",
+          "analyzer_evidence": "apps/api/app/services/ducklake.py:305-329 def query: query calls DuckLakeService.query. It runs the SQL text it receives in sql (apps/api/app/services/ducklake.py:322); the request sends that text in its body field sql."
+        },
+        {
+          "step": 6,
+          "status": "INFERRED",
+          "reviewed": "apps/web/src/pages/ChartsPage.tsx:297-301 label:\"Revenue\"",
+          "analyzer_evidence": "apps/web/src/pages/ChartsPage.tsx:297 label: \"Revenue\": ChartsPage shows the revenue cell of the response under the literal label \"Revenue\": select item 0 (revenue) of the request SQL; element 0 of the Promise.all array -> metricsResult -> const row = metricsR"
+        },
+        {
+          "step": 7,
+          "status": "INFERRED",
+          "reviewed": "apps/web/src/pages/ChartsPage.tsx:287-287 sum(revenue)",
+          "analyzer_evidence": "apps/web/src/pages/ChartsPage.tsx:287 SELECT revenue, gross_margin, units: This request sends the SQL written at apps/web/src/pages/ChartsPage.tsx:287 as its `sql` field; /api/query runs that text on the server. SELECT SQL written in code, using monthly_sales."
+        },
+        {
+          "step": 8,
+          "status": "VERIFIED",
+          "reviewed": "dbt/models/gold/monthly_sales.sql:8-8 as revenue",
+          "analyzer_evidence": "dbt/models/gold/monthly_sales.sql:8 as revenue: Model monthly_sales defines revenue from net_revenue at dbt/models/gold/monthly_sales.sql:8 (literal select item)."
+        },
+        {
+          "step": 9,
+          "status": "INFERRED",
+          "reviewed": "dbt/models/gold/monthly_sales.sql:12-12 ref('stg_sales')",
+          "analyzer_evidence": "dbt/models/gold/monthly_sales.sql:12 ref('stg_sales'): ref('stg_sales') reads the relation dbt builds from model stg_sales (dbt/models/silver/stg_sales.sql)."
+        },
+        {
+          "step": 10,
+          "status": "VERIFIED",
+          "reviewed": "dbt/models/silver/stg_sales.sql:20-20 as net_revenue",
+          "analyzer_evidence": "dbt/models/silver/stg_sales.sql:20 as net_revenue: Model stg_sales defines net_revenue from net_revenue at dbt/models/silver/stg_sales.sql:20 (literal select item)."
+        },
+        {
+          "step": 11,
+          "status": "INFERRED",
+          "reviewed": "dbt/models/silver/stg_sales.sql:23-23 source('bronze','sales')",
+          "analyzer_evidence": "dbt/models/silver/stg_sales.sql:23 source('bronze','sales'): source('bronze', 'sales') reads table sales of source bronze, loaded outside dbt."
+        },
+        {
+          "step": 12,
+          "status": "INFERRED",
+          "reviewed": "apps/api/app/services/ducklake.py:138-147 def load_parquet_to_bronze",
+          "analyzer_evidence": "apps/api/app/services/ducklake.py:138-151 def load_parquet_to_bronze: CREATE OR REPLACE TABLE contoso.bronze.{table} ... read_parquet(..) at apps/api/app/services/ducklake.py:145: the table name is the run-time value {table}; sales is matched by its schema bro"
+        },
+        {
+          "step": 13,
+          "status": "VERIFIED",
+          "reviewed": "apps/api/app/services/generator.py:655-655 AS net_revenue",
+          "analyzer_evidence": "apps/api/app/services/generator.py:655 AS net_revenue: GeneratorService.generate writes column net_revenue into the parquet dataset \"sales\" (COPY (SELECT ..) TO '{..[\"sales\"]}' (FORMAT PARQUET), literal key and alias); that dataset is the file the previous ste"
+        },
+        {
+          "step": 14,
+          "status": "VERIFIED",
+          "reviewed": "dbt/models/gold/monthly_sales.sql:8-8 revenue",
+          "analyzer_evidence": "dbt/models/gold/monthly_sales.sql:8 as revenue: Model monthly_sales defines revenue from net_revenue at dbt/models/gold/monthly_sales.sql:8 (literal select item)."
+        }
+      ],
+      "positional_steps_claimed_verified": []
+    },
+    {
+      "contoso_sha": "90714e874af843a6aa6f56bafab5862f5b7fb74e",
+      "note": "main after #26 (runtime query lineage): /api/query calls query_with_lineage -> _run_read_only; trace step 5 corrected to that hop in this PR",
+      "grounded": 13,
+      "of": 14,
+      "totals": {
+        "INFERRED": 7,
+        "UNMAPPED": 1,
+        "VERIFIED": 6
+      },
+      "result": "PASS_WITH_PARTIAL_LEG",
+      "steps": [
+        {
+          "step": 1,
+          "status": "INFERRED",
+          "reviewed": "apps/web/src/pages/ChartsPage.tsx:286-295 contoso.gold.monthly_sales",
+          "analyzer_evidence": "apps/web/src/pages/ChartsPage.tsx:286-289 POST /api/query (via postJson): ChartsPage calls POST /api/query (via postJson): The address /api/query is passed to postJson at apps/web/src/pages/ChartsPage.tsx:286; postJson sends it with fetch (inferred: the addres"
+        },
+        {
+          "step": 2,
+          "status": "VERIFIED",
+          "reviewed": "apps/web/src/api.ts:32-38 postJson",
+          "analyzer_evidence": "apps/web/src/api.ts:32-38 postJson: postJson (apps/web/src/api.ts:32-38) is the function the call site passes the address to; it sends the request with fetch."
+        },
+        {
+          "step": 3,
+          "status": "INFERRED",
+          "reviewed": "apps/web/src/pages/ChartsPage.tsx:286-286 \"/api/query\"",
+          "analyzer_evidence": "apps/web/src/pages/ChartsPage.tsx:286 \"/api/query\": POST /api/query (via postJson) -> POST /api/query: POST /api/query (via postJson) sends POST /api/query, which is exactly the path the backend registers."
+        },
+        {
+          "step": 4,
+          "status": "VERIFIED",
+          "reviewed": "apps/api/app/main.py:510-522 def query",
+          "analyzer_evidence": "apps/api/app/main.py:510-521 def query: query is registered as the handler of POST /api/query (apps/api/app/main.py:509)."
+        },
+        {
+          "step": 5,
+          "status": "UNMAPPED",
+          "reviewed": "apps/api/app/services/ducklake.py:310-345 def query_with_lineage",
+          "analyzer_evidence": "Not reached by the trace: no graph evidence leads to this place."
+        },
+        {
+          "step": 6,
+          "status": "INFERRED",
+          "reviewed": "apps/web/src/pages/ChartsPage.tsx:297-301 label:\"Revenue\"",
+          "analyzer_evidence": "apps/web/src/pages/ChartsPage.tsx:297 label: \"Revenue\": ChartsPage shows the revenue cell of the response under the literal label \"Revenue\": select item 0 (revenue) of the request SQL; element 0 of the Promise.all array -> metricsResult -> const row = metricsR"
+        },
+        {
+          "step": 7,
+          "status": "INFERRED",
+          "reviewed": "apps/web/src/pages/ChartsPage.tsx:287-287 sum(revenue)",
+          "analyzer_evidence": "apps/web/src/pages/ChartsPage.tsx:287 SELECT revenue, gross_margin, units: This request sends the SQL written at apps/web/src/pages/ChartsPage.tsx:287 as its `sql` field; /api/query runs that text on the server. SELECT SQL written in code, using monthly_sales."
+        },
+        {
+          "step": 8,
+          "status": "VERIFIED",
+          "reviewed": "dbt/models/gold/monthly_sales.sql:8-8 as revenue",
+          "analyzer_evidence": "dbt/models/gold/monthly_sales.sql:8 as revenue: Model monthly_sales defines revenue from net_revenue at dbt/models/gold/monthly_sales.sql:8 (literal select item)."
+        },
+        {
+          "step": 9,
+          "status": "INFERRED",
+          "reviewed": "dbt/models/gold/monthly_sales.sql:12-12 ref('stg_sales')",
+          "analyzer_evidence": "dbt/models/gold/monthly_sales.sql:12 ref('stg_sales'): ref('stg_sales') reads the relation dbt builds from model stg_sales (dbt/models/silver/stg_sales.sql)."
+        },
+        {
+          "step": 10,
+          "status": "VERIFIED",
+          "reviewed": "dbt/models/silver/stg_sales.sql:20-20 as net_revenue",
+          "analyzer_evidence": "dbt/models/silver/stg_sales.sql:20 as net_revenue: Model stg_sales defines net_revenue from net_revenue at dbt/models/silver/stg_sales.sql:20 (literal select item)."
+        },
+        {
+          "step": 11,
+          "status": "INFERRED",
+          "reviewed": "dbt/models/silver/stg_sales.sql:23-23 source('bronze','sales')",
+          "analyzer_evidence": "dbt/models/silver/stg_sales.sql:23 source('bronze','sales'): source('bronze', 'sales') reads table sales of source bronze, loaded outside dbt."
+        },
+        {
+          "step": 12,
+          "status": "INFERRED",
+          "reviewed": "apps/api/app/services/ducklake.py:139-148 def load_parquet_to_bronze",
+          "analyzer_evidence": "apps/api/app/services/ducklake.py:139-152 def load_parquet_to_bronze: CREATE OR REPLACE TABLE contoso.bronze.{table} ... read_parquet(..) at apps/api/app/services/ducklake.py:146: the table name is the run-time value {table}; sales is matched by its schema bro"
+        },
+        {
+          "step": 13,
+          "status": "VERIFIED",
+          "reviewed": "apps/api/app/services/generator.py:655-655 AS net_revenue",
+          "analyzer_evidence": "apps/api/app/services/generator.py:655 AS net_revenue: GeneratorService.generate writes column net_revenue into the parquet dataset \"sales\" (COPY (SELECT ..) TO '{..[\"sales\"]}' (FORMAT PARQUET), literal key and alias); that dataset is the file the previous ste"
+        },
+        {
+          "step": 14,
+          "status": "VERIFIED",
+          "reviewed": "dbt/models/gold/monthly_sales.sql:8-8 revenue",
+          "analyzer_evidence": "dbt/models/gold/monthly_sales.sql:8 as revenue: Model monthly_sales defines revenue from net_revenue at dbt/models/gold/monthly_sales.sql:8 (literal select item)."
+        }
+      ]
+    }
+  ],
+  "finding": "React d55e65d grounds step 6 (Revenue card, positional) as INFERRED, never VERIFIED. On the current Contoso code path the analyzer does not follow the DuckLakeService.query_with_lineage -> _run_read_only delegation, so step 5 is UNMAPPED (no graph node in ducklake.py for the query path). Reported to the React lane; Contoso code is not reshaped to suit the analyzer.",
+  "reused_evidence": "9-phase journey and Gold/Mosaic evidence from handoff/evidence/e2e-05-2026-10-11.json; the #26 change is covered by its own PR CI (journey, open-in-mosaic) on 75ddb2d.",
+  "e2e_05_react_leg": "14/14 at a6d5d08 (7 VERIFIED + 7 INFERRED); 13/14 at current main (PASS_WITH_PARTIAL_LEG, step 5 analyzer gap)"
+}

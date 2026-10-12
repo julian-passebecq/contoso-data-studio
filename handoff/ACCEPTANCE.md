@@ -84,3 +84,11 @@ DataPass React `7f56479` headless CLI (`datapass-analyze.mjs --oracle`) on Conto
 UNMAPPED (Revenue card reads the response by position; the analyzer does not map response columns to UI elements). The
 DuckLake service hops (5, 12) and the generator (13) are now reached. Receipt `handoff/evidence/e2e-05-react-leg-2026-10-11.json`;
 the 9-phase/Gold evidence is reused (only handoff files changed since `6b8185e`).
+
+#### E2E-05 React leg re-check with React `d55e65d` (2026-10-12)
+
+Independent run of React's CLI (`--oracle charts-kpi-revenue`): at Contoso `a6d5d08` (before #26) **14/14 grounded,
+7 VERIFIED + 7 INFERRED**; step 6 (Revenue card read by position) is INFERRED, no positional step is claimed VERIFIED. At
+current main `90714e8` (after #26 runtime query lineage) **13/14**: the analyzer does not follow
+`query_with_lineage -> _run_read_only`, so step 5 is UNMAPPED (React analyzer gap, reported). Traces now cite the real hop
+(`ducklake.py:310-345 def query_with_lineage`). Receipt `handoff/evidence/e2e-05-react-leg-2026-10-12.json`.

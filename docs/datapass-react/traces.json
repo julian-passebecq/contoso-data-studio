@@ -42,15 +42,15 @@
      "start": 510,
      "end": 522,
      "symbol": "def query",
-     "note": "FastAPI route POST /api/query -> ducklake.query",
+     "note": "FastAPI route POST /api/query -> ducklake.query_with_lineage",
      "confidence": "verified"
     },
     {
      "layer": "service",
      "path": "apps/api/app/services/ducklake.py",
-     "start": 306,
+     "start": 310,
      "end": 345,
-     "symbol": "def query",
+     "symbol": "def query_with_lineage",
      "note": "Read-only validation, executes statement on DuckLake read-only connection",
      "confidence": "verified"
     },
@@ -174,9 +174,9 @@
     {
      "layer": "service",
      "path": "apps/api/app/services/ducklake.py",
-     "start": 306,
+     "start": 310,
      "end": 345,
-     "symbol": "def query",
+     "symbol": "def query_with_lineage",
      "note": "Allows one select/with/show/describe/explain statement; FORBIDDEN_SQL rejects mutation",
      "confidence": "verified"
     }
@@ -266,9 +266,9 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 306,
+       "start": 310,
        "end": 345,
-       "symbol": "def query",
+       "symbol": "def query_with_lineage",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
       },
@@ -462,9 +462,9 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 306,
+       "start": 310,
        "end": 345,
-       "symbol": "def query",
+       "symbol": "def query_with_lineage",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
       },
@@ -671,9 +671,9 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 306,
+       "start": 310,
        "end": 345,
-       "symbol": "def query",
+       "symbol": "def query_with_lineage",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
       },
@@ -889,9 +889,9 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 306,
+       "start": 310,
        "end": 345,
-       "symbol": "def query",
+       "symbol": "def query_with_lineage",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
       },
@@ -1098,9 +1098,9 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 306,
+       "start": 310,
        "end": 345,
-       "symbol": "def query",
+       "symbol": "def query_with_lineage",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
       },
@@ -1314,9 +1314,9 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 306,
+       "start": 310,
        "end": 345,
-       "symbol": "def query",
+       "symbol": "def query_with_lineage",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
       },
@@ -1513,9 +1513,9 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 306,
+       "start": 310,
        "end": 345,
-       "symbol": "def query",
+       "symbol": "def query_with_lineage",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
       },
@@ -1715,9 +1715,9 @@
       {
        "layer": "service",
        "path": "apps/api/app/services/ducklake.py",
-       "start": 306,
+       "start": 310,
        "end": 345,
-       "symbol": "def query",
+       "symbol": "def query_with_lineage",
        "note": "Read-only validation, executes on the DuckLake read-only connection",
        "confidence": "verified"
       },
