@@ -4,7 +4,7 @@
 
 Writes, under dist/ (gitignored):
 * contoso-data-studio-<version>-<shortsha>.zip: ``git archive HEAD`` + the built ``apps/web/dist`` +
-  install.txt, all under one top folder of the same name;
+  install.txt, all under one top folder of the same name; internal agent files (``handoff/``) are left out;
 * SHA256SUMS (``sha256sum -c`` format) and install.txt (Windows and Linux commands).
 
 The version comes from apps/api/pyproject.toml (the single version source). A dirty tree (tracked changes
@@ -64,6 +64,15 @@ def npm(*args: str) -> None:
     subprocess.run(["npm", *args], cwd=WEB, check=True, shell=os.name == "nt")
 
 
+EXCLUDED_DIRS = ("handoff/",)
+
+
+def shipped(arcname: str, name: str) -> bool:
+    """False for archive entries under an excluded top-level folder (internal handoff/receipt files)."""
+    relative = arcname[len(name) + 1:] if arcname.startswith(f"{name}/") else arcname
+    return not any(relative.startswith(d) or relative == d.rstrip("/") for d in EXCLUDED_DIRS)
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -115,7 +124,8 @@ def main() -> int:
 
     with zipfile.ZipFile(io.BytesIO(source)) as archived, zipfile.ZipFile(zip_path, "w") as package:
         for item in archived.infolist():
-            package.writestr(item, archived.read(item))
+            if shipped(item.filename, name):
+                package.writestr(item, archived.read(item))
         for file in sorted(path for path in built.rglob("*") if path.is_file()):
             add(package, f"{name}/apps/web/dist/{file.relative_to(built).as_posix()}", file.read_bytes())
         add(package, f"{name}/install.txt", install_txt.encode("utf-8"))
