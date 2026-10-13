@@ -443,11 +443,16 @@ def mosaic_gates(installed: Installed, mosaic: Path, exported: dict, port: int, 
     if not tool.is_file():
         tool, source = REPO / "tools" / "open_in_mosaic.mjs", "checkout (not in the package)"
         receipt["omissions"].append("mosaic: tools/open_in_mosaic.mjs missing from the package; ran the checkout's copy")
+    env = dict(os.environ)
+    if os.name == "nt":
+        # The tool runs `tar -xf C:\...`: Git Bash's GNU tar reads "C:" as a remote host, Windows' bsdtar does not.
+        system32 = str(Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32")
+        env["PATH"] = system32 + os.pathsep + env.get("PATH", "")
     started = time.monotonic()
     completed = subprocess.run(
         ["node", str(tool), "--mosaic", str(mosaic), "--export", str(exported["export_dir"]),
          "--concept", str(exported["concept"]), "--out", str(out), "--port", str(port)],
-        capture_output=True, text=True, timeout=3600,
+        capture_output=True, text=True, timeout=3600, env=env,
     )
     evidence_path = out / "evidence.json"
     evidence = json.loads(evidence_path.read_text(encoding="utf-8")) if evidence_path.is_file() else {}
