@@ -1,10 +1,17 @@
 {
-  "state": "MERGED_QUALIFIED_LOCAL",
-  "packet": "galaxy-full-release-2026-10-10/07-contoso rev 1",
+  "state": "DELIVERED_PRIVATE",
+  "packet": "galaxy-finition-2026-10-13/07-contoso (after galaxy-full-release-2026-10-10/07-contoso rev 1)",
+  "package_version": "0.3.0",
+  "package_source_sha": "ac981027ff8b60b3a204ff27ae68fe1981698ffa",
+  "package_sha256": "050b548d0d6dc7618da2d2ae67b15af329e4aa43451bb9c4f66d93c957a12aa9",
+  "package_destination": "galaxy-release-vault contoso-data-studio/0.3.0-ac98102 (private; authenticated re-download sha256 equal, anonymous 401; verified by the Galaxy lead)",
+  "installed_package_qualification": "42 PASS / 1 FAIL (mosaic.exit_code_0: Mosaic dev page browser step timed out twice on the local PC; the four Mosaic gates PASS; CI open-in-mosaic PASS)",
+  "e2e_08": "PARTIAL",
+  "previous_package": "0.2.0-fe83dbd (kept unchanged)",
   "repository": "https://github.com/julian-passebecq/contoso-data-studio",
   "actual_worktree": "contoso-data-studio/.claude/worktrees/contoso-full-release-2026-2ed217",
-  "source_sha": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
-  "final_main_sha": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
+  "source_sha": "ac981027ff8b60b3a204ff27ae68fe1981698ffa",
+  "full_release_source_sha": "fe83dbd0805fb787f4beb0d7485827ec059e8578",
   "merged_prs": {
     "17": "a671b360317fa538fdc9720646d738c12bd78007",
     "16": "d23949f1b043c5a4644de36b2c60c6c483d81eef",
@@ -184,7 +191,8 @@
       "bytes": 3289138,
       "sha256": "050b548d0d6dc7618da2d2ae67b15af329e4aa43451bb9c4f66d93c957a12aa9",
       "source": "ac981027ff8b60b3a204ff27ae68fe1981698ffa (local build, tools/package_release.py)",
-      "state": "STAGED_LOCAL (private vault upload by the Galaxy lead)"
+      "state": "DELIVERED_PRIVATE galaxy-release-vault contoso-data-studio/0.3.0-ac98102 (authenticated re-download sha256 OK, anonymous 401)",
+      "note": "contains handoff/ (excluded from packages built after this change)"
     },
     {
       "file": "contoso-data-studio-0.2.0-fe83dbd.zip",
