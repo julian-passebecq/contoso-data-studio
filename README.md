@@ -122,7 +122,9 @@ catalog/data paths if `CONTOSO_DUCKLAKE_*` point elsewhere). See `docs/release/v
   `node tools/open_in_mosaic.mjs` opens them in Mosaic's own UI and concept viewer and reports each gate.
 - `python tools/package_release.py` builds the local release zip (source + prebuilt web, `SHA256SUMS`); unpack it,
   `pip install -e "apps/api[dbt]"` in a venv and run `contoso-studio` (see `docs/release/v1.md`).
-- `docs/datapass-react/` holds source-backed React -> API -> dbt -> Gold traces for the DataPass React analyzer;
+- `docs/datapass-react/` holds source-backed React -> API -> dbt -> Gold traces for the DataPass React analyzer
+  (`traces.json` is the source; `python -I docs/datapass-react/render_traces.py` regenerates `TRACES.md` and
+  `check_traces.py` checks every cited line and that `TRACES.md` is up to date);
   `docs/fabric-apps/GOLD-MAPPING.md` documents the Gold-to-app boundary (DuckLake/dbt stays analytical truth).
 
 ## Real local journey (release evidence)
