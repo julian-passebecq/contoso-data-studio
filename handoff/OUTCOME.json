@@ -180,6 +180,13 @@
   ],
   "release_artifacts": [
     {
+      "file": "contoso-data-studio-0.3.0-ac98102.zip",
+      "bytes": 3289138,
+      "sha256": "050b548d0d6dc7618da2d2ae67b15af329e4aa43451bb9c4f66d93c957a12aa9",
+      "source": "ac981027ff8b60b3a204ff27ae68fe1981698ffa (local build, tools/package_release.py)",
+      "state": "STAGED_LOCAL (private vault upload by the Galaxy lead)"
+    },
+    {
       "file": "contoso-data-studio-0.2.0-fe83dbd.zip",
       "bytes": 2963772,
       "sha256": "c065671d0acbe4520860fcd6dca93842aa1a75bd7ee7808d56106a8e58b0fbd1",
