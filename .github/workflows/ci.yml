@@ -229,8 +229,8 @@ jobs:
           node-version: "22"
       - name: Build the release zip (git archive HEAD + web bundle)
         run: python tools/package_release.py
-      - name: Install the zip in a fresh venv and run it
-        run: python tools/qa_install_package.py --port 21100 --receipt dist/qa-install-receipt.json
+      - name: Install the zip in a fresh venv and run it (with the exit journey, no peer checkout needed)
+        run: python tools/qa_install_package.py --port 21100 --journey --receipt dist/qa-install-receipt.json
       - name: Upload package, checksums and receipt
         if: always()
         uses: actions/upload-artifact@v4
@@ -241,4 +241,5 @@ jobs:
             dist/SHA256SUMS
             dist/install.txt
             dist/qa-install-receipt.json
+            dist/qa-install-journey/
           if-no-files-found: warn
