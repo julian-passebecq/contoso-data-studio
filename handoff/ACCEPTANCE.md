@@ -92,3 +92,29 @@ Independent run of React's CLI (`--oracle charts-kpi-revenue`): at Contoso `a6d5
 current main `90714e8` (after #26 runtime query lineage) **13/14**: the analyzer does not follow
 `query_with_lineage -> _run_read_only`, so step 5 is UNMAPPED (React analyzer gap, reported). Traces now cite the real hop
 (`ducklake.py:310-345 def query_with_lineage`). Receipt `handoff/evidence/e2e-05-react-leg-2026-10-12.json`.
+
+
+## Galaxy Finition 2026-10-13: release 0.3.0 (source ac98102)
+
+Delta vs distributed 0.2.0-fe83dbd: #25-#38 (Transform selector + app-lab Gold var, Query "Reads from" runtime lineage, lineage
+deep links, Gold build markers, Node 22/26, TRACES.md rendered from traces.json, installed-package journeys, user guide).
+#37 version 0.3.0 + release notes + `docs/guide/README.md` (8 synthetic screenshots); #38 `qa_install_package.py --journey
+--mosaic --upgrade-from` (CI package job runs `--journey`, 18/18 on Ubuntu).
+
+- Package `contoso-data-studio-0.3.0-ac98102.zip`, 3,289,138 bytes, sha256
+  `050b548d0d6dc7618da2d2ae67b15af329e4aa43451bb9c4f66d93c957a12aa9`, built from `ac981027ff8b60b3a204ff27ae68fe1981698ffa`;
+  staged locally outside Git (private vault upload by the lead).
+- Installed package, clean venv outside the checkout, Windows 11 / Python 3.12.10: 42 PASS, 1 FAIL. Install 13 PASS; journey
+  PASS (Revenue KPI = Gold total 4424416.84; Artifact + Concept exported; broken model -> dbt error naming monthly_sales ->
+  repair, Gold unchanged; restart -> same workspace, totals and export ids; backup -> restore equal); upgrade from
+  0.2.0-fe83dbd PASS (same workspace, Gold total and export id kept, no schema migration logged; old backup restores in the
+  old package; information: old package reopens the touched workspace). Mosaic gates on the package exports (strict schema,
+  TypeScript, semantic, concept) PASS; `mosaic.exit_code_0` FAIL twice: the tool's browser step timed out (30 s) loading
+  Mosaic's dev page on this loaded PC. CI `open-in-mosaic` (Ubuntu) passes on the same source. Recorded, not hidden.
+- Source retail journey at ac98102 with Mosaic validation: 9/9 phases PASS.
+- React leg (E2E-05) at Contoso 8a429c3 with React 49d51a1: **14/14 grounded, 7 VERIFIED + 7 INFERRED, 0 UNMAPPED**; the
+  step-5 gap (`query_with_lineage -> _run_read_only`) is resolved. Receipt `handoff/evidence/e2e-05-react-leg-2026-10-13.json`.
+  Code since 8a429c3 is version/docs/QA tooling only.
+- Rollback: data restore (workspace backup) is not package rollback; package rollback = reinstall 0.2.0-fe83dbd zip. E2E-08
+  stays PARTIAL; Fabric/E2E-09 excluded.
+- Known: `handoff/` ships inside the zip (repo files, public, no secrets); API-down banner names the developer uvicorn command.

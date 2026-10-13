@@ -11,8 +11,9 @@
 - Night 12 Oct (merged, cont.): #30 lineage chips deep-link to the exact Lakehouse table / dbt model; #31 retail Gold
   "last built / not rebuilt by this run" marker + GET /api/dbt/gold-builds; #33 retail journey covers both (UX05, UX06;
   FOIL build in workspace B); #32 TRACES.md rendered from traces.json (`render_traces.py`, stale check in check_traces).
-- In flight: none. React analyzer step-5 gap (query_with_lineage -> _run_read_only) is React's to fix; re-run the
-  E2E-05 React leg when it lands. Possible journey flake: reopen phase project-state slow once on a busy machine.
+- Galaxy Finition 13-14 Oct: #35 #36 docs; #37 0.3.0 (guide, notes); #38 installed-package journeys. Package
+  0.3.0-ac98102 sha256 050b548d... staged locally (receipt in ACCEPTANCE.md); React leg 14/14 at 8a429c3.
+- In flight: none. Open: Mosaic browser step times out on this PC (gates PASS, CI PASS).
 - Re-qualify: `python tools/qa_retail_journey.py --mosaic <datapass-mosaicstudio>`; `node tools/open_in_mosaic.mjs ...`;
   `python tools/package_release.py && python tools/qa_install_package.py`; `pytest -q apps/api/tests` (venv Scripts on PATH);
   `npm --prefix apps/web test` (Node 22 or 26); `python -I docs/datapass-react/render_traces.py`; React leg: React CLI `datapass-analyze.mjs analyze <root> --oracle`.
