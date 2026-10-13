@@ -51,10 +51,11 @@ bundle in Mosaic's UI. The vendored copies under `vendor/` stay at studio-v0.8.1
 
 | Page | Current responsibility |
 | --- | --- |
-| Projects | guided case-study launcher; prepares deterministic sample data through dbt Gold |\n| Generate | manual scenario generation with custom row count and seed |
-| Lakehouse | browse Bronze / Silver / Gold catalog state |
-| Transform | inspect dbt DAG, run `build` / `test`, inspect `run_results.json` |
-| Query | read-only DuckDB SQL against the attached DuckLake catalog |
+| Projects | guided case-study launcher; prepares deterministic sample data through dbt Gold |
+| Generate | manual scenario generation with custom row count and seed |
+| Lakehouse | browse Bronze / Silver / Gold catalog state; a deep link opens one exact table |
+| Transform | inspect dbt DAG, run `build` / `test` (optional selector), inspect `run_results.json`; Gold models show their last build and a "not rebuilt by this run" marker (`GET /api/dbt/gold-builds`) |
+| Query | read-only DuckDB SQL against the attached DuckLake catalog; a "Reads from" strip lists the tables DuckDB resolved for the query, linked to their Lakehouse table and dbt model |
 | Explore | inspect generated/imported Parquet, JSON, CSV and XLSX |
 | Charts | preview Gold KPIs and validate the dbt Charts board |
 | Canvas | catalog-driven lineage/architecture whiteboard and local notes |
