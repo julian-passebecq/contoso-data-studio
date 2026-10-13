@@ -124,15 +124,20 @@ Open either file in Mosaic (DataPass MosaicStudio, a separate application).
 The dbt models are plain files in the unpacked folder, for example `dbt/models/gold/monthly_sales.sql`.
 
 1. Make a mistake on purpose, for example add `where no_such_column > 0` at the end of that file, and save.
-2. **Transform** -> **Build**. The **Latest run** lists `monthly_sales` with status **error** and the database
-   message naming the unknown column; models that depend on it are skipped. The Gold table built before stays as it
-   was.
+2. **Transform** -> **Build**. The **Latest run** lists `monthly_sales` with status **error** and its data tests
+   as **skipped**; the full dbt message (the unknown column) is under **Console output**. In **Gold builds**,
+   `monthly_sales` keeps its last good build and is marked **error in this run**: the Gold table built before stays
+   as it was.
+
+   ![Gold builds after the failed run: monthly_sales marked "error in this run"](img/06-fault-gold-builds.png)
+
 3. **Charts** -> **Export artifact** is refused: "The latest dbt run of monthly_sales ended with status 'error'. Fix
    the model and rerun dbt build before exporting."
+
+   ![Export refused while the latest monthly_sales run failed](img/07-fault-export-refused.png)
+
 4. Undo the change, save, **Transform** -> **Build** again. The run succeeds and exports work again; a new export
    references the new run.
-
-![A failed dbt build in Transform](img/06-fault-transform-error.png)
 
 ## 9. Stop, restart and reopen
 
@@ -152,7 +157,7 @@ Header **Workspace** -> **Manage** opens **Local workspaces**:
 - **Restore a backup as a new workspace**: type a **Name for the restored workspace**, then **Restore** next to the
   backup. A restore always creates a new workspace and never overwrites an existing one; **Open** it to continue.
 
-![Backup written from the Local workspaces dialog](img/07-workspace-backup.png)
+![Backup written from the Local workspaces dialog](img/08-workspace-backup.png)
 
 ## 11. Upgrade from 0.2.0 and roll back
 
@@ -160,7 +165,9 @@ Header **Workspace** -> **Manage** opens **Local workspaces**:
 folder and its zip.
 
 Install 0.3.0 into a **new folder** with a new venv (sections 1-3). To bring your data over, copy the backup zips
-into the new folder's `workspaces/_backups/` and **Restore** each one as a new workspace in 0.3.0. Your 0.2.0 folder
+into the new folder's `workspaces/_backups/` (create it if needed), then **Manage** -> **Restore** each one as a new
+workspace in 0.3.0. The backup format and the workspace code did not change between 0.2.0 and 0.3.0, but restoring a
+0.2.0 backup in 0.3.0 was not run as a separate test for this release. Your 0.2.0 folder
 is not touched, so you can still go back to it. Do not copy workspace folders by hand between installations: the
 catalog records where its data files live, and a restore is what updates that path.
 
@@ -177,7 +184,7 @@ Rolling back:
 
 | Item | Status |
 | --- | --- |
-| Windows 11, Python 3.12 | tested: full local journey and package install |
+| Windows 11, Python 3.12 | tested locally: retail journey (`tools/qa_retail_journey.py`) and `contoso-studio` |
 | Ubuntu (CI), Python 3.12 | tested on every change: API tests, package install, browser journey |
 | macOS | not tested |
 | Node.js | only for development from source (Node 22 or 26); not needed for the package |
