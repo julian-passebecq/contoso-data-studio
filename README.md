@@ -6,6 +6,9 @@ Local-first synthetic retail data lab built around **Parquet + DuckDB + DuckLake
 Generate -> Inspect -> Bronze (DuckLake) -> dbt Silver -> dbt Gold -> SQL / KPI / Charts
 ```
 
+**Using the release package (0.3.0)?** Read the user guide: [`docs/guide/README.md`](docs/guide/README.md)
+(install, first journey, backup, upgrade). Release notes: [`docs/release/v1.md`](docs/release/v1.md).
+
 ## Current foundation
 
 - deterministic `retail-baseline` generator
