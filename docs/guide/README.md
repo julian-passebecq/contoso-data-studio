@@ -142,8 +142,9 @@ The dbt models are plain files in the unpacked folder, for example `dbt/models/g
 ## 9. Stop, restart and reopen
 
 - **Stop**: press `Ctrl+C` in the terminal running `contoso-studio`. If the page stays open it shows "The local API is
-  not reachable"; start the studio again and click **Retry**. (That banner shows the developer command
-  `uvicorn ...`; with the package, run `contoso-studio` again instead.)
+  not reachable"; start the studio again with the same `contoso-studio` command: the banner clears by itself within
+  15 s (or click **Retry**). (Up to 0.3.0 the banner named only the developer command `uvicorn ...`; with the package,
+  run `contoso-studio` again instead.)
 - **Restart**: run the same `contoso-studio` command from the same folder. The studio remembers the active workspace
   and reopens it with its data, Gold tables, query history and exports; nothing is regenerated.
 

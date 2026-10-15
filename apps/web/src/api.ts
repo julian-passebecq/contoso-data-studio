@@ -1,5 +1,5 @@
 export const API_UNAVAILABLE =
-  "The local API is not reachable. Start it from the repository root with: uvicorn app.main:app --app-dir apps/api";
+  "The local API is not reachable. Start it again: contoso-studio (installed package), or from a source checkout: uvicorn app.main:app --app-dir apps/api";
 
 async function parse<T>(response: Response): Promise<T> {
   let body: { detail?: unknown; message?: unknown } | null = null;

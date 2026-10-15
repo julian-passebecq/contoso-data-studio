@@ -1,7 +1,7 @@
 """Install the release zip the way install.txt says and prove it runs (FR-02), optionally on the exit journeys.
 
     python tools/qa_install_package.py [--zip dist/<name>.zip] [--port 21100] [--receipt dist/qa-install-receipt.json]
-        [--journey] [--mosaic <datapass-mosaicstudio checkout>] [--upgrade-from <older zip>] [--keep]
+        [--journey] [--ui] [--mosaic <datapass-mosaicstudio checkout>] [--upgrade-from <older zip>] [--keep]
 
 Default (CI job ``package``):
 1. Checks the zip against dist/SHA256SUMS, unpacks it into a fresh temp folder.
@@ -35,6 +35,19 @@ Opt-in exit journeys, all against the installed package (never the checkout):
             relative workspace paths, files the new version changed, backup sha256). Rollback limit: starts the
             OLD package again on that workspace and records (information only, never fails the run) whether it
             opens, then asserts that restoring the old backup in the old package works.
+--ui        (implies --journey) E2E-05 step 12 on the installed package, after the journey:
+            mapping: GET /api/fabric-apps/sales-forecasting/retail-actuals; ONLINE/NORD/SOUTH non-empty, unmapped [],
+            copy + non-authoritative, app total = retail Gold total to the cent at the pinned snapshot, every Gold
+            (channel, store_country) pair in exactly one department, Gold digest unchanged by the read;
+            refused exports: a failed latest dbt run and Bronze reloaded after the build (stale Gold) are refused by
+            POST /api/exports/artifact and in the Charts export panel, then accepted after a rebuild;
+            browser (Playwright, this checkout's apps/web/qa/retail-journey.mjs as the harness): `ux` (keyboard,
+            Generate, query error, read-only denial, reduced motion, 390 px phone) and `api-stop` (page loaded, server
+            stopped -> "not reachable" banner on the open page -> server restarted -> banner clears, Charts render);
+            unmapped channel: with the server stopped, the installed retail read runs in the installed venv on the same
+            workspace with SOUTH left out of RETAIL_DEPARTMENTS; Store/France and Store/Switzerland must be reported
+            as unmapped with their amounts, nothing credited to another department, no Gold snapshot written.
+            Screenshots go to <receipt dir>/qa-install-ui/. Needs `npm --prefix apps/web install` and Playwright.
 
 The receipt carries the zip name/sha256, version, source sha (install.txt in the zip), python/os, every check as
 PASS/FAIL, information-only results and the omissions (what was not run and why).
@@ -72,6 +85,12 @@ REVENUE_KPI_SQL = ("select round(sum(revenue),2) revenue, round(sum(gross_margin
 GOLD_TOTAL_SQL = "select CAST(sum(revenue) AS DECIMAL(18,2)) as total from contoso.gold.monthly_sales"
 PROJECT = "retail-baseline"
 MART = "monthly_sales"
+RETAIL_GOLD = "contoso.gold.monthly_sales_by_country"
+RETAIL_ACTUALS = "/api/fabric-apps/sales-forecasting/retail-actuals"
+EXECUTIVE = {"X-Local-User": "u-eva"}
+DEPARTMENTS = ("ONLINE", "NORD", "SOUTH")
+UNMAPPED_PROBE_DROPS = "SOUTH"
+API_DOWN_TEXT = "The local API is not reachable"
 
 
 # ----- pure helpers (unit-tested in apps/api/tests/test_qa_install_package.py) -----------------------------------
@@ -130,6 +149,25 @@ def failed_models(build: dict) -> list[dict[str, str]]:
             if str(item.get("unique_id", "")).startswith("model.") and item.get("status") == "error"]
 
 
+def items_cents(items: list[dict]) -> int:
+    """Sum of the ``amount`` of retail-actuals items (or unmapped entries) in integer cents."""
+    return sum(to_cents(item["amount"]) for item in items)
+
+
+def department_coverage(pairs: list[list], departments: dict[str, dict]) -> list[dict[str, object]]:
+    """Which served departments each Gold (channel, store_country, rows) pair falls into (must be exactly one)."""
+    return [{"channel": channel, "store_country": country, "gold_rows": int(rows),
+             "departments": [code for code, item in departments.items()
+                             if item.get("channel") == channel and (not item.get("countries") or country in item["countries"])]}
+            for channel, country, rows in pairs]
+
+
+def dropped_pairs(departments: dict[str, dict], dropped: str, pairs: list[list]) -> list[tuple[str, str]]:
+    """Gold (channel, store_country) pairs that only the ``dropped`` department maps."""
+    coverage = department_coverage(pairs, departments)
+    return sorted((item["channel"], item["store_country"]) for item in coverage if item["departments"] == [dropped])
+
+
 def snapshot_tree(root: Path) -> dict[str, str]:
     """{posix path relative to root: sha256} of every file under root."""
     if not root.is_dir():
@@ -154,9 +192,11 @@ def verdict(ok: object) -> str:
 
 
 # ----- processes and HTTP --------------------------------------------------------------------------------------
-def request(method: str, url: str, body: dict | None = None, timeout: float = 30) -> tuple[int, dict, bytes]:
+def request(method: str, url: str, body: dict | None = None, timeout: float = 30,
+            headers: dict | None = None) -> tuple[int, dict, bytes]:
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(url, data=data, method=method, headers={"Content-Type": "application/json"} if data else {})
+    sent = {**({"Content-Type": "application/json"} if data else {}), **(headers or {})}
+    req = urllib.request.Request(url, data=data, method=method, headers=sent)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
             return response.status, dict(response.headers), response.read()
@@ -230,11 +270,15 @@ class Studio:
     def home(self) -> Path:
         return self.data / "workspaces"
 
-    def start(self, timeout: float = 120) -> dict:
+    def env(self) -> dict[str, str]:
         env = {key: value for key, value in os.environ.items()
                if not key.startswith("CONTOSO_") and key not in {"VIRTUAL_ENV", "PYTHONPATH", "PYTHONHOME"}}
         env.update({"CONTOSO_WORKSPACE": str(self.workspace), "CONTOSO_HOME": str(self.home),
                     "RAYFIN_TELEMETRY_OPTOUT": "1", "PYTHONUNBUFFERED": "1"})
+        return env
+
+    def start(self, timeout: float = 120) -> dict:
+        env = self.env()
         self.run_dir.mkdir(parents=True, exist_ok=True)
         self._log = self.log_path.open("ab")
         kwargs: dict = {"cwd": self.run_dir, "env": env, "stdout": self._log, "stderr": subprocess.STDOUT}
@@ -265,20 +309,24 @@ class Studio:
         self.process = None
         return stopped
 
-    def call(self, method: str, path: str, body: dict | None = None, timeout: float = 60) -> tuple[int, dict, bytes]:
-        return request(method, self.base + path, body, timeout)
+    def call(self, method: str, path: str, body: dict | None = None, timeout: float = 60,
+             headers: dict | None = None) -> tuple[int, dict, bytes]:
+        return request(method, self.base + path, body, timeout, headers)
 
-    def json(self, method: str, path: str, body: dict | None = None, timeout: float = 60) -> tuple[int, dict]:
-        status, _, raw = self.call(method, path, body, timeout)
+    def json(self, method: str, path: str, body: dict | None = None, timeout: float = 60,
+             headers: dict | None = None) -> tuple[int, dict]:
+        status, _, raw = self.call(method, path, body, timeout, headers)
         try:
             return status, json.loads(raw) if raw else {}
         except ValueError:
             return status, {"raw": raw[-2000:].decode("utf-8", "replace")}
 
-    def rows(self, sql: str) -> list[list]:
-        status, body = self.json("POST", "/api/query", {"sql": sql, "limit": 10})
+    def rows(self, sql: str, limit: int = 10) -> list[list]:
+        status, body = self.json("POST", "/api/query", {"sql": sql, "limit": limit})
         if status != 200:
             raise RuntimeError(f"query failed ({status}): {body}")
+        if body.get("truncated"):
+            raise RuntimeError(f"query truncated at {limit} rows: {sql}")
         return body["rows"]
 
     def gold_total_cents(self) -> int:
@@ -576,6 +624,202 @@ def upgrade(new: Installed, old_zip: Path, temp: Path, port: int, checks: dict, 
                 receipt.setdefault("server_log_tails", {})[f"upgrade_{name}"] = studio.log_tail()
 
 
+# ----- D. E2E-05 step 12: mapping, refused exports, browser UX and API down, unmapped channel ---------------------
+# Runs in the installed venv's python (server stopped, same CONTOSO_WORKSPACE / CONTOSO_HOME): the installed retail
+# read once as shipped, once with one department left out of RETAIL_DEPARTMENTS (THE mapping table).
+UNMAPPED_PROBE = """
+import json, sys
+from app import main
+from app.services.fabric_apps import mapping, retail
+before = main.ducklake.snapshots(1)
+full = retail.read_retail_actuals(main.ducklake)
+mapping.RETAIL_DEPARTMENTS = {code: item for code, item in mapping.RETAIL_DEPARTMENTS.items() if code != sys.argv[1]}
+partial = retail.read_retail_actuals(main.ducklake)
+after = main.ducklake.snapshots(1)
+print(json.dumps({"full": full, "partial": partial, "snapshot_before": before[0]["snapshot_id"] if before else None,
+                  "snapshot_after": after[0]["snapshot_id"] if after else None}, default=str))
+"""
+
+
+def gold_fingerprint(studio: Studio, snapshot: int) -> dict[str, object]:
+    """Row count, revenue and an md5 of every retail Gold row at one snapshot (equal digests = identical rows)."""
+    rows, revenue, digest = studio.rows(
+        f"select count(*), CAST(sum(revenue) AS DECIMAL(18,2)), md5(string_agg(concat_ws('|', scenario, order_month, "
+        f"channel, store_country, sales_lines, revenue), ';' ORDER BY scenario, order_month, channel, store_country)) "
+        f"from {RETAIL_GOLD} AT (VERSION => {int(snapshot)})")[0]
+    return {"rows": int(rows), "revenue": str(revenue), "digest": digest}
+
+
+def latest_snapshot(studio: Studio) -> int:
+    status, body = studio.json("GET", "/api/lakehouse/snapshots?limit=1")
+    if status != 200 or not body.get("snapshots"):
+        raise RuntimeError(f"no DuckLake snapshot ({status}): {body}")
+    return int(body["snapshots"][0]["snapshot_id"])
+
+
+def ui_phase(name: str, studio: Studio, out: Path, signals: dict | None = None, env: dict | None = None) -> dict:
+    """One phase of apps/web/qa/retail-journey.mjs against the installed server; answers its QA_SIGNAL handshakes."""
+    started = time.monotonic()
+    browser_env = {**os.environ, "QA_BASE_URL": studio.base, "QA_EVIDENCE_DIR": str(out / "screenshots"), **(env or {})}
+    process = subprocess.Popen(
+        ["node", "qa/retail-journey.mjs", name, str(out / "ui-state.json")], cwd=REPO / "apps" / "web", env=browser_env,
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8",
+        shell=False)
+    lines: list[str] = []
+    assert process.stdout is not None and process.stdin is not None
+    for line in process.stdout:
+        lines.append(line.rstrip())
+        if line.startswith("QA_SIGNAL "):
+            signal_name = line.split(maxsplit=1)[1].strip()
+            (signals or {})[signal_name]()
+            process.stdin.write(f"{signal_name} done\n")
+            process.stdin.flush()
+    process.stdin.close()
+    code = process.wait(timeout=1800)
+    suffix = f"-{env['QA_REFUSAL_NAME']}" if env and env.get("QA_REFUSAL_NAME") else ""
+    (out / f"phase-{name}{suffix}.log").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    state = json.loads((out / "ui-state.json").read_text(encoding="utf-8")) if (out / "ui-state.json").is_file() else {}
+    record = (state.get("phases") or {}).get(name) or {}
+    result = {"phase": name, "ok": code == 0 and record.get("ok") is True, "seconds": round(time.monotonic() - started, 1),
+              "checks": record.get("checks", [])}
+    for key in ("bannerText", "bannerSeconds", "refusal", "phoneOverflowPx", "allowedHttpErrors", "error"):
+        if record.get(key) not in (None, []):
+            result[key] = record[key] if key != "error" else str(record[key])[-1500:]
+    return result
+
+
+def export_refused(studio: Studio, reason: str) -> dict[str, object]:
+    before = studio.export_ids()
+    status, body = studio.json("POST", "/api/exports/artifact", {"mart": MART}, timeout=600)
+    detail = str(body.get("detail", ""))
+    return {"http": status, "detail": detail, "refused": status == 400 and reason in detail and studio.export_ids() == before}
+
+
+def step12(studio: Studio, checks: dict, receipt: dict, out: Path) -> None:
+    info: dict[str, object] = {"out_dir": out.name}
+    receipt["step12"] = info
+    if out.exists():
+        shutil.rmtree(out)
+    (out / "screenshots").mkdir(parents=True)
+    gold = studio.gold_total_cents()
+
+    # 1. Mapping: retail Gold -> app departments, a labelled copy that never writes Gold.
+    before = latest_snapshot(studio)
+    status, actuals = studio.json("GET", RETAIL_ACTUALS, headers=EXECUTIVE, timeout=300)
+    checks["step12.mapping_ready"] = verdict(status == 200 and actuals.get("enabled") is True and actuals.get("ready") is True)
+    items = actuals.get("items") or []
+    provenance = actuals.get("provenance") or {}
+    per_department = {code: {"items": len(rows), "amount": items_cents(rows) / 100}
+                      for code in DEPARTMENTS for rows in [[item for item in items if item.get("department_code") == code]]}
+    checks["step12.mapping_online_nord_south_non_empty"] = verdict(
+        all(value["items"] > 0 for value in per_department.values())
+        and all(item.get("department_code") in DEPARTMENTS for item in items))
+    checks["step12.mapping_unmapped_empty"] = verdict(actuals.get("unmapped") == [])
+    checks["step12.mapping_copy_not_authoritative"] = verdict(
+        provenance.get("kind") == "copy" and provenance.get("authoritative") is False)
+    snapshot = int(provenance.get("snapshot_id") or 0)
+    groups, gold_groups_total = studio.rows(
+        f"select count(*), sum(amount) from (select CAST(sum(revenue) AS DECIMAL(18,2)) as amount from {RETAIL_GOLD} "
+        f"AT (VERSION => {snapshot}) group by scenario, order_month, channel, store_country)")[0]
+    app_cents, gold_cents = items_cents(items), to_cents(gold_groups_total)
+    checks["step12.mapping_app_total_equals_gold_to_the_cent"] = verdict(app_cents == gold_cents and snapshot >= before)
+    pairs = studio.rows(f"select channel, store_country, count(*) from {RETAIL_GOLD} AT (VERSION => {snapshot}) "
+                        "group by 1, 2 order by 1, 2", limit=1000)
+    coverage = department_coverage(pairs, provenance.get("departments") or {})
+    checks["step12.mapping_each_pair_in_one_department"] = verdict(
+        bool(coverage) and all(len(item["departments"]) == 1 for item in coverage))
+    time.sleep(3)
+    after = latest_snapshot(studio)
+    fingerprints = {"before": {"snapshot": before, **gold_fingerprint(studio, before)},
+                    "after": {"snapshot": after, **gold_fingerprint(studio, after)}}
+    checks["step12.mapping_no_gold_writeback"] = verdict(
+        {k: v for k, v in fingerprints["before"].items() if k != "snapshot"}
+        == {k: v for k, v in fingerprints["after"].items() if k != "snapshot"})
+    info["mapping"] = {
+        "snapshot": snapshot, "items": len(items), "per_department": per_department, "app_total": app_cents / 100,
+        "gold_total": gold_cents / 100, "gold_groups": int(groups), "diff_cents": abs(app_cents - gold_cents),
+        "monthly_sales_total": gold / 100, "pairs": coverage, "departments": provenance.get("departments"),
+        "no_writeback": fingerprints,
+    }
+
+    # 2. Refused exports: failed latest run, then stale Gold (Bronze reloaded after the build).
+    refused: dict[str, object] = {}
+    info["refused_exports"] = refused
+    model = studio.installed.root / BROKEN_MODEL
+    original = model.read_text(encoding="utf-8")
+    model.write_text(break_model(original), encoding="utf-8")
+    try:
+        status, broken = studio.json("POST", "/api/dbt/build", timeout=900)
+    finally:
+        model.write_text(original, encoding="utf-8")
+    refused["failed_run_build_ok"] = broken.get("ok")
+    refused["failed_run_api"] = export_refused(studio, "ended with status 'error'")
+    checks["step12.failed_run_export_refused_api"] = verdict(broken.get("ok") is False and refused["failed_run_api"]["refused"])
+    refused["failed_run_ui"] = ui_phase("export-refused", studio, out, env={
+        "QA_REFUSAL": "ended with status 'error'", "QA_REFUSAL_NAME": "failed-run"})
+    checks["step12.failed_run_export_refused_ui"] = verdict(refused["failed_run_ui"]["ok"])
+    status, rebuilt = studio.json("POST", "/api/dbt/build", timeout=900)
+    checks["step12.rebuild_after_failed_run_ok"] = verdict(status == 200 and rebuilt.get("ok") is True)
+
+    status, active = studio.json("GET", "/api/workspace/active-run")
+    run_id = str(((active or {}).get("run") or {}).get("run_id") or "")
+    status, reloaded = studio.json("POST", f"/api/runs/{run_id}/reload", timeout=900)
+    refused["stale_reload"] = {"http": status, "run_id": run_id, "snapshot_id": reloaded.get("snapshot_id")}
+    refused["stale_api"] = export_refused(studio, "Gold is older than the active generator run")
+    checks["step12.stale_gold_export_refused_api"] = verdict(status == 200 and refused["stale_api"]["refused"])
+    refused["stale_ui"] = ui_phase("export-refused", studio, out, env={
+        "QA_REFUSAL": "older than the active generator run", "QA_REFUSAL_NAME": "stale-gold"})
+    checks["step12.stale_gold_export_refused_ui"] = verdict(refused["stale_ui"]["ok"])
+    status, rebuilt = studio.json("POST", "/api/dbt/build", timeout=900)
+    status, exported = studio.json("POST", "/api/exports/artifact", {"mart": MART}, timeout=600)
+    refused["export_after_rebuild"] = {"http": status, "export_id": exported.get("export_id")}
+    checks["step12.export_accepted_after_rebuild"] = verdict(
+        rebuilt.get("ok") is True and status == 200 and bool(exported.get("export_id")) and studio.gold_total_cents() == gold)
+
+    # 3. Browser: UX phase, then API down on the open page and recovery.
+    info["ux"] = ui_phase("ux", studio, out)
+    checks["step12.ui_ux"] = verdict(info["ux"]["ok"])
+    stops: dict[str, object] = {}
+    info["api_down"] = ui_phase("api-stop", studio, out, signals={
+        "stop-api": lambda: stops.__setitem__("stopped", studio.stop()),
+        "start-api": lambda: stops.__setitem__("restarted", studio.start().get("status") == "ok"),
+    })
+    info["api_down"]["server"] = stops
+    checks["step12.ui_api_down_banner_and_recovery"] = verdict(
+        info["api_down"]["ok"] and stops.get("stopped") is True and stops.get("restarted") is True)
+    banner = str(info["api_down"].get("bannerText", ""))
+    # Information only: 0.3.0's banner names the source-checkout command (user guide section 9 says so).
+    receipt["information"]["step12.api_down_banner_names_contoso_studio"] = verdict("contoso-studio" in banner)
+
+    # 4. Unmapped channel: installed retail read with one department left out, server stopped.
+    checks["step12.server_stopped_for_unmapped_probe"] = verdict(studio.stop())
+    python = studio.installed.studio.parent / ("python.exe" if os.name == "nt" else "python")
+    probe = studio.run_dir / "qa_unmapped_probe.py"
+    probe.write_text(UNMAPPED_PROBE, encoding="utf-8")
+    completed = subprocess.run([str(python), str(probe), UNMAPPED_PROBE_DROPS], cwd=studio.run_dir, env=studio.env(),
+                               capture_output=True, text=True, timeout=600)
+    probe.unlink()
+    if completed.returncode != 0:
+        raise RuntimeError(f"unmapped probe failed:\n{completed.stderr[-3000:]}")
+    result = json.loads(completed.stdout.strip().splitlines()[-1])
+    full, partial = result["full"], result["partial"]
+    expected = dropped_pairs(full["provenance"]["departments"], UNMAPPED_PROBE_DROPS, pairs)
+    reported = sorted((item["channel"], item["store_country"]) for item in partial.get("unmapped", []))
+    dropped_cents = items_cents([item for item in full["items"] if item["department_code"] == UNMAPPED_PROBE_DROPS])
+    checks["step12.unmapped_channel_reported"] = verdict(
+        partial.get("ready") is True and bool(expected) and reported == expected)
+    checks["step12.unmapped_not_credited_elsewhere"] = verdict(
+        not any(item["department_code"] == UNMAPPED_PROBE_DROPS for item in partial["items"])
+        and items_cents(partial["items"]) == items_cents(full["items"]) - dropped_cents
+        and items_cents(partial["unmapped"]) == dropped_cents)
+    checks["step12.unmapped_probe_no_snapshot"] = verdict(result["snapshot_before"] == result["snapshot_after"])
+    info["unmapped"] = {
+        "department_left_out": UNMAPPED_PROBE_DROPS, "expected_pairs": expected, "reported": partial.get("unmapped"),
+        "dropped_amount": dropped_cents / 100, "mapped_amount_after": items_cents(partial["items"]) / 100,
+        "full_read_unmapped": full.get("unmapped"), "snapshot": result["snapshot_after"],
+    }
+
+
 # ----- main ------------------------------------------------------------------------------------------------------
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -584,6 +828,7 @@ def main() -> int:
     parser.add_argument("--receipt", default=str(DIST / "qa-install-receipt.json"))
     parser.add_argument("--keep", action="store_true", help="keep the temp folder for inspection")
     parser.add_argument("--journey", action="store_true", help="A: KPI = Gold, exports, fault/repair, restart, backup/restore")
+    parser.add_argument("--ui", action="store_true", help="D: E2E-05 step 12 (mapping, refused exports, browser UX, API down, unmapped); implies --journey")
     parser.add_argument("--mosaic", help="B: datapass-mosaicstudio checkout (read-only); implies --journey")
     parser.add_argument("--mosaic-release", help="B: delivered Mosaic SDK release folder instead of a checkout; implies --journey")
     parser.add_argument("--mosaic-port", type=int, help="loopback port for the Mosaic host (default --port + 1)")
@@ -591,7 +836,7 @@ def main() -> int:
     args = parser.parse_args()
     if args.mosaic and args.mosaic_release:
         parser.error("pass --mosaic or --mosaic-release, not both")
-    run_journey = args.journey or bool(args.mosaic) or bool(args.mosaic_release)
+    run_journey = args.journey or args.ui or bool(args.mosaic) or bool(args.mosaic_release)
 
     sums = parse_sums((DIST / "SHA256SUMS").read_text(encoding="utf-8")) if (DIST / "SHA256SUMS").is_file() else {}
     zip_path = Path(args.zip).resolve() if args.zip else (DIST / next(iter(sums), "missing.zip"))
@@ -604,7 +849,7 @@ def main() -> int:
         "os": platform.platform(),
         "python": platform.python_version(),
         "port": args.port,
-        "flags": {"journey": run_journey, "mosaic": bool(args.mosaic), "mosaic_release": bool(args.mosaic_release), "upgrade_from": Path(args.upgrade_from).name if args.upgrade_from else None},
+        "flags": {"journey": run_journey, "ui": args.ui, "mosaic": bool(args.mosaic), "mosaic_release": bool(args.mosaic_release), "upgrade_from": Path(args.upgrade_from).name if args.upgrade_from else None},
         "timings_s": timings,
         "checks": checks,
         "information": {},
@@ -617,6 +862,8 @@ def main() -> int:
         omissions.append("Mosaic gates (B) not run: pass --mosaic <datapass-mosaicstudio checkout>")
     if not args.upgrade_from:
         omissions.append("upgrade (C) not run: pass --upgrade-from <older zip>")
+    if not args.ui:
+        omissions.append("E2E-05 step 12 (D: mapping, refused exports, browser UX, API down, unmapped) not run: pass --ui")
     temp = Path(tempfile.mkdtemp(prefix="contoso-qa-install-"))
     studio: Studio | None = None
     result = "fail"
@@ -653,6 +900,10 @@ def main() -> int:
             started = time.monotonic()
             exported = journey(studio, checks, receipt, receipt_path.parent / "qa-install-journey")
             timings["journey"] = round(time.monotonic() - started, 1)
+        if args.ui:
+            started = time.monotonic()
+            step12(studio, checks, receipt, receipt_path.parent / "qa-install-ui")
+            timings["step12"] = round(time.monotonic() - started, 1)
         checks["server_stopped"] = verdict(studio.stop())
 
         if (args.mosaic or args.mosaic_release) and exported:
