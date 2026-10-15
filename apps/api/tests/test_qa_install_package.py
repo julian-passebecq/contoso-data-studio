@@ -80,3 +80,19 @@ def test_overall_needs_every_check_pass():
     assert qa.overall({"a": "PASS", "b": "FAIL"}) == "fail"
     assert qa.overall({}) == "fail"
     assert qa.verdict(True) == "PASS" and qa.verdict(1) == "FAIL" and qa.verdict(None) == "FAIL"
+
+
+def test_mosaic_tool_prefers_the_package_copy_and_falls_back_for_release_mode(tmp_path):
+    tools = tmp_path / "tools"
+    assert qa.mosaic_tool(tmp_path, release=False) == (qa.REPO / "tools" / "open_in_mosaic.mjs", "checkout (not in the package)")
+    tools.mkdir()
+    (tools / "open_in_mosaic.mjs").write_text("// --mosaic <checkout> only\n", encoding="utf-8")
+    assert qa.mosaic_tool(tmp_path, release=False) == (tools / "open_in_mosaic.mjs", "installed package")
+    tool, source = qa.mosaic_tool(tmp_path, release=True)
+    assert tool == qa.REPO / "tools" / "open_in_mosaic.mjs" and "no --mosaic-release" in source
+    (tools / "open_in_mosaic.mjs").write_text("// --mosaic-release <folder>\n", encoding="utf-8")
+    assert qa.mosaic_tool(tmp_path, release=True) == (tools / "open_in_mosaic.mjs", "installed package")
+
+
+def test_checkout_open_in_mosaic_supports_release_mode():
+    assert "--mosaic-release" in (qa.REPO / "tools" / "open_in_mosaic.mjs").read_text(encoding="utf-8")
