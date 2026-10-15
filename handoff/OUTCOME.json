@@ -175,14 +175,16 @@
     {
       "lane": "01-mosaicstudio",
       "repository": "julian-passebecq/datapass-mosaicstudio",
-      "sha": "f3a02bca98efb56ac219db46edb6275088a20192",
-      "use": "validators, schema, UI and concept viewer (read-only)"
+      "sha": "3575e6b048a6cf4ff19ce7746d2dacef648e28bf",
+      "version": "0.11.1",
+      "use": "SDK release (validators, client host) and delivered concept viewer, E2E-05 2026-10-15"
     },
     {
       "lane": "02-datapass-react",
       "repository": "juliandatapass-group/datapass-react-vscode",
-      "sha": "2e922ea4fc4d991ba809e1d3d78a23da2fb586be",
-      "use": "confidence vocabulary only; analyzer cross-check NOT_RUN"
+      "sha": "2d3b8145691ec93f16797a7ba6b595f1eaae97f3",
+      "version": "2.2.4",
+      "use": "CLI analyzer leg of E2E-05 2026-10-15 (14/14); VSIX installed, views not driven"
     }
   ],
   "release_artifacts": [
@@ -218,10 +220,25 @@
   "blockers": [],
   "omissions": [
     "Desktop installer (not promised)",
-    "React analyzer cross-check NOT_RUN (no headless CLI at React 2e922ea)",
     "E2E-08 cross-product clean-release set: owned by the release-set coordinator; Contoso supplies the package and install receipt",
     "Fabric/cloud and real Entra login not run (not authorized)",
     "Package install on Windows qualified at PR #17 head, on Linux at final main"
   ],
-  "next_safe_action": "Owner: decide tag/public release of 0.2.0-fe83dbd and E2E-08 release-set assembly; nothing else pending in this repo."
+  "next_safe_action": "Owner: tag/public release and E2E-08 release-set assembly. Optional agent work: drive the mapping/API-down/UX browser phases on installed bytes (would lift E2E-05 step 12 from INFERRED).",
+  "e2e_05": {
+    "result": "PASS_11_VERIFIED_2_INFERRED",
+    "date": "2026-10-15",
+    "vector": {
+      "contoso": "0.3.0 ac981027ff8b60b3a204ff27ae68fe1981698ffa zip 050b548d0d6dc7618da2d2ae67b15af329e4aa43451bb9c4f66d93c957a12aa9",
+      "mosaicstudio": "0.11.1 3575e6b048a6cf4ff19ce7746d2dacef648e28bf sdk b7384939c8bab9c26580ceac4d141ddbdc98764ca797c53676456661b7f32a67",
+      "datapass_react": "2.2.4 2d3b8145691ec93f16797a7ba6b595f1eaae97f3 cli 886ea5aa17436b42500160b45e70098a7bab75660d69a10d311259b0d85688a2 vsix e076f6d40e90e2f9073f06f857d765ed2854043d9f89e623ca456e23719b694c"
+    },
+    "mode": "installed artifacts re-downloaded from their private destinations (sha256 equal, anonymous 401)",
+    "react_trace": "14/14 grounded, 7 VERIFIED + 7 INFERRED, 0 UNMAPPED",
+    "inferred_steps": [
+      "React VS Code views (editor not driven)",
+      "mapping/unmapped/stale/API-down/UX phases (exact-SHA source reuse at ac98102)"
+    ],
+    "evidence": "handoff/evidence/e2e-05-joint-vector-2026-10-15.json"
+  }
 }
