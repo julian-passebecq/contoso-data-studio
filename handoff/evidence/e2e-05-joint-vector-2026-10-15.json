@@ -183,8 +183,134 @@
     {
       "id": 12,
       "step": "Mapping NORD/SOUTH/ONLINE (app total = Gold total to the cent), unmapped channel reported, stale Gold refused, API-down banner, UX phases",
-      "status": "INFERRED",
-      "evidence": "Not run on installed bytes in this vector. Reused exact-SHA evidence: source retail journey at ac98102 (the package source) 9/9 phases PASS on 13 Oct (handoff/ACCEPTANCE.md, Galaxy Finition 0.3.0). These phases involve neither Mosaic nor React."
+      "status": "VERIFIED",
+      "evidence": {
+        "run": {
+          "harness": "tools/qa_install_package.py --zip contoso-data-studio-0.3.0-ac98102.zip --port 21300 --ui (branch claude/e2e05-step12-verify; browser phases from apps/web/qa/retail-journey.mjs, Playwright 1.56.1 Chromium)",
+          "package_sha256": "050b548d0d6dc7618da2d2ae67b15af329e4aa43451bb9c4f66d93c957a12aa9",
+          "version": "0.3.0",
+          "source_sha": "ac98102",
+          "started_at": "2026-10-15T01:01:27+00:00",
+          "finished_at": "2026-10-15T01:07:34+00:00",
+          "checks": "50/50 PASS (install, journey and step12; Mosaic gates not rerun here, steps 4-6 evidence unchanged)",
+          "step12_checks": {
+            "step12.mapping_ready": "PASS",
+            "step12.mapping_online_nord_south_non_empty": "PASS",
+            "step12.mapping_unmapped_empty": "PASS",
+            "step12.mapping_copy_not_authoritative": "PASS",
+            "step12.mapping_app_total_equals_gold_to_the_cent": "PASS",
+            "step12.mapping_each_pair_in_one_department": "PASS",
+            "step12.mapping_no_gold_writeback": "PASS",
+            "step12.failed_run_export_refused_api": "PASS",
+            "step12.failed_run_export_refused_ui": "PASS",
+            "step12.rebuild_after_failed_run_ok": "PASS",
+            "step12.stale_gold_export_refused_api": "PASS",
+            "step12.stale_gold_export_refused_ui": "PASS",
+            "step12.export_accepted_after_rebuild": "PASS",
+            "step12.ui_ux": "PASS",
+            "step12.ui_api_down_banner_and_recovery": "PASS",
+            "step12.server_stopped_for_unmapped_probe": "PASS",
+            "step12.unmapped_channel_reported": "PASS",
+            "step12.unmapped_not_credited_elsewhere": "PASS",
+            "step12.unmapped_probe_no_snapshot": "PASS"
+          },
+          "timings_s": {
+            "venv_and_pip_install": 165.3,
+            "journey": 38.7,
+            "step12": 125.1
+          }
+        },
+        "mapping": {
+          "snapshot": 59,
+          "items": 72,
+          "per_department": {
+            "ONLINE": {
+              "items": 24,
+              "amount": 1676468.49
+            },
+            "NORD": {
+              "items": 24,
+              "amount": 1444971.3
+            },
+            "SOUTH": {
+              "items": 24,
+              "amount": 1302977.05
+            }
+          },
+          "app_total": 4424416.84,
+          "gold_total": 4424416.84,
+          "diff_cents": 0,
+          "gold_groups": 240,
+          "pairs_each_in_one_department": "10/10",
+          "unmapped": [],
+          "provenance": "copy, authoritative false",
+          "no_writeback": {
+            "snapshots": [
+              58,
+              60
+            ],
+            "rows": 240,
+            "digest": "d1447a15e0b86eb1dc1955379d28d326",
+            "equal": true
+          }
+        },
+        "unmapped_channel": {
+          "method": "server stopped; the installed retail read (app.services.fabric_apps.retail) run in the installed venv on the same workspace with SOUTH left out of RETAIL_DEPARTMENTS",
+          "reported": [
+            {
+              "channel": "Store",
+              "store_country": "France",
+              "amount": 662745.78,
+              "sales_lines": 1200
+            },
+            {
+              "channel": "Store",
+              "store_country": "Switzerland",
+              "amount": 640231.27,
+              "sales_lines": 1300
+            }
+          ],
+          "dropped_amount": 1302977.05,
+          "mapped_amount_after": 3121439.79,
+          "credited_elsewhere": false,
+          "snapshot_written": false
+        },
+        "stale_gold_refused": {
+          "failed_latest_run": {
+            "api_http": 400,
+            "message": "The latest dbt run of monthly_sales ended with status 'error'. Fix the model and rerun dbt build before exporting.",
+            "ui_alert": "same message in the Charts export panel, no export written"
+          },
+          "bronze_reloaded_after_build": {
+            "api_http": 400,
+            "message": "Gold is older than the active generator run (Bronze was reloaded after the last dbt build). Run dbt build in Transform before exporting.",
+            "ui_alert": "same message in the Charts export panel, no export written"
+          },
+          "after_rebuild": {
+            "http": 200,
+            "gold_total_unchanged": true
+          }
+        },
+        "api_down": {
+          "how": "Charts loaded from the installed server, then the server process was stopped (one process serves API and web)",
+          "banner_seconds": 14.2,
+          "banner_text": "The local API is not reachable. Start it from the repository root with: uvicorn app.main:app --app-dir apps/api",
+          "recovery": "server restarted on the same workspace; banner cleared by itself, Charts KPIs rendered again",
+          "finding": "0.3.0's banner names only the source-checkout command (uvicorn); installed users run contoso-studio (user guide section 9 already said so). Fixed in apps/web/src/api.ts for the next package; 0.3.0 bytes unchanged."
+        },
+        "ux": {
+          "checks": [
+            "F11 navigation reachable and operable by keyboard",
+            "F01 Generate view with scenario library, seed and scale",
+            "F04 failed query shows the database error",
+            "F04 mutating SQL denied by the read-only workbench",
+            "F11 reduced-motion rendering",
+            "F11 phone width 390px (horizontal overflow 0px)"
+          ],
+          "phone_overflow_px": 0
+        },
+        "screenshots": "10 PNG (api-down, api-recovered, two export refusals, keyboard, generate, query error, query denied, reduced motion, phone), outside Git"
+      }
     },
     {
       "id": 13,
@@ -344,13 +470,12 @@
   "omissions": [
     "upgrade (C) not run: pass --upgrade-from <older zip>",
     "sha256 not compared: contoso-data-studio-0.3.0-ac98102.zip is not listed in dist/SHA256SUMS",
-    "Contoso UI browser phases (mapping, api-down, ux) not driven on installed bytes: reused exact-SHA source evidence (step 12, INFERRED)",
     "React VS Code views not driven (gui-qualify not rerun for 2.2.4): step 8 INFERRED",
     "Mosaic workbench zip not used: the artifact was opened through the SDK release's own client host (CONSUMING.md method 2)"
   ],
   "totals": {
-    "VERIFIED": 11,
-    "INFERRED": 2
+    "VERIFIED": 12,
+    "INFERRED": 1
   },
   "result": "PASS",
   "previous": {
@@ -363,6 +488,12 @@
     "run/react-leg-raw.json",
     "redownload-sha256.txt",
     "anonymous-check.txt",
-    "run/vsix-install.txt"
-  ]
+    "run/vsix-install.txt",
+    "step12/receipt.json (50/50 PASS, sha256 e7e3e0518d29e9c5b5c4333372de240f778079a2abade2522de15bdb45508e83), step12/qa-install-ui/ (phase logs + 10 screenshots)"
+  ],
+  "step12_rerun": {
+    "date": "2026-10-15",
+    "was": "INFERRED (exact-SHA reuse of the 13 Oct source journey)",
+    "now": "VERIFIED on installed 0.3.0 bytes"
+  }
 }

@@ -96,3 +96,40 @@ def test_mosaic_tool_prefers_the_package_copy_and_falls_back_for_release_mode(tm
 
 def test_checkout_open_in_mosaic_supports_release_mode():
     assert "--mosaic-release" in (qa.REPO / "tools" / "open_in_mosaic.mjs").read_text(encoding="utf-8")
+
+
+# The shipped mapping (app.services.fabric_apps.mapping.describe()["retail_departments"]) as served in provenance.
+SERVED_DEPARTMENTS = {
+    "ONLINE": {"channel": "Online", "countries": None},
+    "NORD": {"channel": "Store", "countries": ["Norway", "Germany", "United Kingdom"]},
+    "SOUTH": {"channel": "Store", "countries": ["France", "Switzerland"]},
+}
+GOLD_PAIRS = [["Online", "France", 12], ["Online", "Norway", 12], ["Store", "France", 12], ["Store", "Germany", 12],
+              ["Store", "Switzerland", 12], ["Store", "Atlantis", 1]]
+
+
+def test_items_cents_sums_amounts_half_up():
+    assert qa.items_cents([{"amount": 10.005}, {"amount": "0.10"}, {"amount": 3}]) == 1311
+    assert qa.items_cents([]) == 0
+
+
+def test_department_coverage_finds_zero_one_or_many_departments():
+    coverage = {(item["channel"], item["store_country"]): item["departments"]
+                for item in qa.department_coverage(GOLD_PAIRS, SERVED_DEPARTMENTS)}
+    assert coverage[("Online", "France")] == ["ONLINE"] and coverage[("Store", "Germany")] == ["NORD"]
+    assert coverage[("Store", "Switzerland")] == ["SOUTH"] and coverage[("Store", "Atlantis")] == []
+    overlapping = {**SERVED_DEPARTMENTS, "ALL_STORES": {"channel": "Store", "countries": None}}
+    assert qa.department_coverage([["Store", "France", 1]], overlapping)[0]["departments"] == ["SOUTH", "ALL_STORES"]
+
+
+def test_dropped_pairs_are_those_only_the_left_out_department_maps():
+    assert qa.dropped_pairs(SERVED_DEPARTMENTS, "SOUTH", GOLD_PAIRS) == [("Store", "France"), ("Store", "Switzerland")]
+    assert qa.dropped_pairs(SERVED_DEPARTMENTS, "NONE", GOLD_PAIRS) == []
+
+
+def test_unmapped_probe_and_ui_phases_exist_in_the_checkout():
+    assert "mapping.RETAIL_DEPARTMENTS = " in qa.UNMAPPED_PROBE and "read_retail_actuals" in qa.UNMAPPED_PROBE
+    journey = (REPO / "apps" / "web" / "qa" / "retail-journey.mjs").read_text(encoding="utf-8")
+    for phase in ("ux", "api-stop", "export-refused"):
+        assert f'phase === "{phase}"' in journey
+    assert qa.API_DOWN_TEXT in (REPO / "apps" / "web" / "src" / "api.ts").read_text(encoding="utf-8")

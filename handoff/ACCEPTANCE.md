@@ -119,7 +119,7 @@ deep links, Gold build markers, Node 22/26, TRACES.md rendered from traces.json,
   stays PARTIAL; Fabric/E2E-09 excluded.
 - Known: `handoff/` ships inside the zip (repo files, public, no secrets); API-down banner names the developer uvicorn command.
 
-### E2E-05 joint vector on installed artifacts (2026-10-15): PASS, 11 VERIFIED + 2 INFERRED
+### E2E-05 joint vector on installed artifacts (2026-10-15): PASS, 12 VERIFIED + 1 INFERRED (step 12 re-run)
 
 Closes the PARTIAL of 14 Oct (no single run used Mosaic, the Contoso export and React together). One run, one pinned
 vector, every product taken from its private destination (authenticated re-download, sha256 equal; anonymous 401 on all four):
@@ -139,7 +139,14 @@ vector, every product taken from its private destination (authenticated re-downl
   sibling frame ignored). The browser step that timed out on 13 Oct passed with a 120 s wait.
 - React 2.2.4 CLI installed from the tgz, run on the unpacked Contoso package: `charts-kpi-revenue` **14/14 grounded,
   7 VERIFIED + 7 INFERRED, 0 UNMAPPED**, per-step statuses identical to 13 Oct. The 7 INFERRED hops stay INFERRED.
-- INFERRED: (8) the React VS Code views (VSIX installed in an isolated profile, editor not driven, same analyzer-core);
-  (12) mapping NORD/SOUTH/ONLINE, unmapped channel, stale Gold refusal, API-down and UX phases: not run on installed bytes,
-  exact-SHA reuse of the 9/9 source journey at ac98102 (13 Oct).
+- INFERRED: (8) the React VS Code views (VSIX installed in an isolated profile, editor not driven, same analyzer-core).
+- (12) VERIFIED on installed 0.3.0 bytes (was INFERRED by exact-SHA reuse), `tools/qa_install_package.py --ui`, 50/50
+  checks PASS: retail-actuals 72 items, ONLINE/NORD/SOUTH non-empty, unmapped [], app total = Gold total 4,424,416.84
+  (0 cents, 240 groups), 10/10 channel/country pairs in one department, Gold digest unchanged by the read; with SOUTH
+  left out of the mapping the installed read reports Store/France and Store/Switzerland as unmapped (1,302,977.05,
+  nothing credited elsewhere, no snapshot); export refused (API 400 and Charts panel alert) after a failed dbt run and
+  after a Bronze reload (stale Gold), accepted after rebuild; Playwright `ux` (keyboard, Generate, query error, read-only
+  denial, reduced motion, 390 px with 0 px overflow) and `api-stop` (server stopped under an open page: banner in 14.2 s,
+  restart: banner clears, Charts render). Finding: 0.3.0's banner names only the `uvicorn` source command; fixed in
+  `apps/web/src/api.ts` for the next package (it now names `contoso-studio` first).
 - Receipt `handoff/evidence/e2e-05-joint-vector-2026-10-15.json`; raw receipts and screenshots outside Git.

@@ -4,8 +4,13 @@
 //   node qa/retail-journey.mjs <phase> <state.json>
 //
 // Every phase reads and extends the shared state file and leaves screenshots in QA_EVIDENCE_DIR.
+//
+// tools/qa_install_package.py --ui also runs `ux`, `export-refused` and `api-stop` against the installed one-process
+// package (the API serves the web bundle, so the page must be loaded before the API stops). `api-stop` hands the
+// server over to the orchestrator: it prints `QA_SIGNAL <name>` and waits for `<name> done` on stdin.
 import { chromium } from "playwright";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createInterface } from "node:readline";
 import assert from "node:assert/strict";
 
 const [phase, statePath] = process.argv.slice(2);
@@ -143,6 +148,14 @@ async function goldBuildList() {
 }
 function goldBuildRow(list, name) {
   return list.locator("li").filter({ has: page.locator("code", { hasText: new RegExp(`^${name}$`) }) });
+}
+let stdin;
+async function handshake(signal) {
+  stdin ??= createInterface({ input: process.stdin });
+  const answer = new Promise(resolve => stdin.once("line", resolve));
+  console.log(`QA_SIGNAL ${signal}`);
+  const line = await answer;
+  assert.equal(String(line).trim(), `${signal} done`, `orchestrator did not acknowledge ${signal}`);
 }
 async function exportIds() { return (await api("/api/exports")).body.exports.map(e => e.export_id).sort(); }
 async function openManage() {
@@ -458,6 +471,45 @@ try {
     await snap("api-down", "F11 disconnected API shown with recovery command");
   }
 
+  if (phase === "api-stop") {
+    // F11 on the installed package: the page is loaded, then the orchestrator stops the one process that serves
+    // both the API and the web bundle. The banner must appear on the open page and clear once the API is back.
+    await nav("Charts");
+    await page.locator(".kpiGrid").waitFor({ timeout: 60000 });
+    await handshake("stop-api");
+    expectFailure = true;
+    const banner = page.getByRole("alert").filter({ hasText: "The local API is not reachable" });
+    const shownAfter = Date.now();
+    await banner.waitFor({ timeout: 45000 });
+    record.bannerSeconds = Math.round((Date.now() - shownAfter) / 100) / 10;
+    record.bannerText = (await banner.textContent()).trim();
+    await snap("api-down", `F11 stopped API shown on the open page within ${record.bannerSeconds} s: "${record.bannerText}"`);
+    await handshake("start-api");
+    await banner.waitFor({ state: "detached", timeout: 45000 });
+    expectFailure = false;
+    await nav("Charts");
+    await page.locator(".kpiGrid").waitFor({ timeout: 60000 });
+    await snap("api-recovered", "F11 banner cleared by itself after the restart; Charts render again");
+  }
+
+  if (phase === "export-refused") {
+    // F08: the orchestrator left Gold unusable for export (QA_REFUSAL: failed latest run, or Bronze reloaded after
+    // the last build). The Charts export panel must refuse with that reason and write nothing.
+    expectFailure = true;
+    const reason = new RegExp(process.env.QA_REFUSAL || "older than the active generator run");
+    await nav("Charts");
+    const panel = page.locator(".exportPanel");
+    await panel.scrollIntoViewIfNeeded();
+    await panel.getByRole("combobox", { name: "Gold table to export" }).selectOption("monthly_sales");
+    const before = await exportIds();
+    await panel.getByRole("button", { name: "Export artifact" }).click();
+    const refusal = panel.getByRole("alert").filter({ hasText: reason });
+    await refusal.waitFor({ timeout: 120000 });
+    record.refusal = (await refusal.textContent()).trim();
+    assert.deepEqual(await exportIds(), before, "a refused export must not write an export");
+    await snap(`refused-${(process.env.QA_REFUSAL_NAME || "stale")}`, `F08 export refused in the UI: "${record.refusal}"`);
+  }
+
   if (phase === "ux") {
     // F11: keyboard operation, reduced motion and phone width on the reopened product.
     await page.keyboard.press("Tab");
@@ -510,5 +562,6 @@ try {
   await writeFile(statePath, JSON.stringify(state, null, 2));
   await context.storageState({ path: storagePath }).catch(() => {});
   await browser.close();
+  stdin?.close();
 }
 if (!record.ok) { console.error(record.error); process.exit(1); }
