@@ -13,8 +13,14 @@
   FOIL build in workspace B); #32 TRACES.md rendered from traces.json (`render_traces.py`, stale check in check_traces).
 - Galaxy Finition 13-14 Oct: #35 #36 docs; #37 0.3.0 (guide, notes); #38 installed-package journeys. Package
   0.3.0-ac98102 sha256 050b548d... staged locally (receipt in ACCEPTANCE.md); React leg 14/14 at 8a429c3.
-- In flight: none. Open: Mosaic browser step times out on this PC (gates PASS, CI PASS).
-- Re-qualify: `python tools/qa_retail_journey.py --mosaic <datapass-mosaicstudio>`; `node tools/open_in_mosaic.mjs ...`;
+- 15 Oct: E2E-05 joint vector on installed artifacts PASS (11 VERIFIED + 2 INFERRED): Contoso 0.3.0-ac98102 + Mosaic
+  0.11.1-3575e6b SDK release + React 2.2.4-2d3b814 CLI, React trace 14/14 (7V/7I). New `--mosaic-release` in
+  `open_in_mosaic.mjs` / `qa_install_package.py`; the 120 s browser wait fixed the local Mosaic timeout. Receipt
+  `handoff/evidence/e2e-05-joint-vector-2026-10-15.json`.
+- In flight: none. Open (optional): mapping/API-down/UX browser phases on installed bytes (E2E-05 step 12 INFERRED).
+- Re-qualify: E2E-05 installed: `py -3.12 tools/qa_install_package.py --zip <vault zip> --mosaic-release <Mosaic SDK
+  release folder> --keep`, then React CLI `datapass-analyze analyze <unpacked zip root> ... --oracle-trace charts-kpi-revenue`;
+  `python tools/qa_retail_journey.py --mosaic <datapass-mosaicstudio>`; `node tools/open_in_mosaic.mjs ...`;
   `python tools/package_release.py && python tools/qa_install_package.py`; `pytest -q apps/api/tests` (venv Scripts on PATH);
   `npm --prefix apps/web test` (Node 22 or 26); `python -I docs/datapass-react/render_traces.py`; React leg: React CLI `datapass-analyze.mjs analyze <root> --oracle`.
 - Owner gates (not authorized): tag/release/public distribution, Fabric/cloud (E2E-09), E2E-08 release-set assembly.

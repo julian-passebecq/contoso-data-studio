@@ -2,7 +2,14 @@
 // Open a Contoso export in MosaicStudio itself (actual consumer, not only its validators) and write evidence.
 //
 //   node tools/open_in_mosaic.mjs --mosaic <datapass-mosaicstudio checkout> [--ref <sha>] --export <bundle dir>
-//        --concept <concept.json> --out <dir> [--port 21250] [--with-deps] [--keep]
+//        --concept <concept.json> --out <dir> [--port 21250] [--with-deps] [--keep] [--timeout-ms 120000]
+//   node tools/open_in_mosaic.mjs --mosaic-release <verified SDK release folder> --export ... --concept ... --out ...
+//
+// --mosaic-release uses a delivered Mosaic SDK release folder (sdk-release.json, the SDK tar.gz and the standalone
+// concept-viewer.html; Mosaic docs/CONSUMING.md method 2) instead of a Git checkout: the tar.gz is unpacked into the
+// temporary folder (the release folder is never modified), the release's own scripts/sdk-verify.mjs checks the
+// folder, the identity is the sourceCommit of sdk-release.json, and the concept gate frames the delivered
+// concept-viewer.html as shipped (sha256 checked against sdk-release.json) instead of rebuilding it.
 //
 // 1. `git archive <ref>` of the Mosaic checkout into a temporary folder (the checkout is never touched), `npm ci`
 //    there with the lockfile of that ref.
@@ -43,20 +50,33 @@ for (let i = 2; i < process.argv.length; i++) {
   if (next === undefined || next.startsWith('--')) args[key.slice(2)] = true;
   else { args[key.slice(2)] = next; i++; }
 }
-if (!args.mosaic || !args.export || !args.concept || !args.out) {
-  console.error('usage: --mosaic <checkout> [--ref <sha>] --export <bundle dir> --concept <concept.json> --out <dir> [--port N] [--with-deps] [--keep]');
+if ((!args.mosaic === !args['mosaic-release']) || !args.export || !args.concept || !args.out) {
+  console.error('usage: --mosaic <checkout> [--ref <sha>] | --mosaic-release <SDK release folder>, --export <bundle dir> --concept <concept.json> --out <dir> [--port N] [--with-deps] [--keep] [--timeout-ms N]');
   process.exit(2);
 }
 const port = Number(args.port ?? 21250);
 if (!Number.isInteger(port) || port < 1024 || port > 65535) { console.error('--port must be an integer 1024-65535'); process.exit(2); }
 
+// Browser waits (page load, first artifact render): a cold Vite dev host on a loaded PC can need more than 30 s.
+const timeoutMs = Number(args['timeout-ms'] ?? 120_000);
+if (!Number.isInteger(timeoutMs) || timeoutMs < 1000) { console.error('--timeout-ms must be an integer >= 1000'); process.exit(2); }
+
 const out = resolve(args.out), shots = join(out, 'screenshots');
 rmSync(out, {recursive: true, force: true});
 mkdirSync(shots, {recursive: true});
-const ref = args.ref ?? PINNED_MOSAIC_SHA;
-const sha = execFileSync('git', ['-C', args.mosaic, 'rev-parse', `${ref}^{commit}`], {encoding: 'utf8'}).trim();
+const releaseDir = args['mosaic-release'] ? resolve(args['mosaic-release']) : null;
+const readJsonFile = (file) => { const t = readFileSync(file, 'utf8'); return JSON.parse(t.charCodeAt(0) === 0xfeff ? t.slice(1) : t); };
+const release = releaseDir ? readJsonFile(join(releaseDir, 'sdk-release.json')) : null;
+if (release && (release.format !== 'datapass.sdk-release' || !/^[0-9a-f]{40}$/.test(release.sourceCommit ?? ''))) {
+  console.error(`${releaseDir}: sdk-release.json is not a datapass.sdk-release with a 40-hex sourceCommit`);
+  process.exit(2);
+}
+const ref = release ? `sdk-release ${release.sdkVersion}` : (args.ref ?? PINNED_MOSAIC_SHA);
+const sha = release ? release.sourceCommit : execFileSync('git', ['-C', args.mosaic, 'rev-parse', `${ref}^{commit}`], {encoding: 'utf8'}).trim();
 const evidence = {
   format: 'contoso.mosaic-consumer-evidence', version: 1, mosaic_ref: ref, mosaic_sha: sha,
+  mosaic_source: release ? 'sdk-release folder (Mosaic docs/CONSUMING.md method 2)' : 'git archive of a checkout',
+  mosaic_release: null, timeout_ms: timeoutMs,
   mosaic_version: null, node: process.version, started_at: new Date().toISOString(),
   export_dir: resolve(args.export), concept_file: resolve(args.concept), gates: {}, browser: {}, screenshots: [], result: 'FAIL',
 };
@@ -93,12 +113,29 @@ function stopHost() {
 
 try {
   // ---------- 1. Mosaic sources at the ref, dependencies from that ref's lockfile -------------------------------
-  log(`git archive ${sha} -> ${src}`);
   mkdirSync(src);
-  writeFileSync(join(scratch, 'src.tar'), execFileSync('git', ['-C', args.mosaic, 'archive', '--format=tar', sha], {maxBuffer: 1 << 30}));
-  execFileSync('tar', ['-xf', join(scratch, 'src.tar'), '-C', src], {cwd: scratch});
-  rmSync(join(scratch, 'src.tar'));
+  if (release) {
+    // Copy the archive next to the target and unpack with relative names: Git Bash's GNU tar reads "C:" as a host.
+    const archive = release.archive?.name;
+    const bytes = readFileSync(join(releaseDir, archive));
+    if (sha256(bytes) !== release.archive.sha256) throw new Error(`${archive}: sha256 differs from sdk-release.json`);
+    writeFileSync(join(scratch, 'sdk.tar.gz'), bytes);
+    log(`unpack ${archive} -> ${src}`);
+    execFileSync('tar', ['-xzf', 'sdk.tar.gz', '-C', 'mosaic', '--strip-components=1'], {cwd: scratch});
+    rmSync(join(scratch, 'sdk.tar.gz'));
+    if (release.sourceTreeClean !== true) throw new Error('sdk-release.json: sourceTreeClean is not true (not a qualified release)');
+    // The release's own verifier: re-hashes the archive, every file in it, the standalone files and the contracts.
+    const verify = execFileSync(process.execPath, [join(src, 'scripts', 'sdk-verify.mjs'), releaseDir], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']}).trim();
+    evidence.mosaic_release = {sdkVersion: release.sdkVersion, sourceCommit: release.sourceCommit, sourceTreeClean: release.sourceTreeClean,
+      archive: release.archive, sdk_verify: verify.split('\n').pop()};
+  } else {
+    log(`git archive ${sha} -> ${src}`);
+    writeFileSync(join(scratch, 'src.tar'), execFileSync('git', ['-C', args.mosaic, 'archive', '--format=tar', sha], {maxBuffer: 1 << 30}));
+    execFileSync('tar', ['-xf', join(scratch, 'src.tar'), '-C', src], {cwd: scratch});
+    rmSync(join(scratch, 'src.tar'));
+  }
   evidence.mosaic_version = readJson(join(src, 'package.json')).version;
+  if (release && evidence.mosaic_version !== release.sdkVersion) throw new Error(`package.json ${evidence.mosaic_version} != sdkVersion ${release.sdkVersion}`);
   log('npm ci (Mosaic lockfile)');
   npm(['ci', '--no-audit', '--no-fund'], src);
   const requireMosaic = createRequire(join(src, 'package.json'));
@@ -117,7 +154,8 @@ try {
 
   // ---------- gate (a) structural_strict: ajv, nothing stripped --------------------------------------------------
   {
-    const schemaText = execFileSync('git', ['-C', args.mosaic, 'show', `${sha}:docs/contracts/artifact.schema.json`], {encoding: 'utf8'});
+    const schemaText = release ? readFileSync(join(src, 'docs', 'contracts', 'artifact.schema.json'), 'utf8')
+      : execFileSync('git', ['-C', args.mosaic, 'show', `${sha}:docs/contracts/artifact.schema.json`], {encoding: 'utf8'});
     const schema = JSON.parse(schemaText);
     const tools = join(scratch, 'ajv');
     mkdirSync(tools);
@@ -293,10 +331,11 @@ customCapabilities:{gold:['charts']${metricRep ? ',metric:[]' : ''}}});
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+    page.setDefaultTimeout(timeoutMs);
     const url = `http://127.0.0.1:${port}/?app=${CLIENT_ID}`;
-    await page.goto(url);
+    await page.goto(url, {timeout: timeoutMs});
     const source = page.locator(`[data-testid=artifact-source][data-artifact-id="${artifact.id}"]`);
-    await source.waitFor({timeout: 60_000});
+    await source.waitFor({timeout: timeoutMs});
     const view = (id) => source.locator(`.foundation-artifact-view[data-representation="${id}"]`);
     const fmt = (v, digits = 2) => (typeof v === 'number' ? new Intl.NumberFormat('en-GB', {maximumFractionDigits: digits}).format(v) : String(v));
     const record = {url, client_dev: descriptor, artifact_id: artifact.id};
@@ -359,9 +398,19 @@ customCapabilities:{gold:['charts']${metricRep ? ',metric:[]' : ''}}});
   host = null;
 
   // ---------- 3. Standalone concept viewer at the ref, embed API -------------------------------------------------
-  log('build standalone concept viewer');
-  const viewerFile = join(src, 'dist-standalone', 'concept-viewer.html');
-  const build = execFileSync(process.execPath, [...nodeArgs, 'scripts/build-concept-standalone.mjs'], {cwd: src, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 600_000});
+  let viewerFile, build;
+  if (release) {
+    // The delivered standalone viewer, exactly as shipped next to the SDK archive.
+    viewerFile = join(releaseDir, 'concept-viewer.html');
+    const listed = (release.standalone ?? []).find((f) => basename(String(f.path ?? f.name ?? f.file ?? '')) === 'concept-viewer.html');
+    const actual = sha256(readFileSync(viewerFile));
+    if (listed?.sha256 && listed.sha256 !== actual) throw new Error('concept-viewer.html sha256 differs from sdk-release.json');
+    build = `delivered concept-viewer.html, sha256 ${actual}${listed?.sha256 ? ' (equal to sdk-release.json)' : ' (not listed in sdk-release.json)'}`;
+  } else {
+    log('build standalone concept viewer');
+    viewerFile = join(src, 'dist-standalone', 'concept-viewer.html');
+    build = execFileSync(process.execPath, [...nodeArgs, 'scripts/build-concept-standalone.mjs'], {cwd: src, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 600_000});
+  }
   const viewerHtml = readFileSync(viewerFile, 'utf8');
   cpSync(viewerFile, join(out, 'concept-viewer.html'));
   const render = {build: build.trim().split('\n').pop(), viewer_sha256: sha256(viewerHtml), spec_id: conceptSpec.id};

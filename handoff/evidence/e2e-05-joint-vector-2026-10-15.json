@@ -1,0 +1,368 @@
+{
+  "journey": "E2E-05 Retail Gold to application and explanation (joint vector, installed artifacts)",
+  "lane": "07-contoso",
+  "date": "2026-10-15",
+  "data": "SYNTHETIC",
+  "os": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.10",
+  "node": "v26.9.0",
+  "harness": {
+    "repository": "julian-passebecq/contoso-data-studio",
+    "sha": "b6ed45057a7f7bfe613557df5f8e47c9ef8db7fc",
+    "tools": [
+      "tools/qa_install_package.py --journey --mosaic-release --keep",
+      "tools/open_in_mosaic.mjs --mosaic-release (checkout copy; 0.3.0's predates the option)",
+      "datapass-analyze analyze . --trace apps/web/src/pages/ChartsPage.tsx:286 --field revenue --json --oracle docs/datapass-react/traces.json --oracle-trace charts-kpi-revenue"
+    ],
+    "note": "Run with the branch tree before mosaic_tool() was factored out of mosaic_gates() (same selection; the fallback was then recorded under 'information', now under 'omissions'). open_in_mosaic.mjs ran exactly as committed in b6ed450. Raw receipts, screenshots and the Mosaic evidence.json stay outside Git in the local release-evidence folder (2026-10-15/contoso/e2e-05-joint)."
+  },
+  "vector": {
+    "contoso": {
+      "version": "0.3.0",
+      "source_sha": "ac98102",
+      "artifact": "contoso-data-studio-0.3.0-ac98102.zip",
+      "sha256": "050b548d0d6dc7618da2d2ae67b15af329e4aa43451bb9c4f66d93c957a12aa9",
+      "bytes": 3289138,
+      "destination": "galaxy-release-vault generic contoso-data-studio/0.3.0-ac98102 (package 72392375)"
+    },
+    "mosaicstudio": {
+      "version": "0.11.1",
+      "source_sha": "3575e6b048a6cf4ff19ce7746d2dacef648e28bf",
+      "artifact": "datapass-mosaicstudio-sdk-0.11.1.tar.gz",
+      "sha256": "b7384939c8bab9c26580ceac4d141ddbdc98764ca797c53676456661b7f32a67",
+      "concept_viewer_sha256": "62b451fd3e98a5303b88cca407be1eeff6f05c1c78eb166188df6bff0ac7670c",
+      "sdk_release_json_sha256": "03e0ced2602774c501161ab7f5de60e77b61fbb7da956dd82708f6c51b7c3480",
+      "destination": "galaxy-release-vault generic datapass-mosaicstudio-sdk/0.11.1-3575e6b (package 72523937)"
+    },
+    "datapass_react": {
+      "version": "2.2.4",
+      "source_sha": "2d3b8145691ec93f16797a7ba6b595f1eaae97f3",
+      "cli": "datapass-react-cli-2.2.4.tgz",
+      "cli_sha256": "886ea5aa17436b42500160b45e70098a7bab75660d69a10d311259b0d85688a2",
+      "vsix": "datapass-react-2.2.4.vsix",
+      "vsix_sha256": "e076f6d40e90e2f9073f06f857d765ed2854043d9f89e623ca456e23719b694c",
+      "destination": "datapass-react-vscode private generic registry datapass-react/2.2.4 (package 72529981)"
+    }
+  },
+  "delivery_checks": {
+    "authenticated_redownload": "sha256 equal for every file (Mosaic and React sha256sum -c OK; Contoso zip = vault file_sha256)",
+    "anonymous": "HTTP 401 on all four artifacts",
+    "mosaic_sdk_verify": "SDK 0.11.1 verified: datapass-mosaicstudio-sdk-0.11.1.tar.gz (347 files), 1 standalone file(s), 3 contract(s); commit 3575e6b048a6."
+  },
+  "installed_models_sha256": {
+    "dbt/models/gold/monthly_sales.sql": "ba12dae47c1ca71e4a82550f7c56f33c981c97746d65c025378f8c1f6b9ed5cc",
+    "dbt/models/silver/stg_sales.sql": "7c2f83f4e9a66bcf2e5b0c5dfd617455bcf45f80d677ccb08e26b98a79a65502",
+    "dbt/models/gold/monthly_sales_by_country.sql": "5defef57c6675b6784e5fead027cb3e3422f24504890fed6f9fb9f83f1dcdca8",
+    "apps/api/app/services/generator.py": "d3c5d2104ded06fa28cb2f1e9f3b5536e33229cc62743450e90b1d3bd797cf4b"
+  },
+  "steps": [
+    {
+      "id": 1,
+      "step": "Generate (seed 42) -> Bronze -> dbt Silver/Gold on the installed package (open retail-baseline)",
+      "status": "VERIFIED",
+      "evidence": {
+        "gold_monthly_sales_rows": 48,
+        "timings_s": {
+          "unpack": 0.4,
+          "venv_and_pip_install": 166.2,
+          "server_start": 3.8,
+          "open_retail_baseline": 48.8,
+          "gold_query": 0.3,
+          "journey": 43.0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "step": "SQL/charts: Revenue KPI (installed ChartsPage SQL) equals the Gold total",
+      "status": "VERIFIED",
+      "evidence": {
+        "revenue_kpi": 4424416.84,
+        "gold_total": 4424416.84,
+        "kpi_sql_source": "installed apps/web/src/pages/ChartsPage.tsx"
+      }
+    },
+    {
+      "id": 3,
+      "step": "Export datapass.artifact + concept-spec through the installed API",
+      "status": "VERIFIED",
+      "evidence": {
+        "artifact": {
+          "dir": "export/monthly-sales-20261015t000913z",
+          "file": "contoso-monthly-sales.json",
+          "sha256": "3056dd563e2eca821619d3edb7a6e23a32db67f6e45bf7848a96602c6daf126d",
+          "rows": 48
+        },
+        "concept": {
+          "file": "contoso-sales-forecasting.concept.json",
+          "sha256": "d653d94f80738bdb5d66c5068e6158d5d6c1b1bab894d1935ccebe7c5bddc5db"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "step": "Mosaic 0.11.1 validators on the installed exports (strict JSON Schema, TypeScript, semantic, concept spec)",
+      "status": "VERIFIED",
+      "evidence": {
+        "structural_strict": "PASS",
+        "structural_ts": "PASS",
+        "semantic": "PASS"
+      }
+    },
+    {
+      "id": 5,
+      "step": "Open in Mosaic UI (SDK 0.11.1 client host, table/chart/metric/provenance asserted against the artifact)",
+      "status": "VERIFIED",
+      "evidence": {
+        "table": true,
+        "chart": true,
+        "metric": true,
+        "provenance": true
+      }
+    },
+    {
+      "id": 6,
+      "step": "Concept in the delivered Mosaic 0.11.1 concept-viewer.html (embed API, fit, resize, layered, sibling frame ignored)",
+      "status": "VERIFIED",
+      "evidence": {
+        "viewer_sha256": "62b451fd3e98a5303b88cca407be1eeff6f05c1c78eb166188df6bff0ac7670c",
+        "build": "delivered concept-viewer.html, sha256 62b451fd3e98a5303b88cca407be1eeff6f05c1c78eb166188df6bff0ac7670c (equal to sdk-release.json)"
+      }
+    },
+    {
+      "id": 7,
+      "step": "React 2.2.4 CLI (installed from the tgz) explains the Revenue KPI on the installed Contoso tree",
+      "status": "VERIFIED",
+      "evidence": {
+        "grounded": 14,
+        "of": 14,
+        "totals": {
+          "INFERRED": 7,
+          "VERIFIED": 7
+        }
+      },
+      "note": "VERIFIED means the analyzer run on installed bytes grounded every trace step; inside it, 7 hops stay INFERRED (listed in react_trace)."
+    },
+    {
+      "id": 8,
+      "step": "React VS Code extension 2.2.4 shows the same trace in the editor",
+      "status": "INFERRED",
+      "evidence": "VSIX installed into an isolated VS Code 1.141.1 profile (datapass.datapass-react@2.2.4); the editor views were not driven. Same analyzer-core sources and version as the CLI (React SOURCE.txt)."
+    },
+    {
+      "id": 9,
+      "step": "Negative: broken Gold model -> dbt build fails naming monthly_sales -> repair -> Gold unchanged",
+      "status": "VERIFIED",
+      "evidence": {
+        "http": 200,
+        "ok": false,
+        "failed_models": [
+          {
+            "model": "monthly_sales",
+            "message": "Runtime Error in model monthly_sales (models\\gold\\monthly_sales.sql)\n  Binder Error: Referenced column \"no_such_column\" not found in FROM clause!\n  Candidate bindings: \"total_cost\", \"unit_cost\", \"total_cost_local\", \"net_revenue_local\", \"store_country\"\n  \n  LINE 22: where no_such_column > 0\n                 ^"
+          }
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "step": "Restart on the same workspace: same workspace, project, Gold total and export ids",
+      "status": "VERIFIED",
+      "evidence": "contoso-installed-receipt journey.restart_*"
+    },
+    {
+      "id": 11,
+      "step": "Backup -> restore into a new workspace: equal Gold total and export ids",
+      "status": "VERIFIED",
+      "evidence": {
+        "name": "default-20261015T000954Z.zip",
+        "files": 45,
+        "restored_workspace": "qa-install-restore"
+      }
+    },
+    {
+      "id": 12,
+      "step": "Mapping NORD/SOUTH/ONLINE (app total = Gold total to the cent), unmapped channel reported, stale Gold refused, API-down banner, UX phases",
+      "status": "INFERRED",
+      "evidence": "Not run on installed bytes in this vector. Reused exact-SHA evidence: source retail journey at ac98102 (the package source) 9/9 phases PASS on 13 Oct (handoff/ACCEPTANCE.md, Galaxy Finition 0.3.0). These phases involve neither Mosaic nor React."
+    },
+    {
+      "id": 13,
+      "step": "Private/public boundary: artifacts only from private destinations, anonymous access refused",
+      "status": "VERIFIED",
+      "evidence": "authenticated re-download sha256 equal for all three; anonymous HTTP 401 on the Contoso zip, Mosaic SDK, React VSIX and CLI"
+    }
+  ],
+  "react_trace": {
+    "trace": "charts-kpi-revenue",
+    "grounded": 14,
+    "of": 14,
+    "totals": {
+      "INFERRED": 7,
+      "VERIFIED": 7
+    },
+    "result": "PASS",
+    "steps": [
+      {
+        "step": 1,
+        "status": "INFERRED",
+        "path": "apps/web/src/pages/ChartsPage.tsx:286",
+        "symbol": "contoso.gold.monthly_sales"
+      },
+      {
+        "step": 2,
+        "status": "VERIFIED",
+        "path": "apps/web/src/api.ts:32",
+        "symbol": "postJson"
+      },
+      {
+        "step": 3,
+        "status": "INFERRED",
+        "path": "apps/web/src/pages/ChartsPage.tsx:286",
+        "symbol": "\"/api/query\""
+      },
+      {
+        "step": 4,
+        "status": "VERIFIED",
+        "path": "apps/api/app/main.py:518",
+        "symbol": "def query"
+      },
+      {
+        "step": 5,
+        "status": "VERIFIED",
+        "path": "apps/api/app/services/ducklake.py:310",
+        "symbol": "def query_with_lineage"
+      },
+      {
+        "step": 6,
+        "status": "INFERRED",
+        "path": "apps/web/src/pages/ChartsPage.tsx:297",
+        "symbol": "label:\"Revenue\""
+      },
+      {
+        "step": 7,
+        "status": "INFERRED",
+        "path": "apps/web/src/pages/ChartsPage.tsx:287",
+        "symbol": "sum(revenue)"
+      },
+      {
+        "step": 8,
+        "status": "VERIFIED",
+        "path": "dbt/models/gold/monthly_sales.sql:8",
+        "symbol": "as revenue"
+      },
+      {
+        "step": 9,
+        "status": "INFERRED",
+        "path": "dbt/models/gold/monthly_sales.sql:12",
+        "symbol": "ref('stg_sales')"
+      },
+      {
+        "step": 10,
+        "status": "VERIFIED",
+        "path": "dbt/models/silver/stg_sales.sql:20",
+        "symbol": "as net_revenue"
+      },
+      {
+        "step": 11,
+        "status": "INFERRED",
+        "path": "dbt/models/silver/stg_sales.sql:23",
+        "symbol": "source('bronze','sales')"
+      },
+      {
+        "step": 12,
+        "status": "INFERRED",
+        "path": "apps/api/app/services/ducklake.py:139",
+        "symbol": "def load_parquet_to_bronze"
+      },
+      {
+        "step": 13,
+        "status": "VERIFIED",
+        "path": "apps/api/app/services/generator.py:655",
+        "symbol": "AS net_revenue"
+      },
+      {
+        "step": 14,
+        "status": "VERIFIED",
+        "path": "dbt/models/gold/monthly_sales.sql:8",
+        "symbol": "revenue"
+      }
+    ],
+    "graph": {
+      "nodes": 605,
+      "edges": 631
+    },
+    "same_as_2026_10_13": "per-step statuses identical to handoff/evidence/e2e-05-react-leg-2026-10-13.json"
+  },
+  "contoso_installed_checks": {
+    "web_bundle_in_zip": "PASS",
+    "install_txt_in_zip": "PASS",
+    "console_script_installed": "PASS",
+    "health_ok": "PASS",
+    "workspace_in_temp": "PASS",
+    "root_serves_index_html": "PASS",
+    "spa_fallback": "PASS",
+    "bundle_asset": "PASS",
+    "concept_viewer": "PASS",
+    "unknown_api_is_404_json": "PASS",
+    "project_open": "PASS",
+    "gold_monthly_sales_count_gt_0": "PASS",
+    "journey.revenue_kpi_equals_gold_total": "PASS",
+    "journey.export_artifact": "PASS",
+    "journey.export_concept": "PASS",
+    "journey.fault_build_fails": "PASS",
+    "journey.fault_error_names_model": "PASS",
+    "journey.repaired_build_ok": "PASS",
+    "journey.gold_total_unchanged_after_repair": "PASS",
+    "journey.server_stopped_for_restart": "PASS",
+    "journey.restart_same_workspace": "PASS",
+    "journey.restart_project_ready": "PASS",
+    "journey.restart_reopen_project": "PASS",
+    "journey.restart_gold_total_equal": "PASS",
+    "journey.restart_export_ids_equal": "PASS",
+    "journey.backup": "PASS",
+    "journey.restore_new_workspace": "PASS",
+    "journey.restore_gold_total_equal": "PASS",
+    "journey.restore_export_ids_equal": "PASS",
+    "journey.reactivate_original_workspace": "PASS",
+    "server_stopped": "PASS",
+    "mosaic.structural_strict": "PASS",
+    "mosaic.structural_ts": "PASS",
+    "mosaic.semantic": "PASS",
+    "mosaic.concept": "PASS",
+    "mosaic.exit_code_0": "PASS"
+  },
+  "contoso_installed_result": "pass",
+  "mosaic_gates": {
+    "structural_strict": "PASS",
+    "structural_ts": "PASS",
+    "semantic": "PASS",
+    "concept": "PASS"
+  },
+  "mosaic_result": "PASS",
+  "mosaic_failures": [],
+  "omissions": [
+    "upgrade (C) not run: pass --upgrade-from <older zip>",
+    "sha256 not compared: contoso-data-studio-0.3.0-ac98102.zip is not listed in dist/SHA256SUMS",
+    "Contoso UI browser phases (mapping, api-down, ux) not driven on installed bytes: reused exact-SHA source evidence (step 12, INFERRED)",
+    "React VS Code views not driven (gui-qualify not rerun for 2.2.4): step 8 INFERRED",
+    "Mosaic workbench zip not used: the artifact was opened through the SDK release's own client host (CONSUMING.md method 2)"
+  ],
+  "totals": {
+    "VERIFIED": 11,
+    "INFERRED": 2
+  },
+  "result": "PASS",
+  "previous": {
+    "partial_reason": "PASS.md 02:40 (14 Oct): E2E-05 PARTIAL, no single run used Mosaic 0.11.0, the Contoso export and React 14/14 together",
+    "this_run": "one run on one pinned vector: Contoso 0.3.0-ac98102 + Mosaic 0.11.1-3575e6b + React 2.2.4-2d3b814, all from their private destinations"
+  },
+  "evidence_outside_git": [
+    "run/contoso-installed-receipt.json (36/36 PASS)",
+    "run/qa-install-mosaic/evidence.json + 7 screenshots",
+    "run/react-leg-raw.json",
+    "redownload-sha256.txt",
+    "anonymous-check.txt",
+    "run/vsix-install.txt"
+  ]
+}

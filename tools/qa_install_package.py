@@ -24,6 +24,10 @@ Opt-in exit journeys, all against the installed package (never the checkout):
             backs up, restores into a new workspace (existing API) and asserts equal totals and export ids.
 --mosaic    (implies --journey) runs the installed package's tools/open_in_mosaic.mjs (its own pinned temp
             archive of the checkout, never touched) on that Artifact + Concept; every gate goes in the receipt.
+--mosaic-release <folder>
+            (implies --journey) same gates against a delivered Mosaic SDK release folder (sdk-release.json, SDK
+            tar.gz, concept-viewer.html) instead of a checkout. Packages whose open_in_mosaic.mjs predates this
+            option (0.3.0 and older) run this checkout's copy as the harness; the receipt says which one ran.
 --upgrade-from <older zip>
             installs the older zip in its own clean venv, opens retail-baseline to Gold there, records the Gold
             total and an export id, backs up, stops; starts this package on the SAME workspace/home and asserts it
@@ -437,12 +441,23 @@ def journey(studio: Studio, checks: dict, receipt: dict, out: Path) -> dict:
 
 
 # ----- B. MosaicStudio gates -------------------------------------------------------------------------------------
-def mosaic_gates(installed: Installed, mosaic: Path, exported: dict, port: int, out: Path, checks: dict, receipt: dict) -> None:
-    tool = installed.root / "tools" / "open_in_mosaic.mjs"
-    source = "installed package"
+def mosaic_tool(package_root: Path, release: bool) -> tuple[Path, str]:
+    """The open_in_mosaic.mjs to run: the installed package's copy unless it is missing or (for a Mosaic SDK
+    release folder) predates --mosaic-release; then this checkout's copy, as a harness only."""
+    tool = package_root / "tools" / "open_in_mosaic.mjs"
     if not tool.is_file():
-        tool, source = REPO / "tools" / "open_in_mosaic.mjs", "checkout (not in the package)"
-        receipt["omissions"].append("mosaic: tools/open_in_mosaic.mjs missing from the package; ran the checkout's copy")
+        return REPO / "tools" / "open_in_mosaic.mjs", "checkout (not in the package)"
+    if release and "mosaic-release" not in tool.read_text(encoding="utf-8"):
+        return REPO / "tools" / "open_in_mosaic.mjs", "checkout (the package's copy has no --mosaic-release)"
+    return tool, "installed package"
+
+
+def mosaic_gates(installed: Installed, mosaic: Path, exported: dict, port: int, out: Path, checks: dict, receipt: dict,
+                 release: bool = False) -> None:
+    tool, source = mosaic_tool(installed.root, release)
+    if source != "installed package":
+        receipt["omissions"].append(f"mosaic: ran the checkout's tools/open_in_mosaic.mjs: {source} (harness only, the "
+                                    "Artifact and Concept still come from the installed package)")
     env = dict(os.environ)
     if os.name == "nt":
         # The tool runs `tar -xf C:\...`: Git Bash's GNU tar reads "C:" as a remote host, Windows' bsdtar does not.
@@ -450,7 +465,7 @@ def mosaic_gates(installed: Installed, mosaic: Path, exported: dict, port: int, 
         env["PATH"] = system32 + os.pathsep + env.get("PATH", "")
     started = time.monotonic()
     completed = subprocess.run(
-        ["node", str(tool), "--mosaic", str(mosaic), "--export", str(exported["export_dir"]),
+        ["node", str(tool), "--mosaic-release" if release else "--mosaic", str(mosaic), "--export", str(exported["export_dir"]),
          "--concept", str(exported["concept"]), "--out", str(out), "--port", str(port)],
         capture_output=True, text=True, timeout=3600, env=env,
     )
@@ -461,6 +476,7 @@ def mosaic_gates(installed: Installed, mosaic: Path, exported: dict, port: int, 
     receipt["mosaic"] = {
         "tool": source, "exit_code": completed.returncode, "seconds": round(time.monotonic() - started, 1),
         "mosaic_sha": evidence.get("mosaic_sha"), "mosaic_version": evidence.get("mosaic_version"),
+        "mosaic_source": evidence.get("mosaic_source"), "mosaic_release": evidence.get("mosaic_release"),
         "result": evidence.get("result"), "gates": gates, "failures": evidence.get("failures"),
         "evidence": f"{out.name}/evidence.json",
     }
@@ -569,10 +585,13 @@ def main() -> int:
     parser.add_argument("--keep", action="store_true", help="keep the temp folder for inspection")
     parser.add_argument("--journey", action="store_true", help="A: KPI = Gold, exports, fault/repair, restart, backup/restore")
     parser.add_argument("--mosaic", help="B: datapass-mosaicstudio checkout (read-only); implies --journey")
+    parser.add_argument("--mosaic-release", help="B: delivered Mosaic SDK release folder instead of a checkout; implies --journey")
     parser.add_argument("--mosaic-port", type=int, help="loopback port for the Mosaic host (default --port + 1)")
     parser.add_argument("--upgrade-from", help="C: older package zip to upgrade from on the same workspace")
     args = parser.parse_args()
-    run_journey = args.journey or bool(args.mosaic)
+    if args.mosaic and args.mosaic_release:
+        parser.error("pass --mosaic or --mosaic-release, not both")
+    run_journey = args.journey or bool(args.mosaic) or bool(args.mosaic_release)
 
     sums = parse_sums((DIST / "SHA256SUMS").read_text(encoding="utf-8")) if (DIST / "SHA256SUMS").is_file() else {}
     zip_path = Path(args.zip).resolve() if args.zip else (DIST / next(iter(sums), "missing.zip"))
@@ -585,7 +604,7 @@ def main() -> int:
         "os": platform.platform(),
         "python": platform.python_version(),
         "port": args.port,
-        "flags": {"journey": run_journey, "mosaic": bool(args.mosaic), "upgrade_from": Path(args.upgrade_from).name if args.upgrade_from else None},
+        "flags": {"journey": run_journey, "mosaic": bool(args.mosaic), "mosaic_release": bool(args.mosaic_release), "upgrade_from": Path(args.upgrade_from).name if args.upgrade_from else None},
         "timings_s": timings,
         "checks": checks,
         "information": {},
@@ -594,7 +613,7 @@ def main() -> int:
     omissions: list[str] = receipt["omissions"]  # type: ignore[assignment]
     if not run_journey:
         omissions.append("journey (A) not run: pass --journey")
-    if not args.mosaic:
+    if not args.mosaic and not args.mosaic_release:
         omissions.append("Mosaic gates (B) not run: pass --mosaic <datapass-mosaicstudio checkout>")
     if not args.upgrade_from:
         omissions.append("upgrade (C) not run: pass --upgrade-from <older zip>")
@@ -636,9 +655,9 @@ def main() -> int:
             timings["journey"] = round(time.monotonic() - started, 1)
         checks["server_stopped"] = verdict(studio.stop())
 
-        if args.mosaic and exported:
-            mosaic_gates(installed, Path(args.mosaic).resolve(), exported, args.mosaic_port or args.port + 1,
-                         receipt_path.parent / "qa-install-mosaic", checks, receipt)
+        if (args.mosaic or args.mosaic_release) and exported:
+            mosaic_gates(installed, Path(args.mosaic or args.mosaic_release).resolve(), exported, args.mosaic_port or args.port + 1,
+                         receipt_path.parent / "qa-install-mosaic", checks, receipt, release=bool(args.mosaic_release))
         if args.upgrade_from:
             started = time.monotonic()
             upgrade(installed, Path(args.upgrade_from).resolve(), temp, args.port, checks, receipt, timings)

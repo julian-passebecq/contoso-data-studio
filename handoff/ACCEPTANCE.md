@@ -118,3 +118,28 @@ deep links, Gold build markers, Node 22/26, TRACES.md rendered from traces.json,
 - Rollback: data restore (workspace backup) is not package rollback; package rollback = reinstall 0.2.0-fe83dbd zip. E2E-08
   stays PARTIAL; Fabric/E2E-09 excluded.
 - Known: `handoff/` ships inside the zip (repo files, public, no secrets); API-down banner names the developer uvicorn command.
+
+### E2E-05 joint vector on installed artifacts (2026-10-15): PASS, 11 VERIFIED + 2 INFERRED
+
+Closes the PARTIAL of 14 Oct (no single run used Mosaic, the Contoso export and React together). One run, one pinned
+vector, every product taken from its private destination (authenticated re-download, sha256 equal; anonymous 401 on all four):
+
+| Product | Version | Source SHA | Artifact sha256 |
+|---|---|---|---|
+| Contoso | 0.3.0 | `ac981027ff8b60b3a204ff27ae68fe1981698ffa` | zip `050b548d...2aa9` (vault contoso-data-studio/0.3.0-ac98102) |
+| MosaicStudio | 0.11.1 | `3575e6b048a6cf4ff19ce7746d2dacef648e28bf` | SDK tar `b7384939...f32a67`, concept-viewer.html `62b451fd...670c` (vault datapass-mosaicstudio-sdk/0.11.1-3575e6b) |
+| DataPass React | 2.2.4 | `2d3b8145691ec93f16797a7ba6b595f1eaae97f3` | CLI tgz `886ea5aa...88a2`, VSIX `e076f6d4...694c` (React private registry datapass-react/2.2.4) |
+
+- Installed Contoso (clean venv, Windows 11, Python 3.12): 36/36 checks PASS: generate -> Bronze -> dbt Silver/Gold, Revenue
+  KPI = Gold total, Artifact + Concept exported, broken model -> dbt error naming monthly_sales -> repair, restart, backup ->
+  restore.
+- Mosaic 0.11.1 from the SDK release (`open_in_mosaic.mjs --mosaic-release`, new in this PR): sdk-verify OK (347 files),
+  strict schema, TypeScript, semantic and concept gates PASS; the artifact rendered in the SDK client host (table, chart,
+  metric, provenance, 0 page errors); the concept rendered in the delivered concept-viewer.html (fit, resize, layered,
+  sibling frame ignored). The browser step that timed out on 13 Oct passed with a 120 s wait.
+- React 2.2.4 CLI installed from the tgz, run on the unpacked Contoso package: `charts-kpi-revenue` **14/14 grounded,
+  7 VERIFIED + 7 INFERRED, 0 UNMAPPED**, per-step statuses identical to 13 Oct. The 7 INFERRED hops stay INFERRED.
+- INFERRED: (8) the React VS Code views (VSIX installed in an isolated profile, editor not driven, same analyzer-core);
+  (12) mapping NORD/SOUTH/ONLINE, unmapped channel, stale Gold refusal, API-down and UX phases: not run on installed bytes,
+  exact-SHA reuse of the 9/9 source journey at ac98102 (13 Oct).
+- Receipt `handoff/evidence/e2e-05-joint-vector-2026-10-15.json`; raw receipts and screenshots outside Git.
