@@ -1,0 +1,92 @@
+{
+  "journey": "E2E-05 step 8: React VS Code extension 2.2.4 shows the Revenue KPI trace in the editor (installed artifacts)",
+  "date": "2026-10-16",
+  "data": "SYNTHETIC",
+  "os": "Windows-11-10.0.26300 (win32 x64)",
+  "vscode": "1.142.0 6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1 (downloaded stable archive, isolated --user-data-dir and --extensions-dir per window)",
+  "node": "v26.9.0",
+  "verdict": "INFERRED (kept)",
+  "vector": {
+    "contoso": {
+      "version": "0.3.0",
+      "source_sha": "ac981027ff8b60b3a204ff27ae68fe1981698ffa",
+      "artifact": "contoso-data-studio-0.3.0-ac98102.zip",
+      "sha256": "050b548d0d6dc7618da2d2ae67b15af329e4aa43451bb9c4f66d93c957a12aa9",
+      "destination": "galaxy-release-vault generic contoso-data-studio/0.3.0-ac98102 (package 72392375)",
+      "installed_models_sha256": "monthly_sales.sql ba12dae4..., stg_sales.sql 7c2f83f4..., generator.py d3c5d210... (equal to e2e-05-joint-vector-2026-10-15.json)"
+    },
+    "datapass_react": {
+      "version": "2.2.4",
+      "source_sha": "2d3b8145691ec93f16797a7ba6b595f1eaae97f3",
+      "vsix_sha256": "e076f6d40e90e2f9073f06f857d765ed2854043d9f89e623ca456e23719b694c",
+      "cli_sha256": "886ea5aa17436b42500160b45e70098a7bab75660d69a10d311259b0d85688a2",
+      "destination": "datapass-react-vscode private generic registry datapass-react/2.2.4 (package 72529981)",
+      "gui_harness": "apps/vscode-react/scripts/gui-qualify.mjs + test/smoke/gui.cjs from a git archive of React 469af47 (no diff from 2d3b814 in scripts/ and test/smoke/); React repo not modified"
+    },
+    "mosaicstudio": {
+      "version": "0.11.1",
+      "note": "not used by step 8; steps 4-6 evidence unchanged"
+    }
+  },
+  "delivery_checks": {
+    "authenticated_download": "glab api, sha256 equal to the vector for the zip, VSIX and CLI tgz",
+    "anonymous": "HTTP 401 on the VSIX"
+  },
+  "commands": [
+    "datapass-analyze analyze . --trace apps/web/src/pages/ChartsPage.tsx:286 --field revenue --json --oracle docs/datapass-react/traces.json --oracle-trace charts-kpi-revenue  (CLI installed from the 2.2.4 tgz, run in the unpacked zip)",
+    "node apps/vscode-react/scripts/gui-qualify.mjs --vsix datapass-react-2.2.4.vsix --contoso <unpacked 0.3.0 zip> --only main"
+  ],
+  "cli_oracle": {
+    "graph": { "nodes": 605, "edges": 631 },
+    "start": "ApiClient:apps/web/src/pages/ChartsPage.tsx#ChartsPage@L286",
+    "grounded": 14,
+    "of": 14,
+    "totals": { "INFERRED": 7, "VERIFIED": 7 },
+    "unmapped": 0,
+    "result": "PASS",
+    "same_as_2026_10_15": "per-step statuses identical to react_trace in e2e-05-joint-vector-2026-10-15.json"
+  },
+  "gui": {
+    "result": "49/49 steps PASS (window main: ACT 4/4, VIEWS 14/14, KPI 7/7, CMDS 24/24); install of the VSIX into an empty --extensions-dir PASS (datapass.datapass-react@2.2.4)",
+    "graph_in_editor": { "nodes": 605, "edges": 631, "traces": 86, "note": "same graph size as the CLI on the same installed tree" },
+    "revenue_kpi_navigation": "Charts screen found (apps/web/src/pages/ChartsPage.tsx); 5 revenue columns; monthly_sales.revenue listed in the Data view [inferred]",
+    "trace_shown": {
+      "name": "ChartsPage -> monthly_sales (looks up data, saves nothing)",
+      "hops": [
+        "Table monthly_sales (inferred)",
+        "SqlObject SELECT query (line 202) -> apps/web/src/pages/ChartsPage.tsx:202 (inferred)",
+        "ApiClient POST /api/query (via postJson) -> apps/web/src/pages/ChartsPage.tsx:201 (inferred)",
+        "Page ChartsPage -> apps/web/src/pages/ChartsPage.tsx:86 (inferred)"
+      ],
+      "editor_notice": "No end-to-end trace goes through monthly_sales.revenue yet.",
+      "field_trace": "none for monthly_sales.revenue (VS Code says so)"
+    },
+    "file_line_links": "every evidence link of the shown trace opens the right file and line (PASS)",
+    "lineage": "Show lineage on monthly_sales.revenue: shown ChartsPage (ChartsPage.tsx:86), written TransformPage -> POST /api/dbt/:command -> dbt/models/gold/monthly_sales.sql:1",
+    "confidence_classes_shown": "verified / inferred / unresolved legend and filters; every hop of the shown Revenue trace is inferred"
+  },
+  "comparison_with_oracle": {
+    "same_trace": false,
+    "oracle_hops_shown_in_editor": "0 of 14 at the oracle file:line. Partial overlap only by name: postJson and \"/api/query\" (oracle 2-3, shown at the ChartsPage.tsx:201 call site, not api.ts:32 or :286), table monthly_sales (oracle 1/8, shown without the line), Gold model monthly_sales.sql (oracle 8 is :8, lineage shows :1).",
+    "not_shown": "ChartsPage.tsx:286/287/297 (the Revenue KPI query), api.ts:32, main.py:518, ducklake.py:310 and :139, stg_sales.sql:20/:23, monthly_sales.sql:12, generator.py:655; no per-hop VERIFIED/INFERRED grading against the reviewed trace",
+    "inferred_not_upgraded": "the 7 INFERRED oracle hops stay INFERRED; nothing was upgraded because the UI was seen"
+  },
+  "blocker": "The shipped VSIX 2.2.4 has no view that renders the request lineage the CLI grades: dist/extension.js contains 0 occurrences of traceLineage and compareWithOracle (traceThrough 7, traceField 4, columnLineage 5). Its Revenue trace is the table-level ChartsPage -> monthly_sales path anchored at ChartsPage.tsx:202, not the reviewed charts-kpi-revenue trace anchored at :286. Closing step 8 needs a React extension release that shows traceLineage (with the oracle statuses) for an editor position; that is React's product scope (React repo read-only here, no new version authorized).",
+  "evidence_outside_git": {
+    "folder": "side-session notes of the eta lead session, contoso-e2e05-step8/",
+    "files_sha256": {
+      "03-kpi-revenue-trace.png": "208c2ee5402ff409502964b1cc241fb4ed221eeef6bc93c7371cecb7df271480",
+      "04-kpi-revenue-explanation.png": "0ae45f42c060383a76da08886505bcaa10b153ca2bbd04b7455b7dc7ed507668",
+      "05-kpi-revenue-lineage.png": "7e0b70186400e60a492d6302f953ed4de6597bb7e3486a925399271c79e45118",
+      "01-views-and-title-buttons.png": "02f4570e812da9cde4d267b7b68656896e6815d3b9bad793f924510956b9036e",
+      "02-project-map-webview.png": "07a3cb66ef52a6486fa7ae36b4c917833638461e6a15239945a912e332b8e23b",
+      "06-concept-viewer-webview.png": "ca7fc0aa23944dfe5fd033e340055a69ee265ff86609c8557ffbf39bf657d2e2",
+      "GUI-RESULTS.json": "f3e4543807b470dff689452d750185d8ae3c518c942216884ad307b3ef178e1c",
+      "GUI-QUALIFICATION.md": "e3266fccaf86be1b1ca07231e8b76bce71dbfb50dca717f3145c26f717db02cd",
+      "cli-oracle.json": "5c0024f52172e49867382ecf67dd50d0f51b5ba007b7d4f33caab02c5fe15b99",
+      "run.log": "58dda386b8686b2320ccdfd0855ca44a5fed243b71505d6e02fbfd86ecfcdf33"
+    },
+    "scan": "no tokens or secrets; screenshots show only synthetic Contoso source and the VS Code UI"
+  },
+  "totals_after": { "VERIFIED": 12, "INFERRED": 1 }
+}
