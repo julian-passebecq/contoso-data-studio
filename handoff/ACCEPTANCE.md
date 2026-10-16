@@ -140,6 +140,14 @@ vector, every product taken from its private destination (authenticated re-downl
 - React 2.2.4 CLI installed from the tgz, run on the unpacked Contoso package: `charts-kpi-revenue` **14/14 grounded,
   7 VERIFIED + 7 INFERRED, 0 UNMAPPED**, per-step statuses identical to 13 Oct. The 7 INFERRED hops stay INFERRED.
 - INFERRED: (8) the React VS Code views (VSIX installed in an isolated profile, editor not driven, same analyzer-core).
+  **16 Oct: driven, still INFERRED.** Same vector re-downloaded (sha256 equal, anonymous 401); React's own
+  `gui-qualify.mjs --only main` (archive of 469af47) on the unpacked 0.3.0 zip, VS Code 1.142.0, isolated profile:
+  49/49 PASS, graph 605 nodes / 631 edges (= CLI). CLI oracle re-run on the same tree: 14/14 grounded, 7 VERIFIED +
+  7 INFERRED, 0 UNMAPPED. But the editor's Revenue trace is the table path ChartsPage -> monthly_sales (4 inferred hops
+  at ChartsPage.tsx:202/201/86, notice "No end-to-end trace goes through monthly_sales.revenue yet"), not the reviewed
+  14-hop `charts-kpi-revenue` trace at :286; the VSIX bundle has no `traceLineage`/`compareWithOracle`. Blocker: a
+  React extension release that shows request lineage with oracle statuses. Receipt
+  `handoff/evidence/e2e-05-step8-react-ui-2026-10-16.json`; screenshots outside Git.
 - (12) VERIFIED on installed 0.3.0 bytes (was INFERRED by exact-SHA reuse), `tools/qa_install_package.py --ui`, 50/50
   checks PASS: retail-actuals 72 items, ONLINE/NORD/SOUTH non-empty, unmapped [], app total = Gold total 4,424,416.84
   (0 cents, 240 groups), 10/10 channel/country pairs in one department, Gold digest unchanged by the read; with SOUTH

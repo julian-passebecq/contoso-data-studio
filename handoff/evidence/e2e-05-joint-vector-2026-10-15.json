@@ -147,7 +147,12 @@
       "id": 8,
       "step": "React VS Code extension 2.2.4 shows the same trace in the editor",
       "status": "INFERRED",
-      "evidence": "VSIX installed into an isolated VS Code 1.141.1 profile (datapass.datapass-react@2.2.4); the editor views were not driven. Same analyzer-core sources and version as the CLI (React SOURCE.txt)."
+      "evidence": "VSIX installed into an isolated VS Code 1.141.1 profile (datapass.datapass-react@2.2.4); the editor views were not driven. Same analyzer-core sources and version as the CLI (React SOURCE.txt).",
+      "rerun_2026_10_16": {
+        "receipt": "handoff/evidence/e2e-05-step8-react-ui-2026-10-16.json",
+        "gui": "views driven on the unpacked 0.3.0 zip (gui-qualify.mjs --only main, VS Code 1.142.0): 49/49 PASS, graph 605 nodes / 631 edges as the CLI",
+        "why_still_inferred": "the editor shows the table trace ChartsPage -> monthly_sales (4 inferred hops at ChartsPage.tsx:202/201/86, notice 'No end-to-end trace goes through monthly_sales.revenue yet'), not the reviewed 14-hop charts-kpi-revenue trace; the VSIX bundle has no traceLineage/compareWithOracle"
+      }
     },
     {
       "id": 9,
@@ -470,7 +475,7 @@
   "omissions": [
     "upgrade (C) not run: pass --upgrade-from <older zip>",
     "sha256 not compared: contoso-data-studio-0.3.0-ac98102.zip is not listed in dist/SHA256SUMS",
-    "React VS Code views not driven (gui-qualify not rerun for 2.2.4): step 8 INFERRED",
+    "React VS Code views not driven (gui-qualify not rerun for 2.2.4): step 8 INFERRED. 2026-10-16: driven (49/49 PASS), still INFERRED: the 2.2.4 views do not render the reviewed 14-hop trace (e2e-05-step8-react-ui-2026-10-16.json)",
     "Mosaic workbench zip not used: the artifact was opened through the SDK release's own client host (CONSUMING.md method 2)"
   ],
   "totals": {
