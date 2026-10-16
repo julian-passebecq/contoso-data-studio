@@ -17,7 +17,10 @@
   0.11.1-3575e6b SDK release + React 2.2.4-2d3b814 CLI, React trace 14/14 (7V/7I). New `--mosaic-release` in
   `open_in_mosaic.mjs` / `qa_install_package.py`; the 120 s browser wait fixed the local Mosaic timeout. Receipt
   `handoff/evidence/e2e-05-joint-vector-2026-10-15.json`.
-- In flight: none. Open (optional): mapping/API-down/UX browser phases on installed bytes (E2E-05 step 12 INFERRED).
+- 16 Oct: E2E-05 step 12 VERIFIED (#42); step 8 kept INFERRED on React 2.2.4 (#43), then VERIFIED on the installed
+  React 2.2.5 VSIX (daeed367...): Trace Request Lineage shows charts-kpi-revenue 14/14 PASS, rows equal the oracle.
+  E2E-05 = 13/13 VERIFIED. Receipt `handoff/evidence/e2e-05-step8-react-225-2026-10-16.json`.
+- In flight: none.
 - Re-qualify: E2E-05 installed: `py -3.12 tools/qa_install_package.py --zip <vault zip> --mosaic-release <Mosaic SDK
   release folder> --keep`, then React CLI `datapass-analyze analyze <unpacked zip root> ... --oracle-trace charts-kpi-revenue`;
   `python tools/qa_retail_journey.py --mosaic <datapass-mosaicstudio>`; `node tools/open_in_mosaic.mjs ...`;

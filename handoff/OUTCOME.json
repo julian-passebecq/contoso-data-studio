@@ -184,7 +184,7 @@
       "repository": "juliandatapass-group/datapass-react-vscode",
       "sha": "2d3b8145691ec93f16797a7ba6b595f1eaae97f3",
       "version": "2.2.4",
-      "use": "CLI analyzer leg of E2E-05 2026-10-15 (14/14); VSIX installed, views not driven"
+      "use": "CLI analyzer leg of E2E-05 2026-10-15 (14/14) at 2.2.4; E2E-05 step 8 on the installed 2.2.5 VSIX (daeed367a18791e5c96fb56faf897397badf2cd58670b3e1bb0c32b2474a6ad0, main 559b5e5): Request Lineage Trace 14/14 PASS in the editor"
     }
   ],
   "release_artifacts": [
@@ -224,21 +224,20 @@
     "Fabric/cloud and real Entra login not run (not authorized)",
     "Package install on Windows qualified at PR #17 head, on Linux at final main"
   ],
-  "next_safe_action": "Owner: tag/public release and E2E-08 release-set assembly. Optional agent work: drive the mapping/API-down/UX browser phases on installed bytes (would lift E2E-05 step 12 from INFERRED).",
+  "next_safe_action": "Owner: tag/public release and E2E-08 release-set assembly. E2E-05 is 13/13 VERIFIED on installed artifacts.",
   "e2e_05": {
-    "result": "PASS_11_VERIFIED_2_INFERRED",
-    "date": "2026-10-15",
+    "result": "PASS_13_VERIFIED",
+    "date": "2026-10-15 (steps 12 and 8 re-run 2026-10-16)",
     "vector": {
       "contoso": "0.3.0 ac981027ff8b60b3a204ff27ae68fe1981698ffa zip 050b548d0d6dc7618da2d2ae67b15af329e4aa43451bb9c4f66d93c957a12aa9",
       "mosaicstudio": "0.11.1 3575e6b048a6cf4ff19ce7746d2dacef648e28bf sdk b7384939c8bab9c26580ceac4d141ddbdc98764ca797c53676456661b7f32a67",
-      "datapass_react": "2.2.4 2d3b8145691ec93f16797a7ba6b595f1eaae97f3 cli 886ea5aa17436b42500160b45e70098a7bab75660d69a10d311259b0d85688a2 vsix e076f6d40e90e2f9073f06f857d765ed2854043d9f89e623ca456e23719b694c"
+      "datapass_react": "2.2.4 2d3b8145691ec93f16797a7ba6b595f1eaae97f3 cli 886ea5aa17436b42500160b45e70098a7bab75660d69a10d311259b0d85688a2 vsix e076f6d40e90e2f9073f06f857d765ed2854043d9f89e623ca456e23719b694c",
+      "datapass_react_ui": "2.2.5 856e36f (main 559b5e5) vsix daeed367a18791e5c96fb56faf897397badf2cd58670b3e1bb0c32b2474a6ad0"
     },
     "mode": "installed artifacts re-downloaded from their private destinations (sha256 equal, anonymous 401)",
     "react_trace": "14/14 grounded, 7 VERIFIED + 7 INFERRED, 0 UNMAPPED",
-    "inferred_steps": [
-      "React VS Code views (editor not driven)",
-      "mapping/unmapped/stale/API-down/UX phases (exact-SHA source reuse at ac98102)"
-    ],
-    "evidence": "handoff/evidence/e2e-05-joint-vector-2026-10-15.json"
+    "inferred_steps": [],
+    "evidence": "handoff/evidence/e2e-05-joint-vector-2026-10-15.json; handoff/evidence/e2e-05-step8-react-225-2026-10-16.json",
+    "step_8": "VERIFIED 2026-10-16 on React 2.2.5: Trace Request Lineage at ChartsPage.tsx:286 field revenue shows charts-kpi-revenue 14/14 PASS (7V/7I), 14/14 rows equal the oracle; 2.2.4 kept INFERRED (no lineage view)"
   }
 }

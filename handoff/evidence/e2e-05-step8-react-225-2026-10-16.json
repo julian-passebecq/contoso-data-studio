@@ -1,0 +1,405 @@
+{
+  "journey": "E2E-05 step 8: DataPass React VS Code extension 2.2.5 shows the Revenue KPI request lineage trace in the editor (installed artifacts)",
+  "date": "2026-10-16",
+  "data": "SYNTHETIC",
+  "os": "Windows-11-10.0.26300 (win32 x64)",
+  "vscode": "1.142.0 6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1 (stable archive, isolated --user-data-dir and --extensions-dir under %TEMP%, outside the checkout)",
+  "node": "v26.9.0",
+  "verdict": "VERIFIED",
+  "supersedes": "handoff/evidence/e2e-05-step8-react-ui-2026-10-16.json (2.2.4, INFERRED kept: no request lineage view in the VSIX)",
+  "vector": {
+    "contoso": {
+      "version": "0.3.0",
+      "source_sha": "ac981027ff8b60b3a204ff27ae68fe1981698ffa",
+      "artifact": "contoso-data-studio-0.3.0-ac98102.zip",
+      "sha256": "050b548d0d6dc7618da2d2ae67b15af329e4aa43451bb9c4f66d93c957a12aa9",
+      "destination": "galaxy-release-vault generic contoso-data-studio/0.3.0-ac98102 (package 72392375)",
+      "opened_as": "the unpacked zip, as the workspace folder"
+    },
+    "datapass_react": {
+      "version": "2.2.5",
+      "source_sha": "856e36f (MR !182 squash), main 559b5e570e4d2f07f14948b91bffcffd49d479fb",
+      "vsix": "datapass-react-2.2.5.vsix",
+      "vsix_sha256": "daeed367a18791e5c96fb56faf897397badf2cd58670b3e1bb0c32b2474a6ad0",
+      "destination": "datapass-react-vscode private generic registry datapass-react/2.2.5 (package 72814764)",
+      "receipt": "React repo docs/reports/v22/OUTCOME-2.2.5.json",
+      "installed": "code --install-extension <vsix> --extensions-dir <empty dir>: datapass.datapass-react@2.2.5 (--list-extensions --show-versions)"
+    },
+    "mosaicstudio": {
+      "version": "0.11.1",
+      "note": "not used by step 8; steps 4-6 evidence unchanged"
+    }
+  },
+  "delivery_checks": {
+    "authenticated_download": "glab api for the VSIX and the Contoso zip, sha256 equal to the vector",
+    "anonymous": "HTTP 401 on the VSIX"
+  },
+  "how": [
+    "Real VS Code window launched by Playwright _electron (playwright-core 1.48.2) on Code.exe with the workspace and --goto apps/web/src/pages/ChartsPage.tsx:286:7; profile settings: walkthrough on install off, startup editor none, telemetry off",
+    "Real keystrokes: F1, type 'DataPass React: Trace Request Lineage', Enter; the extension's input box 'Follow which field of the response?' -> type 'revenue', Enter",
+    "No reviewed trace was given: the extension picked charts-kpi-revenue from docs/datapass-react/traces.json by the start place (no quick pick shown)",
+    "The webview DOM (header, totals, every row) was read, screenshots taken, and two file:line links clicked with the mouse"
+  ],
+  "gui": {
+    "run": "second run (fresh --user-data-dir); first run identical on the trace (14/14, same classes) and kept as run1/",
+    "checks": [
+      {
+        "name": "ChartsPage.tsx open at the Revenue KPI request",
+        "ok": false,
+        "detail": ""
+      },
+      {
+        "name": "ChartsPage.tsx is the active editor before the command",
+        "ok": true,
+        "detail": "ChartsPage.tsx / Ln 286, Col 7"
+      },
+      {
+        "name": "palette lists the command",
+        "ok": true,
+        "detail": "DataPass React: Trace Request Lineage"
+      },
+      {
+        "name": "input box asks which field",
+        "ok": true,
+        "detail": "Follow which field of the response? (optional: leave empty for the request only) (Press 'Enter' to confirm or 'Escape' to cancel) | placeholder: e.g. revenue"
+      },
+      {
+        "name": "Request Lineage Trace webview opened",
+        "ok": true,
+        "detail": "31 s after Enter"
+      },
+      {
+        "name": "webview link of step 4 opens apps/api/app/main.py:518",
+        "ok": true,
+        "detail": "main.py, preview / Ln 518, Col 1"
+      },
+      {
+        "name": "webview link of step 13 opens apps/api/app/services/generator.py:655",
+        "ok": true,
+        "detail": "generator.py, preview / Ln 655, Col 1"
+      }
+    ],
+    "check_note": "the first check read the status bar 4 s after a fresh-profile start and found it empty; the next check confirmed ChartsPage.tsx active at Ln 286 before the command",
+    "webview_tab": "Request Lineage Trace: POST /api/query (via postJson) (revenue)",
+    "header": "Start ApiClient:apps/web/src/pages/ChartsPage.tsx#ChartsPage@L286 Field revenue · Graph 605 nodes, 631 edges · Requests 1 Reviewed trace charts-kpi-revenue Charts KPIs: Revenue card and monthly revenue chart (Gold monthly_sales.revenue) (docs/datapass-react/traces.json) 14/14 steps grounded -> PASS VERIFIED 7 INFERRED 7 FILE_LEVEL 0 UNMAPPED 0",
+    "result": "PASS",
+    "grounded": "14/14",
+    "totals": {
+      "VERIFIED": 7,
+      "INFERRED": 7,
+      "FILE_LEVEL": 0,
+      "UNMAPPED": 0
+    },
+    "columns": [
+      "#",
+      "Class",
+      "Layer",
+      "Source",
+      "Symbol",
+      "Analyzer status",
+      "Reviewed confidence",
+      "Analyzer evidence"
+    ],
+    "other_analyzer_steps": [
+      "VERIFIED service apps/api/app/main.py:70 DuckLakeService(..)"
+    ],
+    "links_clicked": [
+      {
+        "step": 4,
+        "opens": "apps/api/app/main.py:518",
+        "active_tab": "main.py, preview",
+        "status_bar": "Ln 518, Col 1",
+        "ok": true
+      },
+      {
+        "step": 13,
+        "opens": "apps/api/app/services/generator.py:655",
+        "active_tab": "generator.py, preview",
+        "status_bar": "Ln 655, Col 1",
+        "ok": true
+      }
+    ]
+  },
+  "comparison_with_oracle": {
+    "oracle": "docs/datapass-react/traces.json charts-kpi-revenue (14 steps) in the installed 0.3.0 tree",
+    "displayed_rows": 14,
+    "same_place_and_symbol": "14/14",
+    "same_as_cli_and_receipt": "per-step classes 1 I, 2 V, 3 I, 4 V, 5 V, 6 I, 7 I, 8 V, 9 I, 10 V, 11 I, 12 I, 13 V, 14 V: identical to the CLI leg (e2e-05-joint-vector-2026-10-15.json) and to React OUTCOME-2.2.5.json mode CT",
+    "steps": [
+      {
+        "step": 1,
+        "displayed": {
+          "class": "INFERRED",
+          "layer": "react",
+          "source": "apps/web/src/pages/ChartsPage.tsx:286-295",
+          "symbol": "contoso.gold.monthly_sales",
+          "analyzer_status": "inferred",
+          "reviewed_confidence": "inferred"
+        },
+        "oracle": {
+          "layer": "react",
+          "at": "apps/web/src/pages/ChartsPage.tsx:286-295",
+          "symbol": "contoso.gold.monthly_sales",
+          "confidence": "inferred"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 2,
+        "displayed": {
+          "class": "VERIFIED",
+          "layer": "react",
+          "source": "apps/web/src/api.ts:32-38",
+          "symbol": "postJson",
+          "analyzer_status": "verified",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "react",
+          "at": "apps/web/src/api.ts:32-38",
+          "symbol": "postJson",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 3,
+        "displayed": {
+          "class": "INFERRED",
+          "layer": "http",
+          "source": "apps/web/src/pages/ChartsPage.tsx:286",
+          "symbol": "\"/api/query\"",
+          "analyzer_status": "inferred",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "http",
+          "at": "apps/web/src/pages/ChartsPage.tsx:286",
+          "symbol": "\"/api/query\"",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 4,
+        "displayed": {
+          "class": "VERIFIED",
+          "layer": "api",
+          "source": "apps/api/app/main.py:518-530",
+          "symbol": "def query",
+          "analyzer_status": "verified",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "api",
+          "at": "apps/api/app/main.py:518-530",
+          "symbol": "def query",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 5,
+        "displayed": {
+          "class": "VERIFIED",
+          "layer": "service",
+          "source": "apps/api/app/services/ducklake.py:310-345",
+          "symbol": "def query_with_lineage",
+          "analyzer_status": "verified",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "service",
+          "at": "apps/api/app/services/ducklake.py:310-345",
+          "symbol": "def query_with_lineage",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 6,
+        "displayed": {
+          "class": "INFERRED",
+          "layer": "react",
+          "source": "apps/web/src/pages/ChartsPage.tsx:297-301",
+          "symbol": "label:\"Revenue\"",
+          "analyzer_status": "inferred",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "react",
+          "at": "apps/web/src/pages/ChartsPage.tsx:297-301",
+          "symbol": "label:\"Revenue\"",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 7,
+        "displayed": {
+          "class": "INFERRED",
+          "layer": "sql",
+          "source": "apps/web/src/pages/ChartsPage.tsx:287",
+          "symbol": "sum(revenue)",
+          "analyzer_status": "inferred",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "sql",
+          "at": "apps/web/src/pages/ChartsPage.tsx:287",
+          "symbol": "sum(revenue)",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 8,
+        "displayed": {
+          "class": "VERIFIED",
+          "layer": "dbt",
+          "source": "dbt/models/gold/monthly_sales.sql:8",
+          "symbol": "as revenue",
+          "analyzer_status": "verified",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "dbt",
+          "at": "dbt/models/gold/monthly_sales.sql:8",
+          "symbol": "as revenue",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 9,
+        "displayed": {
+          "class": "INFERRED",
+          "layer": "dbt",
+          "source": "dbt/models/gold/monthly_sales.sql:12",
+          "symbol": "ref('stg_sales')",
+          "analyzer_status": "inferred",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "dbt",
+          "at": "dbt/models/gold/monthly_sales.sql:12",
+          "symbol": "ref('stg_sales')",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 10,
+        "displayed": {
+          "class": "VERIFIED",
+          "layer": "dbt",
+          "source": "dbt/models/silver/stg_sales.sql:20",
+          "symbol": "as net_revenue",
+          "analyzer_status": "verified",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "dbt",
+          "at": "dbt/models/silver/stg_sales.sql:20",
+          "symbol": "as net_revenue",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 11,
+        "displayed": {
+          "class": "INFERRED",
+          "layer": "dbt",
+          "source": "dbt/models/silver/stg_sales.sql:23",
+          "symbol": "source('bronze','sales')",
+          "analyzer_status": "inferred",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "dbt",
+          "at": "dbt/models/silver/stg_sales.sql:23",
+          "symbol": "source('bronze','sales')",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 12,
+        "displayed": {
+          "class": "INFERRED",
+          "layer": "service",
+          "source": "apps/api/app/services/ducklake.py:139-148",
+          "symbol": "def load_parquet_to_bronze",
+          "analyzer_status": "inferred",
+          "reviewed_confidence": "inferred"
+        },
+        "oracle": {
+          "layer": "service",
+          "at": "apps/api/app/services/ducklake.py:139-148",
+          "symbol": "def load_parquet_to_bronze",
+          "confidence": "inferred"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 13,
+        "displayed": {
+          "class": "VERIFIED",
+          "layer": "service",
+          "source": "apps/api/app/services/generator.py:655",
+          "symbol": "AS net_revenue",
+          "analyzer_status": "verified",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "service",
+          "at": "apps/api/app/services/generator.py:655",
+          "symbol": "AS net_revenue",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      },
+      {
+        "step": 14,
+        "displayed": {
+          "class": "VERIFIED",
+          "layer": "gold",
+          "source": "dbt/models/gold/monthly_sales.sql:8",
+          "symbol": "revenue",
+          "analyzer_status": "verified",
+          "reviewed_confidence": "verified"
+        },
+        "oracle": {
+          "layer": "gold",
+          "at": "dbt/models/gold/monthly_sales.sql:8",
+          "symbol": "revenue",
+          "confidence": "verified"
+        },
+        "same_place_and_symbol": true
+      }
+    ]
+  },
+  "classification_note": "Step 8 VERIFIED means the installed editor really displays the full reviewed 14-hop Revenue KPI trace, matching the oracle place by place, with the analyzer's class per hop. The 7 hops the analyzer grades INFERRED stay INFERRED in the trace itself; nothing was upgraded because the UI was seen.",
+  "evidence_outside_git": {
+    "folder": "side-session notes of the eta lead session's step-8 lane (local_f99d5ec6...), contoso-e2e05-step8-react225/ (run1/ = first run)",
+    "files_sha256": {
+      "01-chartspage-286.png": "59d2ef0c1a2fd5ca4611a4d0b4a1d9b2db716536eddffdfbf089f22ee9c79752",
+      "02-command-palette.png": "401f7dd1e286e8abb613e78597897e71a882ffc1d4cefd519edd1e3cb9e13877",
+      "03-field-revenue.png": "21f0a93b29d58cf3f7b202dd833feee9306d9a96c75c0cc2112f07633b4f73b3",
+      "04-lineage-top.png": "19566308467e10695d476f1efe3971331c446758e0b9a7639d9be8b1069521de",
+      "05-lineage-scroll-1.png": "e0b985354ace689d33acbef44957e5cb151676a1782282ce213c4472069e5e34",
+      "06-link-step13.png": "4c9879a804ae641d0f7b908264910a4d75b62d372ccf208ad1beba72b9ed53de",
+      "06-link-step4.png": "3bebf2b0fb17917d0022f189149afc5ae6477fdcda963ddb39c05f44c08330fb",
+      "STEP8-UI.json": "9341c3371becce73811fd9008531288f81050c012929a6fcf667bf635e4764cb",
+      "run.log": "a9b922ae3f609aa220d314f14be615333e03d6ea425e6a87f19377d772b30a0c",
+      "step8-harness.cjs": "2207d5cdc5aa80ccef4cf03be0245f9d2ece26cae7dd7527df9e6c2fc5e84ad0"
+    },
+    "scan": "no tokens or secrets; screenshots show only synthetic Contoso source and the VS Code UI"
+  },
+  "not_rerun": "E2E-05 steps 1-7 and 9-13 (evidence unchanged)",
+  "totals_after": {
+    "VERIFIED": 13,
+    "INFERRED": 0
+  }
+}
