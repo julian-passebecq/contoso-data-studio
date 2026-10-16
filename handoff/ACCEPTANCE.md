@@ -119,7 +119,7 @@ deep links, Gold build markers, Node 22/26, TRACES.md rendered from traces.json,
   stays PARTIAL; Fabric/E2E-09 excluded.
 - Known: `handoff/` ships inside the zip (repo files, public, no secrets); API-down banner names the developer uvicorn command.
 
-### E2E-05 joint vector on installed artifacts (2026-10-15): PASS, 12 VERIFIED + 1 INFERRED (step 12 re-run)
+### E2E-05 joint vector on installed artifacts (2026-10-15/16): PASS, 13/13 VERIFIED (steps 12 and 8 re-run)
 
 Closes the PARTIAL of 14 Oct (no single run used Mosaic, the Contoso export and React together). One run, one pinned
 vector, every product taken from its private destination (authenticated re-download, sha256 equal; anonymous 401 on all four):
@@ -148,6 +148,15 @@ vector, every product taken from its private destination (authenticated re-downl
   14-hop `charts-kpi-revenue` trace at :286; the VSIX bundle has no `traceLineage`/`compareWithOracle`. Blocker: a
   React extension release that shows request lineage with oracle statuses. Receipt
   `handoff/evidence/e2e-05-step8-react-ui-2026-10-16.json`; screenshots outside Git.
+  **16 Oct evening: VERIFIED on React 2.2.5.** VSIX `datapass-react-2.2.5.vsix` sha256 `daeed367...6ad0` from the React
+  private registry (datapass-react/2.2.5, package 72814764; anonymous 401), installed into an empty `--extensions-dir`
+  (datapass.datapass-react@2.2.5), VS Code 1.142.0, isolated profile, the unpacked 0.3.0 zip (`050b548d...2aa9`) as the
+  folder. Driven with real keystrokes (Playwright `_electron`): cursor at ChartsPage.tsx:286, F1 "DataPass React: Trace
+  Request Lineage", field `revenue`. The Request Lineage Trace webview picked `charts-kpi-revenue` by itself and shows
+  **14/14 grounded -> PASS, 7 VERIFIED + 7 INFERRED, 0 UNMAPPED**; all 14 rows equal the oracle on layer, file:line and
+  symbol; per-step classes identical to the CLI leg; the file:line links of steps 4 (main.py:518) and 13
+  (generator.py:655) open the right file and line. The 7 INFERRED hops stay INFERRED. Receipt
+  `handoff/evidence/e2e-05-step8-react-225-2026-10-16.json`; screenshots outside Git.
 - (12) VERIFIED on installed 0.3.0 bytes (was INFERRED by exact-SHA reuse), `tools/qa_install_package.py --ui`, 50/50
   checks PASS: retail-actuals 72 items, ONLINE/NORD/SOUTH non-empty, unmapped [], app total = Gold total 4,424,416.84
   (0 cents, 240 groups), 10/10 channel/country pairs in one department, Gold digest unchanged by the read; with SOUTH
