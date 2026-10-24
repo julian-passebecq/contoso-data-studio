@@ -1,0 +1,14 @@
+
+> contoso-data-studio-web@0.1.0 test
+> vitest run
+
+
+ RUN  v3.2.7 D:/PROJ/contoso-data-studio-qa-20261004/apps/web
+
+ ✓ src/tutorialProgress.test.ts (7 tests) 9ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  18:22:44
+   Duration  24.31s (transform 89ms, setup 0ms, collect 109ms, tests 9ms, environment 19.02s, prepare 999ms)
+

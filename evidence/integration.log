@@ -1,0 +1,8 @@
+generation_seconds retail-baseline 0.14003250002861023
+GENERATION_PASS
+SEPARATE_PROCESS_PERSISTENCE_PASS
+retail_build_seconds 16.7800947
+gold_query_seconds 0.21693809994030744
+generation_seconds margin-pressure 0.07763349998276681
+margin_build_seconds 18.615299400058575
+INDEPENDENT_RELEASE_FLOW_AND_STALE_PASS

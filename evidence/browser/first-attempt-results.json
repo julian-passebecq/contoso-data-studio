@@ -1,0 +1,32 @@
+{
+  "consoleErrors": [
+    "Keyborg instance k1 is being disposed incorrectly."
+  ],
+  "warnings": [],
+  "exceptions": [],
+  "failedRequests": [],
+  "httpErrors": [],
+  "timings": {
+    "prepareSeconds": 23.297
+  },
+  "checks": [
+    "01-project-ready",
+    "failure"
+  ],
+  "layout": [
+    {
+      "name": "01-project-ready",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "failure",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    }
+  ],
+  "result": "FAIL",
+  "failure": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /10,000 rows/. Input:\n\n'manifest.json\\n' +\n  'JSON · 1 rows\\n' +\n  'Open in Query\\n' +\n  'Data\\n' +\n  'Raw\\n' +\n  'Profile\\n' +\n  'Schema\\n' +\n  'Metadata\\n' +\n  'run_id\\tmanifest_version\\tgenerator_version\\tgenerator_sha256\\tscenario\\tscenario_name\\tbusiness_focus\\tseed\\tscale\\tcreated_at\\tfiles\\tfile_sha256\\trow_counts\\tbronze_loaded_at\\tlast_snapshot_id\\tload_history\\n' +\n  '20261004T162502Z-ce62c16c\\t2\\t0.2.0\\t6a99eadab446c117e9ca1a6b0416e509ff121581c8c2b89539f6bbc6bb0b13f0\\tretail-baseline\\tRetail baseline\\tBaseline revenue, margin, channel and country KPIs.\\t42\\t10000\\t2026-10-04T16:25:02.448522\\t{\"customer\":\"D:\\\\\\\\PROJ\\\\\\\\contoso-data-studio-qa-20261004\\\\\\\\qa-workspace-browser\\\\\\\\staging\\\\\\\\20261004T162502Z-ce62c16c\\\\\\\\customer.parquet\",\"product\":\"D:\\\\\\\\PROJ\\\\\\\\contoso-data-studio-qa-20261004\\\\\\\\qa-workspace-browser\\\\\\\\staging\\\\\\\\20261004T162502Z-ce62c16c\\\\\\\\product.parquet\",\"store\":\"D:\\\\\\\\PROJ\\\\\\\\contoso-data-studio-qa-20261004\\\\\\\\qa-workspace-browser\\\\\\\\staging\\\\\\\\20261004T162502Z-ce62c16c\\\\\\\\store.parquet\",\"currency_exchange\":\"D:\\\\\\\\PROJ\\\\\\\\contoso-data-studio-qa-20261004\\\\\\\\qa-workspace-browser\\\\\\\\staging\\\\\\\\20261004T162502Z-ce62c16c\\\\\\\\currency_exchange.parquet\",\"sales\":\"D:\\\\\\\\PROJ\\\\\\\\contoso-data-studio-qa-20261004\\\\\\\\qa-workspace-browser\\\\\\\\staging\\\\\\\\20261004T162502Z-ce62c16c\\\\\\\\sales.parquet\"}\\t{\"customer\":\"f2ab85e48c1f8e83cde1cacd622ccb23ce6ae5846d83761263f15b89940e65c2\",\"product\":\"1eb4810ec440705d5f13f701037e8e18091184a84575db8314571ab7c8400d62\",\"store\":\"7dcdd7bf85fafcb3a02cc73a353a591394931c9c806cf57c19ab269b6b7dd37f\",\"currency_exchange\":\"818ff485ce581af79e38b4b164f020f66d1e80d48826bbb0036f8c3b485e3923\",\"sales\":\"dd9d6b50dc4e9a59dd766dc12fdd20ca341c3c846dec4f9295ca595028499d47\"}\\t{\"customer\":2000,\"product\":500,\"store\":20,\"currency_exchange\":120,\"sales\":10000}\\t2026-10-04T16:25:04.203493\\t4\\t[{\"loaded_at\":\"2026-10-04T16:25:04.203493\",\"snapshot_id\":4}]'\n\n    at file:///D:/PROJ/contoso-data-studio-qa-20261004/apps/web/qa/extended-qualification.mjs:28:10"
+}

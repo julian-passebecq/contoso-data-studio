@@ -1,0 +1,12 @@
+{
+  "keyboardFocus": {
+    "tag": "BUTTON",
+    "text": "Generate"
+  },
+  "canvasScroll": {
+    "before": 0,
+    "after": 80,
+    "width": 1142,
+    "scrollWidth": 1222
+  }
+}

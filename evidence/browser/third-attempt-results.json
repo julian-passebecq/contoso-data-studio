@@ -1,0 +1,167 @@
+{
+  "consoleErrors": [
+    "Keyborg instance k1 is being disposed incorrectly.",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Keyborg instance k1 is being disposed incorrectly."
+  ],
+  "warnings": [],
+  "exceptions": [],
+  "failedRequests": [
+    {
+      "url": "http://127.0.0.1:5173/api/lakehouse/catalog",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:5173/api/workspace/project-state",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:5173/api/workspace/project-state",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:5173/api/charts/status",
+      "error": {
+        "errorText": "net::ERR_ABORTED"
+      }
+    }
+  ],
+  "httpErrors": [
+    {
+      "url": "http://127.0.0.1:5173/api/query",
+      "status": 400
+    }
+  ],
+  "timings": {
+    "prepareSeconds": 17.696,
+    "exploreSeconds": 0.545,
+    "querySeconds": 0.439
+  },
+  "checks": [
+    "01-project-ready",
+    "02-explore-data",
+    "03-explore-schema",
+    "03-explore-row-groups",
+    "03-explore-metadata",
+    "04-lakehouse-bronze",
+    "05-lakehouse-gold",
+    "06-transform-detail",
+    "07-transform-lineage",
+    "08-query-gold",
+    "09-query-mutation-rejected",
+    "10-charts",
+    "12-canvas",
+    "13-projects-persisted",
+    "14-projects-reloaded",
+    "failure"
+  ],
+  "layout": [
+    {
+      "name": "01-project-ready",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "02-explore-data",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "03-explore-schema",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "03-explore-row-groups",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "03-explore-metadata",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "04-lakehouse-bronze",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "05-lakehouse-gold",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "06-transform-detail",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "07-transform-lineage",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "08-query-gold",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "09-query-mutation-rejected",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": [
+        "Only read-only SQL is accepted"
+      ]
+    },
+    {
+      "name": "10-charts",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "12-canvas",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "13-projects-persisted",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "14-projects-reloaded",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    },
+    {
+      "name": "failure",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "errors": []
+    }
+  ],
+  "readOnlyMessage": "Only read-only SQL is accepted",
+  "result": "FAIL",
+  "failure": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n4 !== 0\n\n    at file:///D:/PROJ/contoso-data-studio-qa-20261004/apps/web/qa/extended-qualification.mjs:64:54"
+}

@@ -1,0 +1,41 @@
+{
+  "run_id": "20261004T162104Z-fec37553",
+  "manifest_version": 2,
+  "generator_version": "0.2.0",
+  "generator_sha256": "6a99eadab446c117e9ca1a6b0416e509ff121581c8c2b89539f6bbc6bb0b13f0",
+  "scenario": "margin-pressure",
+  "scenario_name": "Margin pressure",
+  "business_focus": "Gross margin, discount impact and category profitability.",
+  "seed": 42,
+  "scale": 10000,
+  "created_at": "2026-10-04T16:21:04.711913+00:00",
+  "files": {
+    "customer": "D:\\PROJ\\contoso-data-studio-qa-20261004\\qa-workspace-integration\\staging\\20261004T162104Z-fec37553\\customer.parquet",
+    "product": "D:\\PROJ\\contoso-data-studio-qa-20261004\\qa-workspace-integration\\staging\\20261004T162104Z-fec37553\\product.parquet",
+    "store": "D:\\PROJ\\contoso-data-studio-qa-20261004\\qa-workspace-integration\\staging\\20261004T162104Z-fec37553\\store.parquet",
+    "currency_exchange": "D:\\PROJ\\contoso-data-studio-qa-20261004\\qa-workspace-integration\\staging\\20261004T162104Z-fec37553\\currency_exchange.parquet",
+    "sales": "D:\\PROJ\\contoso-data-studio-qa-20261004\\qa-workspace-integration\\staging\\20261004T162104Z-fec37553\\sales.parquet"
+  },
+  "file_sha256": {
+    "customer": "f2ab85e48c1f8e83cde1cacd622ccb23ce6ae5846d83761263f15b89940e65c2",
+    "product": "1eb4810ec440705d5f13f701037e8e18091184a84575db8314571ab7c8400d62",
+    "store": "7dcdd7bf85fafcb3a02cc73a353a591394931c9c806cf57c19ab269b6b7dd37f",
+    "currency_exchange": "818ff485ce581af79e38b4b164f020f66d1e80d48826bbb0036f8c3b485e3923",
+    "sales": "11fba16978280b90f11049f61affd3afb067fd7dcf70e6d5bdca4b17573bd161"
+  },
+  "row_counts": {
+    "customer": 2000,
+    "product": 500,
+    "store": 20,
+    "currency_exchange": 120,
+    "sales": 10000
+  },
+  "bronze_loaded_at": "2026-10-04T16:21:05.887820+00:00",
+  "last_snapshot_id": 12,
+  "load_history": [
+    {
+      "loaded_at": "2026-10-04T16:21:05.887820+00:00",
+      "snapshot_id": 12
+    }
+  ]
+}

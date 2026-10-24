@@ -1,0 +1,9 @@
+npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open 'D:\PROJ\contoso-data-studio-qa-20261004\apps\web\node_modules\@fluentui\react-icons\lib-cjs\atoms\headless-fonts\home-database.cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat 'D:\PROJ\contoso-data-studio-qa-20261004\apps\web\node_modules\@fluentui\react-icons\lib-cjs\atoms\fonts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat 'D:\PROJ\contoso-data-studio-qa-20261004\apps\web\node_modules\@fluentui\react-icons\lib-cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat 'D:\PROJ\contoso-data-studio-qa-20261004\apps\web\node_modules\@fluentui\react-icons\lib-cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat 'D:\PROJ\contoso-data-studio-qa-20261004\apps\web\node_modules\@fluentui\react-icons\lib-cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat 'D:\PROJ\contoso-data-studio-qa-20261004\apps\web\node_modules\@fluentui\react-icons\lib-cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat 'D:\PROJ\contoso-data-studio-qa-20261004\apps\web\node_modules\@fluentui\react-icons\lib-cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat 'D:\PROJ\contoso-data-studio-qa-20261004\apps\web\node_modules\@fluentui\react-icons\lib-cjs'

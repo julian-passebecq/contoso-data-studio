@@ -1,0 +1,4 @@
+16:20:37  Running with dbt=1.12.5
+16:20:38  Registered adapter: duckdb=1.11.0
+16:20:39  Unable to do partial parsing because profile has changed
+16:20:42  Performance info: dbt\target\perf_info.json

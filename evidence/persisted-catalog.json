@@ -1,0 +1,27 @@
+[
+  {
+    "schema": "bronze",
+    "name": "currency_exchange",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "bronze",
+    "name": "customer",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "bronze",
+    "name": "product",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "bronze",
+    "name": "sales",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "bronze",
+    "name": "store",
+    "type": "BASE TABLE"
+  }
+]

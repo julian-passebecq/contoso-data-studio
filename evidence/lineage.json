@@ -1,0 +1,163 @@
+{
+  "generated_at": "2026-10-04T16:20:51.399388Z",
+  "nodes": [
+    {
+      "id": "source.contoso_data_studio.bronze.currency_exchange",
+      "name": "currency_exchange",
+      "resource_type": "source",
+      "layer": "bronze",
+      "path": "models\\sources.yml",
+      "schema": "bronze",
+      "database": "contoso",
+      "materialized": "source"
+    },
+    {
+      "id": "source.contoso_data_studio.bronze.customer",
+      "name": "customer",
+      "resource_type": "source",
+      "layer": "bronze",
+      "path": "models\\sources.yml",
+      "schema": "bronze",
+      "database": "contoso",
+      "materialized": "source"
+    },
+    {
+      "id": "source.contoso_data_studio.bronze.product",
+      "name": "product",
+      "resource_type": "source",
+      "layer": "bronze",
+      "path": "models\\sources.yml",
+      "schema": "bronze",
+      "database": "contoso",
+      "materialized": "source"
+    },
+    {
+      "id": "source.contoso_data_studio.bronze.sales",
+      "name": "sales",
+      "resource_type": "source",
+      "layer": "bronze",
+      "path": "models\\sources.yml",
+      "schema": "bronze",
+      "database": "contoso",
+      "materialized": "source"
+    },
+    {
+      "id": "source.contoso_data_studio.bronze.store",
+      "name": "store",
+      "resource_type": "source",
+      "layer": "bronze",
+      "path": "models\\sources.yml",
+      "schema": "bronze",
+      "database": "contoso",
+      "materialized": "source"
+    },
+    {
+      "id": "model.contoso_data_studio.stg_sales",
+      "name": "stg_sales",
+      "resource_type": "model",
+      "layer": "silver",
+      "path": "models\\silver\\stg_sales.sql",
+      "schema": "silver",
+      "database": "contoso",
+      "materialized": "table"
+    },
+    {
+      "id": "model.contoso_data_studio.channel_performance",
+      "name": "channel_performance",
+      "resource_type": "model",
+      "layer": "gold",
+      "path": "models\\gold\\channel_performance.sql",
+      "schema": "gold",
+      "database": "contoso",
+      "materialized": "table"
+    },
+    {
+      "id": "model.contoso_data_studio.currency_exposure",
+      "name": "currency_exposure",
+      "resource_type": "model",
+      "layer": "gold",
+      "path": "models\\gold\\currency_exposure.sql",
+      "schema": "gold",
+      "database": "contoso",
+      "materialized": "table"
+    },
+    {
+      "id": "model.contoso_data_studio.delivery_metrics",
+      "name": "delivery_metrics",
+      "resource_type": "model",
+      "layer": "gold",
+      "path": "models\\gold\\delivery_metrics.sql",
+      "schema": "gold",
+      "database": "contoso",
+      "materialized": "table"
+    },
+    {
+      "id": "model.contoso_data_studio.monthly_sales",
+      "name": "monthly_sales",
+      "resource_type": "model",
+      "layer": "gold",
+      "path": "models\\gold\\monthly_sales.sql",
+      "schema": "gold",
+      "database": "contoso",
+      "materialized": "table"
+    },
+    {
+      "id": "model.contoso_data_studio.product_performance",
+      "name": "product_performance",
+      "resource_type": "model",
+      "layer": "gold",
+      "path": "models\\gold\\product_performance.sql",
+      "schema": "gold",
+      "database": "contoso",
+      "materialized": "table"
+    },
+    {
+      "id": "model.contoso_data_studio.store_performance",
+      "name": "store_performance",
+      "resource_type": "model",
+      "layer": "gold",
+      "path": "models\\gold\\store_performance.sql",
+      "schema": "gold",
+      "database": "contoso",
+      "materialized": "table"
+    }
+  ],
+  "edges": [
+    {
+      "source": "model.contoso_data_studio.stg_sales",
+      "target": "model.contoso_data_studio.channel_performance"
+    },
+    {
+      "source": "model.contoso_data_studio.stg_sales",
+      "target": "model.contoso_data_studio.currency_exposure"
+    },
+    {
+      "source": "model.contoso_data_studio.stg_sales",
+      "target": "model.contoso_data_studio.delivery_metrics"
+    },
+    {
+      "source": "model.contoso_data_studio.stg_sales",
+      "target": "model.contoso_data_studio.monthly_sales"
+    },
+    {
+      "source": "model.contoso_data_studio.stg_sales",
+      "target": "model.contoso_data_studio.product_performance"
+    },
+    {
+      "source": "model.contoso_data_studio.stg_sales",
+      "target": "model.contoso_data_studio.store_performance"
+    },
+    {
+      "source": "source.contoso_data_studio.bronze.product",
+      "target": "model.contoso_data_studio.product_performance"
+    },
+    {
+      "source": "source.contoso_data_studio.bronze.sales",
+      "target": "model.contoso_data_studio.stg_sales"
+    },
+    {
+      "source": "source.contoso_data_studio.bronze.store",
+      "target": "model.contoso_data_studio.store_performance"
+    }
+  ]
+}

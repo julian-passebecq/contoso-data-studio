@@ -1,0 +1,62 @@
+[
+  {
+    "schema": "bronze",
+    "name": "currency_exchange",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "bronze",
+    "name": "customer",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "bronze",
+    "name": "product",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "bronze",
+    "name": "sales",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "bronze",
+    "name": "store",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "gold",
+    "name": "channel_performance",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "gold",
+    "name": "currency_exposure",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "gold",
+    "name": "delivery_metrics",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "gold",
+    "name": "monthly_sales",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "gold",
+    "name": "product_performance",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "gold",
+    "name": "store_performance",
+    "type": "BASE TABLE"
+  },
+  {
+    "schema": "silver",
+    "name": "stg_sales",
+    "type": "BASE TABLE"
+  }
+]

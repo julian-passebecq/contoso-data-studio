@@ -1,0 +1,16 @@
+01-project-ready
+02-explore-data
+03-explore-schema
+03-explore-row-groups
+03-explore-metadata
+04-lakehouse-bronze
+05-lakehouse-gold
+06-transform-detail
+07-transform-lineage
+08-query-gold
+09-query-mutation-rejected
+10-charts
+11-charts-validated
+12-canvas
+13-projects-persisted
+14-projects-reloaded
